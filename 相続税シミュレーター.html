@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<title>相続税シミュレーター</title>
+<style>
+  :root{
+    --ink:#1b2a4a; --ink-soft:#46506a; --paper:#f7f5ef; --surface:#ffffff;
+    --brass:#9a7b4f; --brass-deep:#7d6240; --rule:#e3ddcf; --rule-soft:#eee9dd;
+    --credit:#2f6b4f; --loss:#9b3b3b;
+    --shadow:0 1px 2px rgba(27,42,74,.05),0 8px 28px rgba(27,42,74,.07);
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+    --gothic:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","YuGothic","Noto Sans JP",system-ui,sans-serif;
+    --mincho:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--gothic);line-height:1.7;font-size:15px;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 72px;}
+  .back{display:inline-block;font-size:12.5px;color:var(--brass-deep);text-decoration:none;margin-bottom:14px;}
+  .back:hover{text-decoration:underline;}
+  header{border-bottom:1px solid var(--rule);padding-bottom:20px;margin-bottom:26px;}
+  .eyebrow{font-family:var(--mincho);font-size:12px;letter-spacing:.42em;color:var(--brass-deep);margin:0 0 8px;}
+  h1{font-family:var(--mincho);font-weight:600;font-size:26px;letter-spacing:.03em;margin:0;color:var(--ink);}
+  .sub{margin:9px 0 0;color:var(--ink-soft);font-size:13.5px;}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start;}
+  @media (max-width:860px){.grid{grid-template-columns:1fr;gap:20px;}}
+  .panel{background:var(--surface);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:22px;}
+  .panel-head{padding:14px 20px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:baseline;gap:10px;}
+  .panel-head .no{font-family:var(--mono);font-size:12px;color:var(--brass);letter-spacing:.05em;}
+  .panel-head h2{font-family:var(--mincho);font-size:16px;font-weight:600;margin:0;letter-spacing:.04em;}
+  .panel-body{padding:20px;}
+  .field{margin-bottom:15px;}
+  .field:last-child{margin-bottom:0;}
+  label.lab{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;letter-spacing:.02em;}
+  .lab .q{font-weight:400;color:#8a8470;font-size:11px;}
+  .hint{font-size:11.5px;color:#8a8470;font-weight:400;margin-top:5px;line-height:1.55;}
+  .warn{font-size:12px;color:#8a4b2f;background:#fbf1e8;border:1px solid #e3c3a8;border-left:3px solid #b5623a;border-radius:6px;padding:9px 12px;margin-top:10px;line-height:1.6;}
+  .info{font-size:12.5px;color:#25406b;background:#eef2fa;border:1px solid #c3d2ea;border-left:3px solid var(--ink);border-radius:6px;padding:9px 12px;margin-top:10px;line-height:1.6;}
+  .info b{color:var(--ink);}
+  .inrow{display:flex;align-items:center;gap:8px;}
+  .inrow .u{font-size:12.5px;color:var(--ink-soft);white-space:nowrap;}
+  input[type=text],select{width:100%;font-family:var(--gothic);font-size:14.5px;color:var(--ink);background:#fcfbf8;border:1px solid var(--rule);border-radius:7px;padding:10px 12px;transition:border-color .15s,box-shadow .15s;}
+  input.yen,input.num{font-family:var(--mono);text-align:right;}
+  input.num{width:64px;padding:8px 10px;}
+  input:focus,select:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 3px rgba(154,123,79,.16);}
+  .heirgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;align-items:center;}
+  .heircell{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;color:var(--ink);}
+  details.adv{margin-top:4px;border-top:1px dashed var(--rule);padding-top:12px;}
+  details.adv summary{font-size:12.5px;font-weight:600;color:var(--brass-deep);cursor:pointer;list-style:none;}
+  details.adv summary::-webkit-details-marker{display:none;}
+  details.adv summary::before{content:"▸ ";}
+  details.adv[open] summary::before{content:"▾ ";}
+  .out-rows{padding:6px 20px 14px;}
+  .orow{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--rule-soft);}
+  .orow .k{font-size:13px;color:var(--ink-soft);}
+  .orow .v{font-family:var(--mono);font-size:15px;color:var(--ink);}
+  .orow.hero{border-bottom:2px solid var(--ink);}
+  .orow.hero .k{font-family:var(--mincho);font-size:15px;color:var(--ink);font-weight:600;}
+  .orow.hero .v{font-family:var(--mincho);font-size:22px;color:var(--brass-deep);font-weight:600;}
+  .orow.net .v{color:var(--loss);font-weight:700;}
+  .orow .v small{font-size:12px;color:var(--ink-soft);font-family:var(--gothic);}
+  table.tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.tbl th{font-size:10.5px;font-weight:600;letter-spacing:.06em;color:#fff;background:var(--ink);padding:8px;text-align:right;}
+  table.tbl th:first-child{text-align:left;}
+  table.tbl td{padding:8px;border-bottom:1px solid var(--rule-soft);text-align:right;font-family:var(--mono);white-space:nowrap;}
+  table.tbl td:first-child{text-align:left;font-family:var(--gothic);}
+  table.tbl tfoot td{border-top:2px solid var(--ink);font-weight:700;background:#fbfaf6;}
+  .sec-h{font-size:11px;letter-spacing:.1em;color:var(--brass-deep);font-weight:600;padding:14px 20px 0;}
+  footer{margin-top:20px;font-size:11.5px;color:#8a8470;line-height:1.7;border-top:1px solid var(--rule);padding-top:16px;}
+  footer b{color:var(--ink-soft);}
+  .divider-note{font-size:11.5px;color:#8a8470;margin:0 0 14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="index.html">← FPシミュレーター トップへ</a>
+<header>
+  <p class="eyebrow">Inheritance Tax Simulator</p>
+  <h1>相続税シミュレーター</h1>
+  <p class="sub">課税価格・基礎控除・法定相続分課税方式による相続税の総額、配偶者の税額軽減・2割加算・各種税額控除後の納付税額まで試算します。令和6年（2024年）改正反映の<b>概算</b>です。</p>
+</header>
+
+<div class="fpbar">
+  <button type="button" class="fpbtn" onclick="FP.clearAll()">クリア</button>
+  <button type="button" class="fpbtn" onclick="FP.saveFile()">保存</button>
+  <button type="button" class="fpbtn" onclick="FP.loadFile()">読込</button>
+  <button type="button" class="fpbtn fpbtn-pdf" onclick="FP.printPDF()">PDF・共有</button>
+  <input type="file" id="fpLoadInput" accept=".json,application/json" style="display:none;">
+</div>
+
+<div class="grid">
+  <!-- 入力 -->
+  <section class="panel">
+    <div class="panel-head"><span class="no">01</span><h2>財産・相続人を入力</h2></div>
+    <div class="panel-body">
+      <div class="field">
+        <label class="lab">相続財産額 <span class="q">土地・建物・預貯金・有価証券・生保等の課税対象額</span></label>
+        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="assets" value="0"><span class="u">円</span></div>
+      </div>
+      <div class="field">
+        <label class="lab">非課税財産額 <span class="q">生保・退職金の非課税枠（500万×法定相続人）等</span></label>
+        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="hikazei" value="0"><span class="u">円</span></div>
+      </div>
+      <div class="field">
+        <label class="lab">債務・葬式費用</label>
+        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="debts" value="0"><span class="u">円</span></div>
+      </div>
+      <div class="field">
+        <label class="lab">3年以内の贈与額 <span class="q">生前贈与加算（暦年課税）</span></label>
+        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="gift3" value="0"><span class="u">円</span></div>
+      </div>
+      <div class="field">
+        <label class="lab">4〜7年以内の贈与額 <span class="q">100万円控除後の値。令和6年1月以降の贈与のみ</span></label>
+        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="gift47" value="0"><span class="u">円</span></div>
+      </div>
+      <div class="field">
+        <label class="lab">相続時精算課税の加算額 <span class="q">精算課税で贈与した財産（年110万控除後の累計）</span></label>
+        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="seisan" value="0"><span class="u">円</span></div>
+      </div>
+
+      <div class="field" style="margin-top:18px;">
+        <label class="lab">法定相続人</label>
+        <div class="heirgrid">
+          <div class="heircell" style="grid-column:1/-1;"><span>配偶者</span>
+            <select id="spouse" style="width:auto;"><option value="1" selected>配偶者あり</option><option value="0">配偶者なし</option></select></div>
+          <div class="heircell"><span>子</span><span><input type="text" inputmode="numeric" class="num" id="children" value="0"> 人</span></div>
+          <div class="heircell"><span>養子</span><span><input type="text" inputmode="numeric" class="num" id="adopted" value="0"> 人</span></div>
+          <div class="heircell"><span>直系尊属</span><span><input type="text" inputmode="numeric" class="num" id="parents" value="0"> 人</span></div>
+          <div class="heircell"><span>兄弟姉妹</span><span><input type="text" inputmode="numeric" class="num" id="siblings" value="0"> 人</span></div>
+          <div class="heircell" style="grid-column:1/-1;"><span>その他（受遺者・特別寄与者）<span class="q">2割加算対象</span></span><span><input type="text" inputmode="numeric" class="num" id="others" value="0"> 人</span></div>
+        </div>
+        <div class="hint">相続順位：①子（実子＋養子）→ ②直系尊属 → ③兄弟姉妹。上位がいれば下位は相続人になりません。養子は基礎控除・法定相続分の計算上、実子ありで1人・なしで2人まで算入。「その他」は法定相続人ではなく総額計算には影響せず、取得時に2割加算で課税されます。</div>
+      </div>
+
+      <div class="field" style="margin-top:18px;">
+        <label class="lab">遺産分割（各相続人の取得割合）
+          <button type="button" id="resetSplit" style="float:right;font-size:11px;font-weight:600;color:var(--brass-deep);background:#fcfbf8;border:1px solid var(--rule);border-radius:6px;padding:3px 9px;cursor:pointer;">法定相続分に戻す</button>
+        </label>
+        <div id="splitSection"></div>
+        <div id="splitSum" class="hint"></div>
+        <div class="hint">初期値は法定相続分。各人の取得割合(%)を入力すると、<b>最終の法定相続人の欄が「100%−他の合計」に自動調整</b>されます（「自動（残り）」と表示・入力不可）。相続人ごとの納付税額と配偶者の税額軽減は実際の分割に応じて再計算。「法定相続分に戻す」で初期化。</div>
+      </div>
+
+      <details class="adv">
+        <summary>税額控除（任意）</summary>
+        <div style="margin-top:12px;">
+          <div class="field"><label class="lab">未成年者控除（合計）</label><div class="inrow"><input type="text" inputmode="numeric" class="yen" id="cMinor" value="0"><span class="u">円</span></div><div class="hint">18歳までの年数×10万円</div></div>
+          <div class="field"><label class="lab">障害者控除（合計）</label><div class="inrow"><input type="text" inputmode="numeric" class="yen" id="cDisabled" value="0"><span class="u">円</span></div><div class="hint">85歳までの年数×10万円（特別障害者20万円）</div></div>
+          <div class="field"><label class="lab">相次相続控除</label><div class="inrow"><input type="text" inputmode="numeric" class="yen" id="cSuccessive" value="0"><span class="u">円</span></div><div class="hint">10年以内に続けて相続があった場合</div></div>
+          <div class="field"><label class="lab">贈与税額控除</label><div class="inrow"><input type="text" inputmode="numeric" class="yen" id="cGiftTax" value="0"><span class="u">円</span></div><div class="hint">生前贈与加算分に課された贈与税・精算課税で納付済の贈与税</div></div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- 出力 -->
+  <section class="panel">
+    <div class="panel-head"><span class="no">02</span><h2>相続税額</h2></div>
+    <div class="out-rows" id="outRows"></div>
+    <div class="sec-h">相続人ごとの納付税額（入力した取得割合に応じて計算）</div>
+    <div style="padding:8px 16px 18px;overflow-x:auto;" id="heirTableWrap"></div>
+    <div style="padding:0 20px 20px;" id="notes"></div>
+  </section>
+</div>
+
+<footer>
+  <b>前提・出典</b>：本ツールは2026年7月時点の制度に基づく<b>概算</b>です。相続税の総額は「課税遺産総額を法定相続分で按分し速算表を適用して合算」する法定相続分課税方式で算定。相続人ごとの税額は<b>法定相続分どおり取得した前提</b>で、配偶者の税額軽減は「配偶者が法定相続分または1億6,000万円のいずれか多い額まで取得」として全額控除しています。実際の遺産分割・小規模宅地等の特例・自社株の納税猶予・農地等の特例により納税額は大きく変わります。孫養子・兄弟姉妹・受遺者は2割加算。<br>
+  速算表・基礎控除の出典：<a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4155.htm">国税庁 No.4155 相続税の税率</a>／<a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm">No.4152 相続税の計算</a>。生前贈与加算7年化：令和6年1月以降の贈与に段階適用。
+</footer>
+</div>
+
+<script>
+"use strict";
+/* ===== 共通ヘルパー（スイート統一：全角対応・コンマ整形・IME確定対応） ===== */
+function zen2han(s){return String(s).replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[，、]/g,',');}
+function formatYen(el){
+  const half=zen2han(el.value);
+  const digitsBefore=half.slice(0,el.selectionStart).replace(/[^\d]/g,'').length;
+  const raw=half.replace(/[^\d]/g,'');
+  el.value=raw?Number(raw).toLocaleString('ja-JP'):'';
+  let pos=0,count=0;
+  if(digitsBefore>0){for(let i=0;i<el.value.length;i++){const ch=el.value.charCodeAt(i);if(ch>=48&&ch<=57)count++;if(count>=digitsBefore){pos=i+1;break;}}if(count<digitsBefore)pos=el.value.length;}
+  try{el.setSelectionRange(pos,pos);}catch(e){}
+}
+function attachClearOnly(el){
+  el.addEventListener('focus',function(){this.dataset.prev=this.value;if(this.value)this.placeholder=this.value;this.value='';});
+  el.addEventListener('blur',function(){if(this.value===''&&this.dataset.prev)this.value=this.dataset.prev;recalc();});
+}
+function attachAmount(el){
+  let composing=false;
+  el.addEventListener('compositionstart',()=>{composing=true;});
+  el.addEventListener('compositionend',()=>{composing=false;formatYen(el);recalc();});
+  el.addEventListener('input',e=>{if(composing||e.isComposing)return;formatYen(el);recalc();});
+  attachClearOnly(el);
+}
+const yen=v=>Math.round(v).toLocaleString('ja-JP');
+const floor100=v=>Math.floor(v/100)*100;
+function numV(id){return parseFloat(zen2han(document.getElementById(id).value).replace(/,/g,''))||0;}
+function intV(id){return Math.max(0,Math.floor(numV(id)));}
+
+/* ===== 相続税 速算表（国税庁 No.4155・検算済み） ===== */
+function sokusan(x){
+  x=Math.max(0,x);
+  if(x<=10000000)  return x*0.10;
+  if(x<=30000000)  return x*0.15-500000;
+  if(x<=50000000)  return x*0.20-2000000;
+  if(x<=100000000) return x*0.30-7000000;
+  if(x<=200000000) return x*0.40-17000000;
+  if(x<=300000000) return x*0.45-27000000;
+  if(x<=600000000) return x*0.50-42000000;
+  return x*0.55-72000000;
+}
+
+/* ===== 計算 ===== */
+let userShares={};   // ユーザーが上書きした取得割合(%) を heirId で保持
+let STRUCT_KEY=null;  // 相続人構成が変わったら分割UIを作り直す
+
+// 構成・相続税の総額・相続人リストを算定
+function buildStruct(){
+  const assets=numV('assets'), hikazei=numV('hikazei'), debts=numV('debts');
+  const gift3=numV('gift3'), gift47=numV('gift47'), seisan=numV('seisan');
+  const spouse=document.getElementById('spouse').value==='1';
+  const children=intV('children'), adopted=intV('adopted'), parents=intV('parents'), siblings=intV('siblings'), others=intV('others');
+
+  const kazei = Math.max(0, assets - hikazei - debts) + gift3 + gift47 + seisan; // 課税価格の合計額
+
+  const adoptedCounted = children>0 ? Math.min(adopted,1) : Math.min(adopted,2);
+  let branch='', branchCount=0, spouseShare=0, branchShareTotal=0, branchSurcharge=false, branchName='';
+  if(children+adoptedCounted>0){ branch='child'; branchName='子'; branchCount=children+adoptedCounted; spouseShare=spouse?0.5:0; branchShareTotal=spouse?0.5:1; }
+  else if(parents>0){ branch='parent'; branchName='直系尊属'; branchCount=parents; spouseShare=spouse?(2/3):0; branchShareTotal=spouse?(1/3):1; }
+  else if(siblings>0){ branch='sibling'; branchName='兄弟姉妹'; branchCount=siblings; branchSurcharge=true; spouseShare=spouse?0.75:0; branchShareTotal=spouse?0.25:1; }
+  else { branch='none'; branchName=''; branchCount=0; spouseShare=spouse?1:0; branchShareTotal=0; }
+
+  const heirCount = (spouse?1:0) + branchCount;
+  const kiso = 30000000 + 6000000*heirCount;
+  const kazeiIsan = Math.max(0, kazei - kiso);
+
+  // 相続税の総額（法定相続分で按分→速算表→合算。実際の分割に依らず一定）
+  let total=0;
+  if(heirCount>0 && kazeiIsan>0){
+    if(spouse) total+=sokusan(kazeiIsan*spouseShare);
+    for(let i=0;i<branchCount;i++) total+=sokusan(kazeiIsan*branchShareTotal/branchCount);
+  }
+  total=floor100(total);
+
+  // 相続人リスト（取得割合を割り当てる対象）
+  const heirs=[];
+  if(spouse) heirs.push({id:'spouse',label:'配偶者',isSpouse:true,isLegal:true,surcharge:false,legalFrac:spouseShare});
+  for(let i=0;i<branchCount;i++) heirs.push({id:branch+'_'+i,label:branchName+(branchCount>1?('（'+(i+1)+'）'):''),isSpouse:false,isLegal:true,surcharge:branchSurcharge,legalFrac:branchShareTotal/branchCount});
+  for(let i=0;i<others;i++) heirs.push({id:'other_'+i,label:'その他'+(others>1?('（'+(i+1)+'）'):''),isSpouse:false,isLegal:false,surcharge:true,legalFrac:0});
+
+  // 残余（自動100%調整）の対象＝最後の法定相続人。いなければ最後の相続人。
+  const legals=heirs.filter(h=>h.isLegal);
+  const residualId = legals.length? legals[legals.length-1].id : (heirs.length? heirs[heirs.length-1].id : null);
+
+  const structKey=[spouse,branch,branchCount,others].join('|');
+  return {kazei,heirCount,kiso,kazeiIsan,total,heirs,spouseShare,adopted,adoptedCounted,children,others,structKey,residualId};
+}
+
+// 分割UI（取得割合の入力欄）を構成が変わったときだけ作り直す
+function syncSplitUI(st){
+  if(st.structKey===STRUCT_KEY) return;
+  STRUCT_KEY=st.structKey;
+  const box=document.getElementById('splitSection');
+  if(!st.heirs.length){ box.innerHTML='<div class="hint">法定相続人がいません。</div>'; return; }
+  let h='';
+  for(const he of st.heirs){
+    const isRes=he.id===st.residualId;
+    const def= he.isLegal ? Math.round(he.legalFrac*1000)/10 : 0;
+    const val=(he.id in userShares)?userShares[he.id]:def;
+    const style=`width:72px;font-family:var(--mono);text-align:right;padding:8px 10px;`+(isRes?'background:#f2eee3;color:#8a8470;':'');
+    h+=`<div class="heircell" style="margin-bottom:6px;"><span>${he.label}${he.surcharge?' <span class="q">2割加算</span>':''}<span class="atag" data-for="${he.id}" style="font-size:10px;color:var(--brass-deep);margin-left:6px;"></span></span>`
+      +`<span><input type="text" inputmode="decimal" class="share" data-id="${he.id}" value="${val}" ${isRes?'readonly':''} style="${style}"> %</span></div>`;
+  }
+  box.innerHTML=h;
+}
+
+// 取得割合を算定。最後の法定相続人(residualId)を「残り＝100%−他の合計」で
+// 常に自動調整する。それ以外は手入力(userShares)、未入力なら法定相続分%（その他=0）。
+function computeShares(st){
+  const pct={}; let sumOthers=0;
+  for(const he of st.heirs){
+    if(he.id===st.residualId) continue;
+    const def = he.isLegal ? Math.round(he.legalFrac*1000)/10 : 0;
+    const v = (he.id in userShares) ? Math.max(0,userShares[he.id]) : def;
+    pct[he.id]=v; sumOthers+=v;
+  }
+  if(st.residualId!=null) pct[st.residualId]=Math.round(Math.max(0,100-sumOthers)*10)/10;
+  let sum=0; for(const he of st.heirs) sum+=(pct[he.id]||0);
+  const frac={}; for(const he of st.heirs){ frac[he.id]= sum>0? (pct[he.id]||0)/sum : he.legalFrac; }
+  return {pct,frac,sum,soleAuto: st.residualId};
+}
+
+function render(){
+  const st=buildStruct();
+  syncSplitUI(st);
+  const sh=computeShares(st);
+
+  // 入力欄へ反映（フォーカス中の欄は上書きしない）＋「自動」タグ
+  for(const he of st.heirs){
+    const inp=document.querySelector(`#splitSection input.share[data-id="${he.id}"]`);
+    if(inp && document.activeElement!==inp){ inp.value=String(Math.round((sh.pct[he.id]||0)*10)/10); }
+    const tag=document.querySelector(`#splitSection .atag[data-for="${he.id}"]`);
+    if(tag) tag.textContent=(he.id===sh.soleAuto)?'自動（残り）':'';
+  }
+
+  // 相続人ごと（実際の取得割合ベース）
+  const rows=[]; let spouseCredit=0, surchargeTotal=0;
+  for(const he of st.heirs){
+    const f=sh.frac[he.id]||0;
+    const base=st.total*f;                 // 算出税額 = 相続税の総額 × あん分割合
+    let credit=0;
+    if(he.isSpouse){
+      const actual=st.kazei*f;             // 配偶者の取得課税価格
+      const limit=Math.max(st.kazei*st.spouseShare, 160000000); // 法定相続分 or 1.6億の多い方
+      credit = st.kazei>0 ? st.total*Math.min(actual,limit)/st.kazei : 0;
+      if(credit>base) credit=base;
+      spouseCredit+=credit;
+    }
+    const sur = he.surcharge ? base*0.2 : 0;
+    surchargeTotal+=sur;
+    rows.push({name:he.label,pct:f*100,base,surcharge:sur,credit,net:Math.max(0,base+sur-credit)});
+  }
+  const otherCredits = numV('cMinor')+numV('cDisabled')+numV('cSuccessive')+numV('cGiftTax');
+  const netTotal = Math.max(0, st.total + surchargeTotal - spouseCredit - otherCredits);
+
+  // 取得割合の合計表示
+  {
+    const over = sh.sum>100.05;
+    document.getElementById('splitSum').innerHTML = sh.soleAuto
+      ? (over
+          ? `⚠ 入力済みの取得割合の合計が100%を超えています（${sh.sum.toFixed(1)}%）。最終の相続人の欄は0%になります。`
+          : `最終の法定相続人の欄を自動調整し、合計は<b>100%</b>です ✓`)
+      : (sh.sum>0 ? `取得割合の合計：<b>${sh.sum.toFixed(1)}%</b>（100%になるよう正規化して計算）` : '相続人がいません。');
+  }
+
+  // 出力行
+  let o='';
+  o+=`<div class="orow"><span class="k">課税価格の合計額</span><span class="v">${yen(st.kazei)} 円</span></div>`;
+  o+=`<div class="orow"><span class="k">基礎控除額 <small>（3,000万＋600万×${st.heirCount}人）</small></span><span class="v">${yen(st.kiso)} 円</span></div>`;
+  o+=`<div class="orow"><span class="k">課税遺産総額</span><span class="v">${yen(st.kazeiIsan)} 円</span></div>`;
+  o+=`<div class="orow hero"><span class="k">相続税の総額（税額控除前）</span><span class="v">${yen(st.total)}<small> 円</small></span></div>`;
+  if(surchargeTotal>0) o+=`<div class="orow"><span class="k">＋ 2割加算</span><span class="v">${yen(surchargeTotal)} 円</span></div>`;
+  if(spouseCredit>0) o+=`<div class="orow"><span class="k">− 配偶者の税額軽減</span><span class="v">-${yen(spouseCredit)} 円</span></div>`;
+  if(otherCredits>0) o+=`<div class="orow"><span class="k">− その他の税額控除</span><span class="v">-${yen(otherCredits)} 円</span></div>`;
+  o+=`<div class="orow net"><span class="k" style="font-weight:600;">納付税額の合計</span><span class="v">${yen(netTotal)} 円</span></div>`;
+  document.getElementById('outRows').innerHTML=o;
+
+  // 相続人ごとの表
+  if(rows.length && st.total>0){
+    let t=`<table class="tbl"><thead><tr><th>相続人</th><th>取得割合</th><th>算出税額</th><th>2割加算</th><th>配偶者軽減</th><th>納付税額</th></tr></thead><tbody>`;
+    for(const row of rows){
+      t+=`<tr><td>${row.name}</td><td>${row.pct.toFixed(1)}%</td><td>${yen(row.base)}</td><td>${row.surcharge?yen(row.surcharge):'—'}</td><td>${row.credit?('-'+yen(row.credit)):'—'}</td><td><b>${yen(row.net)}</b></td></tr>`;
+    }
+    const sumNet=rows.reduce((a,b)=>a+b.net,0);
+    t+=`</tbody><tfoot><tr><td>合計</td><td>${rows.reduce((a,b)=>a+b.pct,0).toFixed(0)}%</td><td>${yen(st.total)}</td><td>${surchargeTotal?yen(surchargeTotal):'—'}</td><td>${spouseCredit?('-'+yen(spouseCredit)):'—'}</td><td>${yen(sumNet)}</td></tr></tfoot></table>`;
+    if(otherCredits>0) t+=`<div class="hint" style="margin-top:8px;">上表は各種税額控除（未成年者・障害者・相次相続・贈与税額）を反映していません。これらを差し引いた世帯合計が上の「納付税額の合計 ${yen(netTotal)}円」です。</div>`;
+    document.getElementById('heirTableWrap').innerHTML=t;
+  } else {
+    document.getElementById('heirTableWrap').innerHTML=`<div class="hint">課税遺産総額が基礎控除以下のため、相続税はかかりません（申告不要の可能性）。ただし配偶者の税額軽減・小規模宅地等の特例を使って申告により非課税とする場合は申告が必要です。</div>`;
+  }
+
+  // 注記
+  let n='';
+  if(st.adopted>0 && st.adopted>st.adoptedCounted){
+    n+=`<div class="warn">養子${st.adopted}人のうち、基礎控除・法定相続分の計算に算入できるのは<b>${st.adoptedCounted}人</b>まで（実子${document.getElementById('children').value}人）。残りは相続人ですが基礎控除の頭数には入りません。孫を養子にした場合、その孫養子の相続税は<b>2割加算</b>になります（代襲相続人を除く）。</div>`;
+  }
+  n+=`<div class="info">相続税の総額 ${yen(st.total)}円 は税額控除前で、遺産分割に依らず一定です。上の「取得割合」を動かすと、相続人ごとの納付額と配偶者の税額軽減が実際の分割に応じて変わります。配偶者は<b>法定相続分（この例では${yen(st.kazei*st.spouseShare)}円）または1億6,000万円の多い方</b>まで取得しても相続税ゼロ。ただし一次相続で配偶者に寄せすぎると、二次相続（配偶者の相続）で軽減が使えず子の負担が増えるため、一次・二次の通算での最適割合の検討が重要です。生命保険の非課税枠（500万×法定相続人＝${yen(5000000*st.heirCount)}円）の活用余地も併せてご提案ください。</div>`;
+  document.getElementById('notes').innerHTML=n;
+}
+
+function recalc(){ render(); }
+
+/* ===== 配線 ===== */
+document.querySelectorAll('input.yen').forEach(attachAmount);
+document.querySelectorAll('input.num').forEach(el=>{
+  el.addEventListener('focus',function(){this.dataset.prev=this.value;this.value='';});
+  el.addEventListener('blur',function(){if(this.value.trim()==='')this.value=this.dataset.prev||'0';recalc();});
+  el.addEventListener('input',()=>{el.value=zen2han(el.value).replace(/[^\d]/g,'');recalc();});
+});
+document.getElementById('spouse').addEventListener('change',recalc);
+document.getElementById('splitSection').addEventListener('input',e=>{
+  const el=e.target.closest('input.share'); if(!el)return;
+  userShares[el.dataset.id]=parseFloat(zen2han(el.value))||0;
+  render();
+});
+document.getElementById('resetSplit').addEventListener('click',()=>{ userShares={}; STRUCT_KEY=null; render(); });
+render();
+</script>
+
+<script>
+/* ===== FPコア（全ツール共通：クリア／自動保存／JSON保存・読込／PDF・共有） ===== */
+window.FP=(function(){
+  var KEY='',RECALC=null;
+  function els(){return Array.prototype.slice.call(document.querySelectorAll('input[id],select[id],textarea[id]')).filter(function(e){return e.id!=='fpLoadInput';});}
+  function ser(){var o={};els().forEach(function(e){o[e.id]=(e.type==='checkbox')?e.checked:e.value;});return o;}
+  function resx(o){els().forEach(function(e){if(Object.prototype.hasOwnProperty.call(o,e.id)){if(e.type==='checkbox')e.checked=!!o[e.id];else e.value=o[e.id];}});}
+  function save(){try{localStorage.setItem('fp:'+KEY,JSON.stringify(ser()));}catch(x){}}
+  function load(){try{var s=localStorage.getItem('fp:'+KEY);if(s){resx(JSON.parse(s));return true;}}catch(x){}return false;}
+  function clearAll(){
+    if(!window.confirm('入力内容をすべてクリアします。よろしいですか？'))return;
+    els().forEach(function(e){if(e.type==='checkbox')e.checked=false;else if(e.tagName==='SELECT')e.selectedIndex=0;else e.value='';});
+    try{localStorage.removeItem('fp:'+KEY);}catch(x){}
+    STRUCT_KEY=null; userShares={};
+    if(RECALC)RECALC();
+  }
+  function dl(name,text,mime){var b=new Blob([text],{type:mime});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);}
+  function payload(){return JSON.stringify({tool:KEY,savedAt:new Date().toISOString(),inputs:ser()},null,2);}
+  function saveFile(){
+    var name=KEY+'_'+new Date().toISOString().slice(0,10)+'.json';var data=payload();
+    if(window.showSaveFilePicker){
+      window.showSaveFilePicker({suggestedName:name,types:[{description:'FPシミュレーター データ',accept:{'application/json':['.json']}}]})
+        .then(function(h){return h.createWritable();}).then(function(w){return w.write(data).then(function(){return w.close();});})
+        .catch(function(){});
+    }else{dl(name,data,'application/json');}
+  }
+  function loadFile(){var fi=document.getElementById('fpLoadInput');if(fi)fi.click();}
+  function onFile(ev){var f=ev.target.files[0];if(!f)return;var r=new FileReader();
+    r.onload=function(){try{var o=JSON.parse(r.result);resx(o.inputs||o);STRUCT_KEY=null;if(RECALC)RECALC();save();}catch(x){window.alert('読み込みに失敗しました（ファイル形式が不正です）。');}};
+    r.readAsText(f);ev.target.value='';}
+  function printPDF(){window.print();}
+  function injectCSS(){var s=document.createElement('style');
+    s.textContent='.fpbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 20px;}'
+      +'.fpbtn{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-soft,#46506a);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);border-radius:7px;padding:8px 14px;cursor:pointer;transition:all .15s;}'
+      +'.fpbtn:hover{border-color:var(--brass,#9a7b4f);color:var(--ink,#1b2a4a);}'
+      +'.fpbtn-pdf{background:var(--brass,#9a7b4f);color:#fff;border-color:var(--brass-deep,#7d6240);}'
+      +'.fpbtn-pdf:hover{background:var(--brass-deep,#7d6240);color:#fff;}'
+      +'@media print{.fpbar,.back,button{display:none!important;}body{background:#fff;}.panel{box-shadow:none;break-inside:avoid;}}';
+    document.head.appendChild(s);}
+  function init(key,recalc){KEY=key;RECALC=recalc;injectCSS();
+    var fi=document.getElementById('fpLoadInput');if(fi)fi.addEventListener('change',onFile);
+    document.addEventListener('input',save);document.addEventListener('change',save);
+    if(load()&&RECALC)RECALC();}
+  return {init:init,clearAll:clearAll,saveFile:saveFile,loadFile:loadFile,printPDF:printPDF,save:save};
+})();
+FP.init('souzokuzei', recalc);
+</script>
+</body>
+</html>

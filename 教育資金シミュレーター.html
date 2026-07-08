@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<title>教育資金シミュレーター</title>
+<style>
+  :root{--ink:#1b2a4a;--ink-soft:#46506a;--paper:#f7f5ef;--surface:#fff;--brass:#9a7b4f;--brass-deep:#7d6240;--rule:#e3ddcf;--rule-soft:#eee9dd;--credit:#2f6b4f;--loss:#9b3b3b;--shadow:0 1px 2px rgba(27,42,74,.05),0 8px 28px rgba(27,42,74,.07);--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--gothic:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;--mincho:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;}
+  *{box-sizing:border-box;}html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--gothic);line-height:1.7;font-size:15px;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1140px;margin:0 auto;padding:26px 20px 72px;}
+  .back{font-size:12px;color:var(--brass-deep);text-decoration:none;}.back:hover{text-decoration:underline;}
+  header{border-bottom:1px solid var(--rule);padding:14px 0 22px;margin-bottom:26px;}
+  .eyebrow{font-family:var(--mincho);font-size:12px;letter-spacing:.42em;color:var(--brass-deep);margin:0 0 8px;}
+  h1{font-family:var(--mincho);font-weight:600;font-size:24px;letter-spacing:.03em;margin:0;}
+  .sub{margin:9px 0 0;color:var(--ink-soft);font-size:13.5px;}
+  .grid{display:grid;grid-template-columns:minmax(0,0.95fr) minmax(0,1.22fr);gap:26px;align-items:start;}
+  @media(max-width:900px){.grid{grid-template-columns:1fr;gap:22px;}}
+  .panel{background:var(--surface);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;}
+  .panel-head{padding:15px 20px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:baseline;gap:10px;}
+  .panel-head .no{font-family:var(--mono);font-size:12px;color:var(--brass);}
+  .panel-head h2{font-family:var(--mincho);font-size:16px;font-weight:600;margin:0;letter-spacing:.04em;}
+  .panel-body{padding:20px;}
+  .grp{font-size:11px;letter-spacing:.08em;color:var(--brass-deep);font-weight:700;margin:20px 0 12px;padding-bottom:5px;border-bottom:1px solid var(--rule-soft);}
+  .grp:first-child{margin-top:0;}
+  .field{margin-bottom:15px;}.field:last-child{margin-bottom:0;}
+  label.lab{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:7px;}
+  .hint{font-size:11.5px;color:#8a8470;margin-top:5px;line-height:1.55;}
+  .warn{font-size:12px;color:#8a4b2f;background:#fbf1e8;border:1px solid #e3c3a8;border-left:3px solid #b5623a;border-radius:6px;padding:9px 12px;margin-top:8px;line-height:1.6;}
+  .warn b{color:#7d3f26;}
+  .info{font-size:12.5px;color:#25406b;background:#eef2fa;border:1px solid #c3d2ea;border-left:3px solid var(--ink);border-radius:6px;padding:9px 12px;margin-top:8px;line-height:1.6;}
+  .info b{color:var(--ink);}
+  input[type=number],input[type=text],select{width:100%;font-family:var(--gothic);font-size:14px;color:var(--ink);background:#fcfbf8;border:1px solid var(--rule);border-radius:7px;padding:9px 11px;transition:border-color .15s,box-shadow .15s;}
+  input[type=number],input.yen{font-family:var(--mono);text-align:right;}
+  input::placeholder{color:#c3bda9;}
+  input:focus,select:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 3px rgba(154,123,79,.16);}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+  @media(max-width:520px){.row2{grid-template-columns:1fr 1fr;}}
+  .child{border:1px solid var(--rule);border-radius:9px;padding:14px;margin-bottom:12px;background:#fcfbf8;}
+  .child .chead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .child .chead b{font-family:var(--mincho);font-size:14px;color:var(--brass-deep);}
+  .child .del{font-size:11px;color:var(--loss);background:none;border:1px solid #e0c3c3;border-radius:6px;padding:3px 9px;cursor:pointer;}
+  .child .del:hover{background:#fbf0f0;}
+  .cf{margin-bottom:9px;}.cf:last-child{margin-bottom:0;}
+  .cf label{display:block;font-size:11px;font-weight:600;color:var(--ink-soft);margin-bottom:4px;}
+  .btn{font-family:var(--gothic);font-size:14px;font-weight:600;border-radius:8px;padding:11px 18px;cursor:pointer;border:1px solid transparent;transition:all .15s;}
+  .btn-add{background:transparent;color:var(--brass-deep);border:1px dashed var(--brass);width:100%;transition:all .15s;}
+  .btn-add:hover{background:#faf6ee;}
+  .btn-add.copied{background:var(--credit);color:#fff;border:1px solid var(--credit);}
+  .btn-primary{background:var(--brass);color:#fff;border-color:var(--brass-deep);width:100%;margin-top:14px;}
+  .btn-primary:hover{background:var(--brass-deep);}
+  .result-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:20px;}@media(max-width:520px){.result-cards{grid-template-columns:1fr;}}
+  .rc{border:1px solid var(--rule);border-radius:9px;padding:14px 16px;background:#fcfbf8;}
+  .rc.hero{grid-column:1/-1;background:#fbf1e8;border-color:#e3c3a8;}
+  .rc .k{font-size:11.5px;color:var(--ink-soft);font-weight:600;margin-bottom:5px;}
+  .rc .v{font-family:var(--mincho);font-size:21px;color:var(--ink);font-weight:600;}
+  .rc.hero .v{font-size:26px;color:var(--brass-deep);}
+  .rc .v small{font-size:13px;color:var(--ink-soft);font-family:var(--gothic);font-weight:400;}
+  .rc .note{font-size:11px;color:#8a8470;margin-top:4px;line-height:1.5;}
+  .chartwrap{padding:6px 16px 8px;}.chartwrap svg{width:100%;height:auto;display:block;}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-soft);padding:2px 20px 14px;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}.legend i{width:12px;height:12px;border-radius:3px;display:inline-block;}
+  table.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+  table.tbl th{font-size:10.5px;font-weight:600;color:#fff;background:var(--ink);padding:8px 7px;text-align:right;}
+  table.tbl th:first-child{text-align:left;}
+  table.tbl td{padding:8px 7px;border-bottom:1px solid var(--rule-soft);text-align:right;font-family:var(--mono);white-space:nowrap;}
+  table.tbl td:first-child{text-align:left;font-family:var(--gothic);}
+  table.tbl tr.now td{background:#eef4ef;font-weight:600;}
+  .sec-h{font-size:11px;letter-spacing:.1em;color:var(--brass-deep);font-weight:600;padding:16px 20px 0;}
+  .placeholder{padding:56px 24px;text-align:center;color:#a39d8a;font-size:13.5px;}
+  .placeholder .mark{font-family:var(--mincho);font-size:34px;color:var(--rule);display:block;margin-bottom:10px;}
+  footer{margin-top:26px;font-size:11.5px;color:#8a8470;line-height:1.7;border-top:1px solid var(--rule);padding-top:16px;}
+  footer b{color:var(--ink-soft);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="index.html">← FPシミュレーター一覧へ</a>
+<header>
+  <p class="eyebrow">大学資金の準備 ─ 毎月いくら積み立てるか</p>
+  <h1>教育資金シミュレーター</h1>
+  <p class="sub">お子さまごとの進路・自宅／下宿・奨学金と、ご両親の年齢から、<b>今から毎月いくら積み立てればよいか</b>を逆算します。「在学中に収入から払う」で積立を抑える効果、<b>開始が遅れるほど毎月額が増える</b>こと、<b>教育が終わる頃の親の年齢</b>（＝ローンが組みにくくなる前に始める根拠）まで可視化。費用は各種調査に基づく<b>目安（概算）</b>。</p>
+</header>
+
+<div class="fpbar">
+  <button type="button" class="fpbtn" onclick="FP.clearAll()">クリア</button>
+  <button type="button" class="fpbtn" onclick="FP.saveFile()">保存</button>
+  <button type="button" class="fpbtn" onclick="FP.loadFile()">読込</button>
+  <button type="button" class="fpbtn fpbtn-pdf" onclick="FP.printPDF()">PDF・共有</button>
+  <input type="file" id="fpLoadInput" accept=".json,application/json" style="display:none;">
+</div>
+
+<div class="grid">
+  <section class="panel">
+    <div class="panel-head"><span class="no">01</span><h2>条件を入力</h2></div>
+    <div class="panel-body">
+
+      <div class="grp">ご両親の年齢</div>
+      <div class="row2">
+        <div class="field"><label class="lab">父の現在の年齢</label><input type="text" inputmode="decimal" id="fatherAge" value="40" step="1" min="18" max="80"></div>
+        <div class="field"><label class="lab">母の現在の年齢</label><input type="text" inputmode="decimal" id="motherAge" value="38" step="1" min="18" max="80"></div>
+      </div>
+
+      <div class="grp">お子さま（＋で追加）</div>
+      <div id="childList"></div>
+      <button class="btn btn-add" id="addChild">＋ お子さまを追加</button>
+      <button class="btn btn-add" id="applyFirst" style="margin-top:8px;">お子さま1の内容を以降にコピー（年齢は除く）</button>
+      <div class="hint" style="margin-top:5px;">進路（通学形態）・奨学金・貯蓄をコピーします（<b>年齢は各お子さまのまま</b>）。</div>
+
+      <div class="grp">準備の前提</div>
+      <div class="row2">
+        <div class="field"><label class="lab" style="min-height:2.7em;">積立の想定利回り（年％）</label><input type="text" inputmode="decimal" id="rate" value="0.5" step="0.1"></div>
+        <div class="field"><label class="lab" style="min-height:2.7em;">在学中に収入から出す月額（子1人）</label><input type="text" inputmode="numeric" class="yen" id="zaigaku" value="" placeholder="0"></div>
+      </div>
+      <div class="hint" style="margin-top:-6px;">「在学中に収入から出す月額」を入れると、その分は<b>事前に積み立てなくてよい</b>ので毎月の積立額が下がります（大学期に給与等から支払う前提）。</div>
+      <div class="field" style="margin-top:12px;">
+        <label class="lab">積立を完了する時期</label>
+        <select id="finishTiming"><option value="1" selected>入学の1年前まで（理想）</option><option value="0">入学時まで</option><option value="2">入学の2年前まで</option></select>
+        <div class="hint">在学中は仕送りで手一杯になりがちなので、<b>入学の1年前までに貯め終える</b>のが理想です。積立期間が短くなる分、毎月額は上がります。</div>
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label class="lab">開始遅延の比較（4つ目の年数）</label>
+        <select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select>
+        <div class="hint">比較表は「今すぐ・1年後・3年後」＋ここで選んだ年数で表示します。</div>
+      </div>
+
+      <div class="grp">奨学金の返済（貸与型の場合）</div>
+      <div class="row2">
+        <div class="field"><label class="lab">奨学金の利率（年％）</label><input type="text" inputmode="decimal" id="loanRate" value="0.5" step="0.1"></div>
+        <div class="field"><label class="lab">卒業後の返済 月額</label><input type="text" inputmode="numeric" class="yen" id="repayMonthly" value="" placeholder="15,000"></div>
+      </div>
+      <div class="hint" style="margin-top:-6px;">「奨学金 月額」を入れた場合、卒業後に本人がいくらずつ返すと何歳で完済するかを試算します（第一種＝無利子は利率0、第二種＝有利子は0.5%前後が目安）。</div>
+
+      <details style="margin-top:12px;border-top:1px dashed var(--rule);padding-top:12px;">
+        <summary style="font-size:12.5px;font-weight:600;color:var(--brass-deep);cursor:pointer;">下宿費用の前提を調整</summary>
+        <div class="row2" style="margin-top:12px;">
+          <div class="field"><label class="lab" style="font-size:11.5px;">仕送り 年額</label><input type="text" inputmode="numeric" class="yen" id="shiokuri" value="" placeholder="900,000"></div>
+          <div class="field"><label class="lab" style="font-size:11.5px;">下宿の初期費用（一括）</label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
+        </div>
+      </details>
+
+      <div class="grp">NISA・投資で貯める場合の暴落リスク</div>
+      <div class="row2" style="align-items:end;">
+        <div class="field"><label class="lab">投資で準備する教育資金</label><input type="text" inputmode="numeric" class="yen" id="nisaAmount" value="" placeholder="0"></div>
+        <div class="field"><label class="lab">想定する暴落（過去の実例）</label>
+          <select id="nisaScenario">
+            <option value="corona">コロナ級（−34%・回復1年）</option>
+            <option value="lehman" selected>リーマン級（−55%・回復5年）</option>
+            <option value="dotcom">ITバブル級（−49%・回復7年）</option>
+            <option value="nikkei">日経バブル級（−82%・回復34年）</option>
+          </select>
+        </div>
+      </div>
+      <div class="hint">入学時点で暴落が来ると評価額が下がり、回復まで満額使えません。使う時期が決まった教育資金の投資リスクを可視化します（金額0なら非表示）。</div>
+
+      <button class="btn btn-primary" id="calcBtn" style="margin-top:16px;">必要な積立額を計算</button>
+    </div>
+  </section>
+
+  <section class="panel" id="out">
+    <div class="panel-head"><span class="no">02</span><h2>結果</h2></div>
+    <div id="outBody"><div class="placeholder"><span class="mark">✎</span>お子さまを追加して「必要な積立額を計算」を押してください。</div></div>
+  </section>
+</div>
+
+<footer>
+  <b>免責・前提</b>：費用は2025年時点の各種調査（文部科学省 学生納付金調査・国立大学標準額、日本政策金融公庫 教育費負担の実態調査 等）に基づく<b>目安（概算）</b>です。国立＝入学金282,000円＋授業料535,800円×年数、私立文系 約400万・理系 約540万・医歯系(6年) 約2,300万・薬学(6年) 約1,200万・短大/専門(2年) 約200〜230万（入学金込み総額の目安）。下宿は仕送り 年約90万＋初期費用 約40万。「在学中に収入から出す月額」は複数のお子さまの在学が重なる年は合算負担になる点にご留意ください。<b>2025年度からの多子世帯（扶養する子3人以上）大学等授業料無償化（上限あり）</b>等の支援制度は含めていません。正確な費用・利回りは各校・各商品でご確認ください。
+</footer>
+</div>
+
+<script>
+"use strict";
+/* ===== 金額欄 共通ヘルパー（全角対応・フォーカスで全選択・カンマ整形）※全モジュール統一 ===== */
+function zen2han(s){return String(s).replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[，、]/g,',');}
+function formatYen(el){
+  const half=zen2han(el.value);
+  const digitsBefore=half.slice(0,el.selectionStart).replace(/[^\d]/g,'').length;
+  const raw=half.replace(/[^\d]/g,'');
+  el.value=raw?Number(raw).toLocaleString('ja-JP'):'';
+  let pos=0,count=0;
+  if(digitsBefore>0){for(let i=0;i<el.value.length;i++){const ch=el.value.charCodeAt(i);if(ch>=48&&ch<=57)count++;if(count>=digitsBefore){pos=i+1;break;}}if(count<digitsBefore)pos=el.value.length;}
+  try{el.setSelectionRange(pos,pos);}catch(e){}
+}
+function attachAmount(el){
+  let composing=false;
+  el.addEventListener('compositionstart',()=>{composing=true;});
+  el.addEventListener('compositionend',()=>{composing=false;formatYen(el);}); // 全角(IME)確定時に半角化＋整形
+  el.addEventListener('input',e=>{if(composing||e.isComposing)return;formatYen(el);}); // 変換中は整形しない
+  // カーソルを合わせると既存の金額をクリア（前の値はプレースホルダに退避）。何も入力せず離れたら元に戻す。
+  el.addEventListener('focus',function(){this.dataset.prev=this.value;if(this.value)this.placeholder=this.value;this.value='';});
+  el.addEventListener('blur',function(){if(this.value===''&&this.dataset.prev)this.value=this.dataset.prev;});
+}
+
+/* ===== 進路プリセット（親負担・入学金込み総額の目安） ===== */
+const COURSES={
+  kokuritsu:{name:'国立大学',years:4,cost:2430000},
+  kouritsu:{name:'公立大学',years:4,cost:2540000},
+  shibun:{name:'私立 文系',years:4,cost:4000000},
+  shiri:{name:'私立 理系',years:4,cost:5400000},
+  igaku:{name:'私立 医・歯系(6年)',years:6,cost:23000000},
+  yaku:{name:'私立 薬学(6年)',years:6,cost:12000000},
+  tandai:{name:'短大(2年)',years:2,cost:2000000},
+  senmon:{name:'専門学校(2年)',years:2,cost:2300000}
+};
+const ENTER_AGE=18;
+/* 過去の代表的な暴落（株価指数の最大下落率と、元値に戻るまでの概算年数） */
+const CRASH={
+  corona:{name:'コロナショック級',drop:0.34,recover:1},
+  lehman:{name:'リーマンショック級',drop:0.55,recover:5},
+  dotcom:{name:'ITバブル崩壊級',drop:0.49,recover:7},
+  nikkei:{name:'日経バブル崩壊級',drop:0.82,recover:34}
+};
+
+let ready=false; // trueになったら入力変更で自動再計算
+
+/* 年齢など数値欄：カーソルで既存値をクリア（前値はプレースホルダに退避）、未入力で離れたら復元 */
+function attachClear(el){
+  el.addEventListener('focus',function(){this.dataset.prev=this.value;if(this.value)this.placeholder=this.value;this.value='';});
+  el.addEventListener('blur',function(){if(this.value===''&&this.dataset.prev)this.value=this.dataset.prev;});
+}
+
+/* ===== 子リスト管理 ===== */
+function addChild(data){
+  data=data||{};
+  const div=document.createElement('div');
+  div.className='child';
+  let opts='';
+  for(const k in COURSES){
+    for(const live of ['home','away']){
+      const label=COURSES[k].name+'（'+(live==='home'?'自宅':'下宿')+'）';
+      const sel=(data.course===k && (data.live||'home')===live)?'selected':'';
+      opts+=`<option value="${k}|${live}" ${sel}>${label}</option>`;
+    }
+  }
+  div.innerHTML=`
+    <div class="chead"><b>お子さま</b><button class="del" type="button">削除</button></div>
+    <div class="row2">
+      <div class="cf"><label>現在の年齢</label><input type="text" inputmode="decimal" class="c-age" value="${data.age!=null?data.age:5}" step="1" min="0" max="30"></div>
+      <div class="cf"><label>進路（通学形態）</label><select class="c-plan">${opts}</select></div>
+    </div>
+    <div class="row2">
+      <div class="cf"><label>奨学金 月額</label><input type="text" inputmode="numeric" class="yen c-scholar" value="" placeholder="0"></div>
+      <div class="cf"><label>この子の現在の教育貯蓄</label><input type="text" inputmode="numeric" class="yen c-saved" value="" placeholder="0"></div>
+    </div>
+  `;
+  document.getElementById('childList').appendChild(div);
+  div.querySelector('.del').addEventListener('click',()=>{div.remove();renumber();if(ready)simulate();});
+  div.querySelectorAll('input.yen').forEach(attachAmount);
+  attachClear(div.querySelector('.c-age'));
+  renumber();
+  if(ready)simulate();
+}
+function renumber(){document.querySelectorAll('.child').forEach((c,i)=>{c.querySelector('.chead b').textContent='お子さま '+(i+1);});}
+document.getElementById('addChild').addEventListener('click',()=>addChild());
+function applyFirstToAll(){
+  const kids=document.querySelectorAll('.child');
+  if(kids.length<2){alert('お子さまが2人以上のときに使えます。');return;}
+  const f=kids[0];
+  const plan=f.querySelector('.c-plan').value, scholar=f.querySelector('.c-scholar').value, saved=f.querySelector('.c-saved').value;
+  kids.forEach((c,i)=>{ if(i===0)return;              // 年齢はコピーしない（各お子さまのまま）
+    c.querySelector('.c-plan').value=plan;
+    c.querySelector('.c-scholar').value=scholar;
+    c.querySelector('.c-saved').value=saved;
+  });
+  if(ready)simulate();
+  // 押下フィードバック（色を変える）※インラインで確実に適用
+  const btn=document.getElementById('applyFirst');
+  btn.style.background='#2f6b4f';btn.style.color='#fff';btn.style.borderStyle='solid';btn.style.borderColor='#2f6b4f';
+  btn.textContent='コピーしました ✓';
+  setTimeout(()=>{btn.style.background='';btn.style.color='';btn.style.borderStyle='';btn.style.borderColor='';btn.textContent='お子さま1の内容を以降にコピー（年齢は除く）';},2000);
+}
+document.getElementById('applyFirst').addEventListener('click',applyFirstToAll);
+document.querySelectorAll('.field .yen').forEach(attachAmount);
+['fatherAge','motherAge'].forEach(id=>attachClear(document.getElementById(id)));
+addChild({age:5,course:'shibun',live:'home'});
+addChild({age:2,course:'shiri',live:'away'});
+
+/* ===== 計算 ===== */
+function num(el){return parseFloat(zen2han(el.value).replace(/,/g,''))||0;}
+function readChildren(){
+  const arr=[];
+  document.querySelectorAll('.child').forEach(c=>{
+    const plan=(c.querySelector('.c-plan').value||'shibun|home').split('|');
+    arr.push({age:parseFloat(c.querySelector('.c-age').value)||0,course:plan[0],live:plan[1]||'home',scholar:num(c.querySelector('.c-scholar')),saved:num(c.querySelector('.c-saved'))});
+  });
+  return arr;
+}
+function monthlySaving(target,saved,years,rate){
+  if(years<=0)return null;
+  const need=Math.max(0,target - saved*Math.pow(1+rate,years));
+  const months=years*12;
+  if(rate<=0)return need/months;
+  const rm=rate/12;
+  return need*rm/(Math.pow(1+rm,months)-1);
+}
+
+let LAST=null;
+function simulate(){
+  const rate=(parseFloat(document.getElementById('rate').value)||0)/100;
+  const zaigaku=num(document.getElementById('zaigaku'));
+  const shiokuri=num(document.getElementById('shiokuri'));
+  const initCost=num(document.getElementById('initCost'));
+  const fatherAge=parseFloat(document.getElementById('fatherAge').value)||0;
+  const motherAge=parseFloat(document.getElementById('motherAge').value)||0;
+  const loanRate=(parseFloat(document.getElementById('loanRate').value)||0)/100;
+  const repayMonthly=num(document.getElementById('repayMonthly'));
+  const finishOffset=parseInt(document.getElementById('finishTiming').value,10)||0; // 入学の何年前に貯め終えるか
+  const children=readChildren();
+
+  const results=children.map(ch=>{
+    const co=COURSES[ch.course];
+    const away=ch.live==='away';
+    const gakuhi=co.cost, soufu=away?shiokuri*co.years:0, shoki=away?initCost:0;
+    const totalCost=gakuhi+soufu+shoki;
+    const scholarTotal=ch.scholar*12*co.years;
+    const zaigakuTotal=zaigaku*12*co.years;               // 在学中に収入から出す分
+    const parentBurden=Math.max(0,totalCost-scholarTotal);
+    const presaveTarget=Math.max(0,parentBurden-zaigakuTotal); // 入学までに積み立てる分
+    const yearsToEnter=Math.max(0,ENTER_AGE-ch.age);
+    const yearsToSave=Math.max(0,yearsToEnter-finishOffset); // 積立完了時期（入学の◯年前）まで
+    const gradYears=(ENTER_AGE-ch.age)+co.years;          // 卒業までの相対年数
+    const monthly=monthlySaving(presaveTarget,ch.saved,yearsToSave,rate);
+    // 奨学金（貸与）の卒業後返済
+    const borrowed=scholarTotal;
+    const gradAge=ENTER_AGE+co.years;                     // 卒業時の年齢（22/24/20）
+    let repayMonths=null,repayNever=false,totalRepay=0,finishAge=null;
+    if(borrowed>0 && repayMonthly>0){
+      const rm=loanRate/12;
+      if(rm<=0){repayMonths=Math.ceil(borrowed/repayMonthly);}
+      else if(repayMonthly<=borrowed*rm){repayNever=true;}
+      else{repayMonths=Math.ceil(-Math.log(1-borrowed*rm/repayMonthly)/Math.log(1+rm));}
+      if(!repayNever){totalRepay=repayMonthly*repayMonths;finishAge=gradAge+Math.ceil(repayMonths/12);}
+    }
+    return {...ch,co,away,gakuhi,soufu,shoki,totalCost,scholarTotal,zaigakuTotal,parentBurden,presaveTarget,yearsToEnter,yearsToSave,gradYears,monthly,borrowed,gradAge,repayMonths,repayNever,totalRepay,finishAge};
+  });
+
+  // 年ごとの教育費（今後26年）
+  const horizon=26;
+  const yearly=new Array(horizon+1).fill(0);
+  results.forEach(r=>{
+    const enterYear=ENTER_AGE-r.age;
+    for(let k=0;k<r.co.years;k++){const y=enterYear+k;if(y<0||y>horizon)continue;let cost=r.gakuhi/r.co.years+(r.away?r.soufu/r.co.years:0);if(k===0)cost+=r.shoki;yearly[y]+=cost;}
+  });
+
+  // 開始遅延の比較（世帯の毎月積立）：今すぐ・1年後・3年後＋選択した年数
+  const delay4=parseInt(document.getElementById('delay4').value,10)||5;
+  const delayScan=[0,1,3,delay4].map(D=>{
+    let sum=0, needLoan=false;
+    results.forEach(r=>{const m=monthlySaving(r.presaveTarget,r.saved,r.yearsToSave-D,rate);if(m==null)needLoan=true;else sum+=m;});
+    return {D,sum,needLoan};
+  });
+
+  const firstEnterYears=results.length?Math.min(...results.map(r=>r.yearsToEnter)):0;
+  const eduEndYears=results.length?Math.max(...results.map(r=>r.gradYears)):0;
+
+  // NISA・投資の暴落リスク
+  const nisaAmount=num(document.getElementById('nisaAmount'));
+  const nisaKey=document.getElementById('nisaScenario').value;
+  const nisa=nisaAmount>0?{amount:nisaAmount,scenario:CRASH[nisaKey]}:null;
+
+  LAST={rate,zaigaku,fatherAge,motherAge,finishOffset,results,yearly,delayScan,firstEnterYears,eduEndYears,repayMonthly,nisa};
+  render(LAST);
+}
+
+/* ===== 描画 ===== */
+function yen(v){return Math.round(v).toLocaleString('ja-JP');}
+function man(v){return (v/10000).toFixed(0);}
+function render(R){
+  const {results,yearly,delayScan,firstEnterYears,eduEndYears,fatherAge,motherAge,zaigaku,repayMonthly,nisa,finishOffset}=R;
+  const totalMonthly=results.reduce((s,r)=>s+(r.monthly||0),0);
+  const totalBurden=results.reduce((s,r)=>s+r.parentBurden,0);
+  const peak=yearly.reduce((m,v,i)=>v>m.v?{v,i}:m,{v:0,i:0});
+  const fatherEnd=fatherAge+eduEndYears, motherEnd=motherAge+eduEndYears;
+
+  let html='';
+  html+=`<div class="result-cards">
+    <div class="rc hero"><div class="k">今から必要な毎月の積立額（世帯合計）</div>
+      <div class="v">${yen(totalMonthly)}<small> 円／月</small></div>
+      <div class="note">お子さま${results.length}人分。${finishOffset>0?('<b>入学の'+finishOffset+'年前まで</b>に貯め終える前提。'):'入学時までに貯め終える前提。'}親負担の総額 約${yen(totalBurden)}円${zaigaku>0?('（うち在学中に収入から出す分を除いた積立分）'):''}。</div></div>
+    <div class="rc"><div class="k">教育費のピーク年</div><div class="v" style="font-size:18px;">${peak.v>0?('今から'+peak.i+'年後'):'—'}</div><div class="note">${peak.v>0?('その年の教育費 約'+yen(peak.v)+'円。在学が重なる山。'):'—'}</div></div>
+    <div class="rc"><div class="k">教育が終わる頃の親の年齢</div><div class="v" style="font-size:18px;${fatherEnd>=60?'color:var(--loss);':''}">父${fatherEnd}歳 / 母${motherEnd}歳</div><div class="note">末子卒業まで約${eduEndYears}年後。${fatherEnd>=60?'この年齢では教育ローンの返済が難しくなります。':'ここまでに準備を終えたい。'}</div></div>
+  </div>`;
+
+  // 開始遅延の比較
+  html+=`<div class="sec-h">③ 積立の開始が遅れると毎月額はどれだけ増えるか（世帯合計）</div>`;
+  html+=`<div style="padding:8px 16px 6px;overflow-x:auto;"><table class="tbl"><thead><tr><th>積立の開始</th><th>毎月の必要積立額</th><th>今すぐとの差</th></tr></thead><tbody>`;
+  const base=delayScan[0].sum;
+  delayScan.forEach(d=>{
+    const label=d.D===0?'今すぐ開始':`${d.D}年 先送り`;
+    html+=`<tr class="${d.D===0?'now':''}"><td>${label}${d.needLoan?' ⚠':''}</td><td>${yen(d.sum)}円/月${d.needLoan?'＋ローン':''}</td><td>${d.D===0?'—':('＋'+yen(d.sum-base)+'円/月')}</td></tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  html+=`<div style="padding:0 20px 4px;"><div class="warn"><b>先送りは高くつく：</b>開始が遅れるほど積立期間が短くなり、同じ目標でも毎月額が跳ね上がります（⚠は入学までに間に合わずローンが必要になるケース）。<b>親の年齢を考えると、教育ローンは末子卒業時に返済しづらい</b>——だからこそ今から始めるのが有利です。</div></div>`;
+
+  // 子ごとの表（学費から差し引ける額の内訳つき）
+  html+=`<div class="sec-h">お子さまごとの内訳（総費用 − 奨学金 − 在学中払い ＝ 積立で用意）</div>`;
+  html+=`<div style="padding:8px 16px 18px;overflow-x:auto;"><table class="tbl"><thead><tr><th>お子さま</th><th>進路</th><th>総費用</th><th>−奨学金</th><th>−在学中払い</th><th>積立で用意</th><th>積立期間</th><th>毎月積立</th></tr></thead><tbody>`;
+  results.forEach((r,i)=>{
+    html+=`<tr><td>${i+1}（${r.age}歳）</td><td>${r.co.name}${r.away?'・下宿':'・自宅'}</td><td>${yen(r.totalCost)}</td><td>${r.scholarTotal?('-'+yen(r.scholarTotal)):'—'}</td><td>${r.zaigakuTotal?('-'+yen(r.zaigakuTotal)):'—'}</td><td>${yen(r.presaveTarget)}</td><td>${r.yearsToSave>0?(r.yearsToSave+'年'):'完了/終了'}</td><td><b>${r.monthly!=null?(yen(r.monthly)+'円'):'—'}</b></td></tr>`;
+  });
+  html+=`</tbody></table></div>`;
+
+  // 奨学金の返済シミュレーション
+  const withLoan=results.filter(r=>r.borrowed>0);
+  if(withLoan.length){
+    html+=`<div class="sec-h">奨学金の返済シミュレーション（卒業後・本人が返済）</div>`;
+    html+=`<div style="padding:8px 16px 6px;overflow-x:auto;"><table class="tbl"><thead><tr><th>お子さま</th><th>借入総額</th><th>返済 月額</th><th>返済期間</th><th>完済年齢</th><th>総返済額</th></tr></thead><tbody>`;
+    results.forEach((r,i)=>{
+      if(r.borrowed<=0)return;
+      if(r.repayNever){
+        html+=`<tr><td>${i+1}</td><td>${yen(r.borrowed)}</td><td>${yen(repayMonthly)}</td><td colspan="3" style="color:var(--loss);text-align:left;">返済額が利息を下回り完済できません（月額を上げてください）</td></tr>`;
+      }else{
+        html+=`<tr><td>${i+1}</td><td>${yen(r.borrowed)}</td><td>${yen(repayMonthly)}</td><td>${(r.repayMonths/12).toFixed(1)}年（${r.repayMonths}回）</td><td><b>${r.finishAge}歳</b></td><td>${yen(r.totalRepay)}</td></tr>`;
+      }
+    });
+    html+=`</tbody></table></div>`;
+    html+=`<div style="padding:0 20px 4px;"><div class="info"><b>奨学金は「借金」：</b>貸与型はお子さま本人が卒業後に返済します。月${yen(repayMonthly)}円ずつ返す場合の完済年齢は上表のとおり。返済が長引くほど結婚・住宅購入など本人の人生設計に影響します。<b>親が積立で用意できれば、この返済負担そのものを軽減できます</b>（＝奨学金に頼らない準備＝学資保険・積立の提案根拠）。</div></div>`;
+  } else {
+    html+=`<div class="sec-h">奨学金の返済シミュレーション（卒業後・本人が返済）</div>`;
+    html+=`<div style="padding:8px 20px 16px;"><div class="hint" style="font-size:12.5px;line-height:1.7;">お子さま欄の<b>「奨学金 月額」</b>に金額を入れて計算すると、貸与型奨学金の<b>借入総額・返済期間・完済年齢・総返済額</b>がここに表示されます（現在は0円のため非表示）。返済条件（利率・卒業後の返済月額）は入力パネルの「奨学金の返済（貸与型の場合）」で設定できます。</div></div>`;
+  }
+
+  // タイムライン
+  html+=chartSVG(R);
+  html+=`<div class="legend"><span><i style="background:#9a7b4f;"></i>その年の教育費</span><span><i style="background:#dfe8d8;"></i>積立に集中できる期間（教育費が始まる前）</span></div>`;
+
+  // NISA・投資の暴落リスク
+  if(nisa){
+    const s=nisa.scenario, A=nisa.amount, crashVal=Math.round(A*(1-s.drop));
+    html+=`<div class="sec-h">NISA・投資で貯めた場合の暴落リスク（${s.name}）</div>`;
+    html+=`<div class="result-cards" style="padding-top:12px;">
+      <div class="rc"><div class="k">入学時に暴落すると評価額は</div><div class="v" style="font-size:18px;color:var(--loss);">${yen(A)} → ${yen(crashVal)}<small>円</small></div><div class="note">${(s.drop*100).toFixed(0)}%下落。含み損 ${yen(A-crashVal)}円。</div></div>
+      <div class="rc"><div class="k">元の水準に戻るまで</div><div class="v" style="font-size:18px;">約${s.recover}<small>年</small></div><div class="note">その間に取り崩すと安値で売り、損失が確定します。</div></div>
+    </div>`;
+    html+=nisaChartSVG(nisa);
+    html+=`<div style="padding:2px 20px 8px;font-size:11.5px;color:var(--ink-soft);">茶＝投資の評価額（入学時＝0年で暴落→回復）、緑の破線＝必要額（元本）。回復まで必要額を下回り、この間は満額を使えません。</div>`;
+    html+=`<div style="padding:0 20px 14px;"><div class="warn"><b>使う時期が決まったお金は投資に不向き：</b>教育資金は使う時期（入学）を動かせません。直前に暴落すると回復を待てず、安値で取り崩すことに。<b>入学の1〜2年前までに現金・預金へ移す（守りに切り替える）</b>のが鉄則です。増やすなら早い時期に、直前は取り崩しリスクを避ける設計を（前述の「入学1年前までに完了」と同じ考え方）。</div></div>`;
+  }
+
+  html+=`<div style="padding:0 20px 22px;">
+    <div class="info"><b>② 積立を抑えるアイデア：</b>「在学中に収入から出す月額」を使うと、その分は事前積立が不要になり毎月額が下がります。ほかに、児童手当を貯める・学資保険で18歳満期に合わせる・NISAで運用利回りを乗せる・進路の幅を現実的に見積もる、なども有効です。ただし在学中の支出は<b>家計の現役期</b>にかかるので、退職や収入減の時期と重ならないか確認を。</div>
+    <div class="info" style="margin-top:8px;"><b>④ 貯蓄時期の可視化：</b>グラフの薄い帯が「教育費が始まる前＝積立に集中できる期間」です。ここを逃すと、在学中は家計から教育費が出ていくため貯めにくくなります。<b>末子卒業時に父は${fatherEnd}歳</b>——ローンで先送りしても返済年齢が高くなるため、今の積立が最も効きます。</div>
+  </div>`;
+
+  document.getElementById('outBody').innerHTML=html;
+}
+
+function chartSVG(R){
+  const {yearly,firstEnterYears,fatherAge}=R;
+  const n=yearly.length;
+  const W=680,H=310,pad={l:56,r:14,t:16,b:46};
+  let ymax=0;yearly.forEach(v=>ymax=Math.max(ymax,v));ymax=ymax*1.12||1;
+  const bw=(W-pad.l-pad.r)/n;
+  const X=i=>pad.l+i*bw;
+  const Y=v=>H-pad.b-(v/ymax)*(H-pad.t-pad.b);
+  let g=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  // 積立集中期間の帯
+  if(firstEnterYears>0){g+=`<rect x="${X(0)}" y="${pad.t}" width="${(X(firstEnterYears)-X(0)).toFixed(1)}" height="${H-pad.t-pad.b}" fill="#dfe8d8" opacity="0.7"/>`;}
+  for(let i=0;i<=4;i++){const v=ymax*i/4;g+=`<line x1="${pad.l}" y1="${Y(v)}" x2="${W-pad.r}" y2="${Y(v)}" stroke="#f2eee3"/><text x="${pad.l-6}" y="${Y(v)+3}" font-size="9" fill="#8a8470" text-anchor="end">${man(v)}万</text>`;}
+  yearly.forEach((v,i)=>{if(v<=0)return;const x=X(i);g+=`<rect x="${(x+1).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${Math.max(1,bw-2).toFixed(1)}" height="${(Y(0)-Y(v)).toFixed(1)}" fill="#9a7b4f"/>`;});
+  // x軸：年数 と 父の年齢
+  for(let i=0;i<=n;i+=5){const x=X(i);g+=`<text x="${x.toFixed(1)}" y="${H-pad.b+15}" font-size="10" fill="#8a8470" text-anchor="middle">${i}年</text>`;g+=`<text x="${x.toFixed(1)}" y="${H-pad.b+30}" font-size="9" fill="#b09a6a" text-anchor="middle">父${fatherAge+i}</text>`;}
+  g+=`<text x="${W-pad.r}" y="${H-4}" font-size="9" fill="#8a8470" text-anchor="end">今からの年数／父の年齢</text>`;
+  g+=`</svg>`;
+  return `<div class="chartwrap">${g}</div>`;
+}
+
+function nisaChartSVG(nisa){
+  const A=nisa.amount, s=nisa.scenario;
+  const yearsAxis=Math.min(Math.max(s.recover+1,4),14); // 表示年数
+  const W=680,H=250,pad={l:64,r:14,t:16,b:30};
+  const ymax=A*1.15||1;
+  const X=t=>pad.l+t/yearsAxis*(W-pad.l-pad.r);
+  const Y=v=>H-pad.b-(v/ymax)*(H-pad.t-pad.b);
+  const val=t=>{const low=A*(1-s.drop);if(t>=s.recover)return A;return low+(A-low)*(t/s.recover);};
+  let g=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  for(let i=0;i<=4;i++){const v=ymax*i/4;g+=`<line x1="${pad.l}" y1="${Y(v)}" x2="${W-pad.r}" y2="${Y(v)}" stroke="#f2eee3"/><text x="${pad.l-6}" y="${Y(v)+3}" font-size="9" fill="#8a8470" text-anchor="end">${man(v)}万</text>`;}
+  // 必要額（元本）ライン
+  g+=`<line x1="${pad.l}" y1="${Y(A)}" x2="${W-pad.r}" y2="${Y(A)}" stroke="#2f6b4f" stroke-width="1.3" stroke-dasharray="5 4"/><text x="${W-pad.r}" y="${Y(A)-4}" font-size="9" fill="#2f6b4f" text-anchor="end">必要額 ${man(A)}万</text>`;
+  // 暴落で下回る領域（回復まで）を薄く赤
+  const recX=X(Math.min(s.recover,yearsAxis));
+  g+=`<rect x="${X(0)}" y="${pad.t}" width="${(recX-X(0)).toFixed(1)}" height="${H-pad.t-pad.b}" fill="#9b3b3b" opacity="0.06"/>`;
+  // 評価額ライン
+  let d='';for(let t=0;t<=yearsAxis;t+=0.25){d+=(t?'L':'M')+X(t).toFixed(1)+' '+Y(val(t)).toFixed(1)+' ';}
+  g+=`<path d="${d}" fill="none" stroke="#9a7b4f" stroke-width="2.4"/>`;
+  g+=`<circle cx="${X(0)}" cy="${Y(val(0))}" r="4" fill="#9b3b3b"/><text x="${X(0)+4}" y="${Y(val(0))-7}" font-size="10" fill="#9b3b3b" font-weight="600">入学時 -${(s.drop*100).toFixed(0)}%</text>`;
+  for(let t=0;t<=yearsAxis;t+=Math.max(1,Math.round(yearsAxis/7))){g+=`<text x="${X(t).toFixed(1)}" y="${H-pad.b+15}" font-size="10" fill="#8a8470" text-anchor="middle">${t}年</text>`;}
+  g+=`<text x="${W-pad.r}" y="${H-4}" font-size="9" fill="#8a8470" text-anchor="end">入学からの年数</text>`;
+  g+=`</svg>`;
+  return `<div class="chartwrap">${g}</div>`;
+}
+
+document.getElementById('calcBtn').addEventListener('click',simulate);
+
+// リアルタイム反映：入力パネル内の変更で自動再計算（ボタン不要）。※LAST定義後に実行
+const inputPanel=document.querySelectorAll('.panel')[0];
+inputPanel.addEventListener('input',()=>{if(ready)simulate();});
+inputPanel.addEventListener('change',()=>{if(ready)simulate();});
+ready=true;
+simulate(); // 初期表示
+</script>
+<script>
+/* ===== FPコア（全ツール共通） ===== */
+window.FP=(function(){
+  var KEY='',RECALC=null,DEFAULTS={};
+  function els(){return Array.prototype.slice.call(document.querySelectorAll('input[id],select[id],textarea[id]')).filter(function(e){return e.id!=='fpLoadInput';});}
+  function ser(){var o={};els().forEach(function(e){o[e.id]=(e.type==='checkbox')?e.checked:e.value;});return o;}
+  function resx(o){els().forEach(function(e){if(Object.prototype.hasOwnProperty.call(o,e.id)){if(e.type==='checkbox')e.checked=!!o[e.id];else e.value=o[e.id];}});}
+  function save(){try{localStorage.setItem('fp:'+KEY,JSON.stringify(ser()));}catch(x){}}
+  function load(){try{var s=localStorage.getItem('fp:'+KEY);if(s){resx(JSON.parse(s));return true;}}catch(x){}return false;}
+  function clearAll(){if(!window.confirm('入力内容を初期状態に戻します。よろしいですか？'))return;resx(DEFAULTS);try{localStorage.removeItem('fp:'+KEY);}catch(x){}if(RECALC)RECALC();}
+  function dl(name,text,mime){var b=new Blob([text],{type:mime});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);}
+  function payload(){return JSON.stringify({tool:KEY,savedAt:new Date().toISOString(),inputs:ser()},null,2);}
+  function saveFile(){var name=KEY+'_'+new Date().toISOString().slice(0,10)+'.json';var data=payload();if(window.showSaveFilePicker){window.showSaveFilePicker({suggestedName:name,types:[{description:'FPシミュレーター データ',accept:{'application/json':['.json']}}]}).then(function(h){return h.createWritable();}).then(function(w){return w.write(data).then(function(){return w.close();});}).catch(function(){});}else{dl(name,data,'application/json');}}
+  function loadFile(){var fi=document.getElementById('fpLoadInput');if(fi)fi.click();}
+  function onFile(ev){var f=ev.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var o=JSON.parse(r.result);resx(o.inputs||o);if(RECALC)RECALC();save();}catch(x){window.alert('読み込みに失敗しました（ファイル形式が不正です）。');}};r.readAsText(f);ev.target.value='';}
+  function printPDF(){window.print();}
+  function normZen(e){var el=e.target;if(!el||el.tagName!=='INPUT')return;if(el.type==='checkbox'||el.type==='radio'||el.type==='file')return;var v=el.value;var nv=v.replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);}).replace(/[．]/g,'.').replace(/[，、]/g,',');if(nv!==v){var p=el.selectionStart;el.value=nv;try{el.setSelectionRange(p,p);}catch(x){}}}
+  function injectCSS(){var s=document.createElement('style');s.textContent='.fpbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 20px;}.fpbtn{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-soft,#46506a);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);border-radius:7px;padding:8px 14px;cursor:pointer;transition:all .15s;}.fpbtn:hover{border-color:var(--brass,#9a7b4f);color:var(--ink,#1b2a4a);}.fpbtn-pdf{background:var(--brass,#9a7b4f);color:#fff;border-color:var(--brass-deep,#7d6240);}.fpbtn-pdf:hover{background:var(--brass-deep,#7d6240);color:#fff;}@media print{.fpbar,.back,button{display:none!important;}body{background:#fff;}.panel{box-shadow:none;break-inside:avoid;}}';document.head.appendChild(s);}
+  function init(key,recalc){KEY=key;RECALC=recalc;injectCSS();DEFAULTS=ser();var fi=document.getElementById('fpLoadInput');if(fi)fi.addEventListener('change',onFile);document.addEventListener('input',normZen,true);document.addEventListener('input',save);document.addEventListener('change',save);if(load()&&RECALC)RECALC();}
+  return {init:init,clearAll:clearAll,saveFile:saveFile,loadFile:loadFile,printPDF:printPDF,save:save};
+})();
+FP.init('kyoiku', simulate);
+</script>
+</body>
+</html>
