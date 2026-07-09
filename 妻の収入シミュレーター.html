@@ -88,6 +88,7 @@
   .btn-primary:hover{background:var(--brass-deep);}
   footer{margin-top:26px;font-size:11.5px;color:#8a8470;line-height:1.7;border-top:1px solid var(--rule);padding-top:16px;}
   footer b{color:var(--ink-soft);}
+  input::placeholder{color:#c0baa8;} /*FPPH-GREY*/
 </style>
 </head>
 <body>
@@ -148,7 +149,7 @@
 
       <div class="field">
         <label class="lab">夫の年収（配偶者特別控除の判定・限界税率の推定に使用）</label>
-        <input type="text" inputmode="numeric" class="yen" id="husbandY" value="">
+        <input type="text" inputmode="numeric" class="yen" id="husbandY" value="" placeholder="0">
         <div class="hint" id="husbandInfo"></div>
       </div>
 
@@ -158,7 +159,7 @@
           <div class="row2">
             <div>
               <label class="lab" style="font-size:11.5px;">月額（円）</label>
-              <input type="text" inputmode="numeric" class="yen" id="teateMonth" value="">
+              <input type="text" inputmode="numeric" class="yen" id="teateMonth" value="" placeholder="0">
             </div>
             <div>
               <label class="lab" style="font-size:11.5px;">打ち切りとなる妻の年収</label>
@@ -615,7 +616,7 @@ window.FP=(function(){
   /* ---- 印刷ヘッダー ---- */
   function setPrintHead(){var h=document.getElementById('fpPrintHead');if(!h){h=document.createElement('div');h.id='fpPrintHead';h.className='fp-printhead';document.body.insertBefore(h,document.body.firstChild);}var t=document.querySelector('h1');var title=t?t.textContent:'FPシミュレーター';var p=settings().presenter;h.innerHTML='<span class="pt">'+title+'</span><span class="pp">'+(p?p+'　／　':'')+new Date().toLocaleDateString('ja-JP')+'</span>';}
   function printPDF(){setPrintHead();window.print();}
-  function toggleManual(){var m=document.getElementById('fpManual');if(!m)return;m.hidden=!m.hidden;if(!m.hidden)m.scrollIntoView({behavior:'smooth',block:'start'});}
+  function toggleManual(){var m=document.getElementById('fpManual');if(!m)return;m.hidden=!m.hidden;}
   function injectCSS(){var s=document.createElement('style');s.textContent=
     '.fpbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 20px;}'
     +'.fpbtn{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-soft,#46506a);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);border-radius:7px;padding:8px 14px;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;line-height:1.4;}'

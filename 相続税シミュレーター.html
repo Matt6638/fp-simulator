@@ -73,6 +73,7 @@
   footer{margin-top:20px;font-size:11.5px;color:#8a8470;line-height:1.7;border-top:1px solid var(--rule);padding-top:16px;}
   footer b{color:var(--ink-soft);}
   .divider-note{font-size:11.5px;color:#8a8470;margin:0 0 14px;}
+  input::placeholder{color:#c0baa8;} /*FPPH-GREY*/
 </style>
 </head>
 <body>
@@ -102,27 +103,27 @@
     <div class="panel-body">
       <div class="field">
         <label class="lab">相続財産額 <span class="q">土地・建物・預貯金・有価証券・生保等の課税対象額</span></label>
-        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="assets" value="0"><span class="u">円</span></div>
+        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="assets" value="" placeholder="0"><span class="u">円</span></div>
       </div>
       <div class="field">
         <label class="lab">非課税財産額 <span class="q">生保・退職金の非課税枠（500万×法定相続人）等</span></label>
-        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="hikazei" value="0"><span class="u">円</span></div>
+        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="hikazei" value="" placeholder="0"><span class="u">円</span></div>
       </div>
       <div class="field">
         <label class="lab">債務・葬式費用</label>
-        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="debts" value="0"><span class="u">円</span></div>
+        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="debts" value="" placeholder="0"><span class="u">円</span></div>
       </div>
       <div class="field">
         <label class="lab">3年以内の贈与額 <span class="q">生前贈与加算（暦年課税）</span></label>
-        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="gift3" value="0"><span class="u">円</span></div>
+        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="gift3" value="" placeholder="0"><span class="u">円</span></div>
       </div>
       <div class="field">
         <label class="lab">4〜7年以内の贈与額 <span class="q">100万円控除後の値。令和6年1月以降の贈与のみ</span></label>
-        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="gift47" value="0"><span class="u">円</span></div>
+        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="gift47" value="" placeholder="0"><span class="u">円</span></div>
       </div>
       <div class="field">
         <label class="lab">相続時精算課税の加算額 <span class="q">精算課税で贈与した財産（年110万控除後の累計）</span></label>
-        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="seisan" value="0"><span class="u">円</span></div>
+        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="seisan" value="" placeholder="0"><span class="u">円</span></div>
       </div>
 
       <div class="field" style="margin-top:18px;">
@@ -130,11 +131,11 @@
         <div class="heirgrid">
           <div class="heircell" style="grid-column:1/-1;"><span>配偶者</span>
             <select id="spouse" style="width:auto;"><option value="1" selected>配偶者あり</option><option value="0">配偶者なし</option></select></div>
-          <div class="heircell"><span>子</span><span><input type="text" inputmode="numeric" class="num" id="children" value="0"> 人</span></div>
-          <div class="heircell"><span>養子</span><span><input type="text" inputmode="numeric" class="num" id="adopted" value="0"> 人</span></div>
-          <div class="heircell"><span>直系尊属</span><span><input type="text" inputmode="numeric" class="num" id="parents" value="0"> 人</span></div>
-          <div class="heircell"><span>兄弟姉妹</span><span><input type="text" inputmode="numeric" class="num" id="siblings" value="0"> 人</span></div>
-          <div class="heircell" style="grid-column:1/-1;"><span>その他（受遺者・特別寄与者）<span class="q">2割加算対象</span></span><span><input type="text" inputmode="numeric" class="num" id="others" value="0"> 人</span></div>
+          <div class="heircell"><span>子</span><span><input type="text" inputmode="numeric" class="num" id="children" value="" placeholder="0"> 人</span></div>
+          <div class="heircell"><span>養子</span><span><input type="text" inputmode="numeric" class="num" id="adopted" value="" placeholder="0"> 人</span></div>
+          <div class="heircell"><span>直系尊属</span><span><input type="text" inputmode="numeric" class="num" id="parents" value="" placeholder="0"> 人</span></div>
+          <div class="heircell"><span>兄弟姉妹</span><span><input type="text" inputmode="numeric" class="num" id="siblings" value="" placeholder="0"> 人</span></div>
+          <div class="heircell" style="grid-column:1/-1;"><span>その他（受遺者・特別寄与者）<span class="q">2割加算対象</span></span><span><input type="text" inputmode="numeric" class="num" id="others" value="" placeholder="0"> 人</span></div>
         </div>
         <div class="hint">相続順位：①子（実子＋養子）→ ②直系尊属 → ③兄弟姉妹。上位がいれば下位は相続人になりません。養子は基礎控除・法定相続分の計算上、実子ありで1人・なしで2人まで算入。「その他」は法定相続人ではなく総額計算には影響せず、取得時に2割加算で課税されます。</div>
       </div>
@@ -151,10 +152,10 @@
       <details class="adv">
         <summary>税額控除（任意）</summary>
         <div style="margin-top:12px;">
-          <div class="field"><label class="lab">未成年者控除（合計）</label><div class="inrow"><input type="text" inputmode="numeric" class="yen" id="cMinor" value="0"><span class="u">円</span></div><div class="hint">18歳までの年数×10万円</div></div>
-          <div class="field"><label class="lab">障害者控除（合計）</label><div class="inrow"><input type="text" inputmode="numeric" class="yen" id="cDisabled" value="0"><span class="u">円</span></div><div class="hint">85歳までの年数×10万円（特別障害者20万円）</div></div>
-          <div class="field"><label class="lab">相次相続控除</label><div class="inrow"><input type="text" inputmode="numeric" class="yen" id="cSuccessive" value="0"><span class="u">円</span></div><div class="hint">10年以内に続けて相続があった場合</div></div>
-          <div class="field"><label class="lab">贈与税額控除</label><div class="inrow"><input type="text" inputmode="numeric" class="yen" id="cGiftTax" value="0"><span class="u">円</span></div><div class="hint">生前贈与加算分に課された贈与税・精算課税で納付済の贈与税</div></div>
+          <div class="field"><label class="lab">未成年者控除（合計）</label><div class="inrow"><input type="text" inputmode="numeric" class="yen" id="cMinor" value="" placeholder="0"><span class="u">円</span></div><div class="hint">18歳までの年数×10万円</div></div>
+          <div class="field"><label class="lab">障害者控除（合計）</label><div class="inrow"><input type="text" inputmode="numeric" class="yen" id="cDisabled" value="" placeholder="0"><span class="u">円</span></div><div class="hint">85歳までの年数×10万円（特別障害者20万円）</div></div>
+          <div class="field"><label class="lab">相次相続控除</label><div class="inrow"><input type="text" inputmode="numeric" class="yen" id="cSuccessive" value="" placeholder="0"><span class="u">円</span></div><div class="hint">10年以内に続けて相続があった場合</div></div>
+          <div class="field"><label class="lab">贈与税額控除</label><div class="inrow"><input type="text" inputmode="numeric" class="yen" id="cGiftTax" value="" placeholder="0"><span class="u">円</span></div><div class="hint">生前贈与加算分に課された贈与税・精算課税で納付済の贈与税</div></div>
         </div>
       </details>
     </div>
@@ -456,7 +457,7 @@ window.FP=(function(){
   /* ---- 印刷ヘッダー ---- */
   function setPrintHead(){var h=document.getElementById('fpPrintHead');if(!h){h=document.createElement('div');h.id='fpPrintHead';h.className='fp-printhead';document.body.insertBefore(h,document.body.firstChild);}var t=document.querySelector('h1');var title=t?t.textContent:'FPシミュレーター';var p=settings().presenter;h.innerHTML='<span class="pt">'+title+'</span><span class="pp">'+(p?p+'　／　':'')+new Date().toLocaleDateString('ja-JP')+'</span>';}
   function printPDF(){setPrintHead();window.print();}
-  function toggleManual(){var m=document.getElementById('fpManual');if(!m)return;m.hidden=!m.hidden;if(!m.hidden)m.scrollIntoView({behavior:'smooth',block:'start'});}
+  function toggleManual(){var m=document.getElementById('fpManual');if(!m)return;m.hidden=!m.hidden;}
   function injectCSS(){var s=document.createElement('style');s.textContent=
     '.fpbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 20px;}'
     +'.fpbtn{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-soft,#46506a);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);border-radius:7px;padding:8px 14px;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;line-height:1.4;}'

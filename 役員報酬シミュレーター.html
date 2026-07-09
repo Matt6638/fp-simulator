@@ -82,6 +82,7 @@
   .placeholder .mark{font-family:var(--mincho);font-size:34px;color:var(--rule);display:block;margin-bottom:10px;}
   footer{margin-top:26px;font-size:11.5px;color:#8a8470;line-height:1.7;border-top:1px solid var(--rule);padding-top:16px;}
   footer b{color:var(--ink-soft);}
+  input::placeholder{color:#c0baa8;} /*FPPH-GREY*/
 </style>
 </head>
 <body>
@@ -110,7 +111,7 @@
     <div class="panel-body">
       <div class="field">
         <label class="lab">役員報酬の原資（夫＋妻に配分できる年額合計）</label>
-        <input type="text" inputmode="numeric" class="yen" id="total" value="">
+        <input type="text" inputmode="numeric" class="yen" id="total" value="" placeholder="0">
         <div class="hint">この総額を夫と妻でどう分けるかを最適化します。夫が現在ひとりで取っている額でOK。</div>
       </div>
       <div class="field">
@@ -123,7 +124,7 @@
       </div>
       <div class="field">
         <label class="lab">妻の他の所得（役員報酬以外・年額）</label>
-        <input type="text" inputmode="numeric" class="yen" id="wifeOther" value="">
+        <input type="text" inputmode="numeric" class="yen" id="wifeOther" value="" placeholder="0">
         <div class="hint">通常は0。不動産所得等があれば入力（扶養・保険料判定に加味）。</div>
       </div>
       <div class="row2">
@@ -454,7 +455,7 @@ window.FP=(function(){
   /* ---- 印刷ヘッダー ---- */
   function setPrintHead(){var h=document.getElementById('fpPrintHead');if(!h){h=document.createElement('div');h.id='fpPrintHead';h.className='fp-printhead';document.body.insertBefore(h,document.body.firstChild);}var t=document.querySelector('h1');var title=t?t.textContent:'FPシミュレーター';var p=settings().presenter;h.innerHTML='<span class="pt">'+title+'</span><span class="pp">'+(p?p+'　／　':'')+new Date().toLocaleDateString('ja-JP')+'</span>';}
   function printPDF(){setPrintHead();window.print();}
-  function toggleManual(){var m=document.getElementById('fpManual');if(!m)return;m.hidden=!m.hidden;if(!m.hidden)m.scrollIntoView({behavior:'smooth',block:'start'});}
+  function toggleManual(){var m=document.getElementById('fpManual');if(!m)return;m.hidden=!m.hidden;}
   function injectCSS(){var s=document.createElement('style');s.textContent=
     '.fpbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 20px;}'
     +'.fpbtn{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-soft,#46506a);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);border-radius:7px;padding:8px 14px;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;line-height:1.4;}'

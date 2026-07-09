@@ -63,6 +63,7 @@
   .placeholder .mark{font-family:var(--mincho);font-size:34px;color:var(--rule);display:block;margin-bottom:10px;}
   footer{margin-top:26px;font-size:11.5px;color:#8a8470;line-height:1.7;border-top:1px solid var(--rule);padding-top:16px;}
   footer b{color:var(--ink-soft);}
+  input::placeholder{color:#c0baa8;} /*FPPH-GREY*/
 </style>
 </head>
 <body>
@@ -104,11 +105,11 @@
       </div>
       <div class="field">
         <label class="lab">夫の収入（会社からの報酬・年額）</label>
-        <input type="text" inputmode="numeric" class="yen" id="husbandRevenue" value="">
+        <input type="text" inputmode="numeric" class="yen" id="husbandRevenue" value="" placeholder="0">
       </div>
       <div class="field">
         <label class="lab">リース料以外の必要経費（年額）</label>
-        <input type="text" inputmode="numeric" class="yen" id="husbandExp" value="">
+        <input type="text" inputmode="numeric" class="yen" id="husbandExp" value="" placeholder="0">
         <div class="hint">収入 − この経費 − リース料 ＝ 課税所得ベース。例：収入9,000万・経費4,280万・リース料720万 → 課税所得4,000万。</div>
       </div>
       <div class="field">
@@ -123,7 +124,7 @@
         </select>
         <div class="field" style="margin-top:10px;">
           <label class="lab" style="font-size:11.5px;">夫の社会保険料（本人負担・年額）</label>
-          <input type="text" inputmode="numeric" class="yen" id="husbandShakai" value="">
+          <input type="text" inputmode="numeric" class="yen" id="husbandShakai" value="" placeholder="0">
           <div class="hint">会社の社保は標準報酬の上限（厚年 月65万・健保 月139万）で頭打ちのため、高給でも本人負担は約170万で<b>固定</b>（リース料・妻報酬を動かしても変わらない）。国保なら上限＋国民年金で約130万。実額に調整可。</div>
         </div>
       </div>
@@ -135,12 +136,12 @@
       <div class="grp">法人（夫が保有）</div>
       <div class="field">
         <label class="lab">夫→法人へのリース料等（年額）※所得移転の原資</label>
-        <input type="text" inputmode="numeric" class="yen" id="lease" value="">
+        <input type="text" inputmode="numeric" class="yen" id="lease" value="" placeholder="0">
         <div class="hint">夫の経費になり法人の収入になる額（月60万＝年720万など）。車の適正リース料の範囲で。感応度も下に表示します。</div>
       </div>
       <div class="field">
         <label class="lab">法人の車・その他 年間経費（ローン利息・減価償却・自動車税・保険等）</label>
-        <input type="text" inputmode="numeric" class="yen" id="corpExp" value="">
+        <input type="text" inputmode="numeric" class="yen" id="corpExp" value="" placeholder="0">
         <div class="hint">妻の役員報酬・社保を除いた法人の費用。元本返済は経費にならず、利息・減価償却が経費。</div>
       </div>
       <div class="field">
@@ -163,12 +164,12 @@
       </div>
       <div class="field">
         <label class="lab">妻の現在の役員報酬（年額）</label>
-        <input type="text" inputmode="numeric" class="yen" id="wifeCurrent" value="">
+        <input type="text" inputmode="numeric" class="yen" id="wifeCurrent" value="" placeholder="0">
         <div class="hint">現状の設定額。最適額との差（世帯価値がいくら増えるか）を結果に表示し、グラフにも現在地の印を出します。</div>
       </div>
       <div class="field">
         <label class="lab">妻の他の所得（役員報酬以外・年額）</label>
-        <input type="text" inputmode="numeric" class="yen" id="wifeOther" value="0">
+        <input type="text" inputmode="numeric" class="yen" id="wifeOther" value="" placeholder="0">
       </div>
       <div class="field"><label class="chk"><input type="checkbox" id="age40w" checked> 妻が40歳以上（介護保険料が加わる）</label></div>
 
@@ -509,7 +510,7 @@ window.FP=(function(){
   /* ---- 印刷ヘッダー ---- */
   function setPrintHead(){var h=document.getElementById('fpPrintHead');if(!h){h=document.createElement('div');h.id='fpPrintHead';h.className='fp-printhead';document.body.insertBefore(h,document.body.firstChild);}var t=document.querySelector('h1');var title=t?t.textContent:'FPシミュレーター';var p=settings().presenter;h.innerHTML='<span class="pt">'+title+'</span><span class="pp">'+(p?p+'　／　':'')+new Date().toLocaleDateString('ja-JP')+'</span>';}
   function printPDF(){setPrintHead();window.print();}
-  function toggleManual(){var m=document.getElementById('fpManual');if(!m)return;m.hidden=!m.hidden;if(!m.hidden)m.scrollIntoView({behavior:'smooth',block:'start'});}
+  function toggleManual(){var m=document.getElementById('fpManual');if(!m)return;m.hidden=!m.hidden;}
   function injectCSS(){var s=document.createElement('style');s.textContent=
     '.fpbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 20px;}'
     +'.fpbtn{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-soft,#46506a);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);border-radius:7px;padding:8px 14px;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;line-height:1.4;}'

@@ -63,6 +63,7 @@
   .placeholder .mark{font-family:var(--mincho);font-size:34px;color:var(--rule);display:block;margin-bottom:10px;}
   footer{margin-top:26px;font-size:11.5px;color:#8a8470;line-height:1.7;border-top:1px solid var(--rule);padding-top:16px;}
   footer b{color:var(--ink-soft);}
+  input::placeholder{color:#c0baa8;} /*FPPH-GREY*/
 </style>
 </head>
 <body>
@@ -120,11 +121,11 @@
       </div>
       <div class="row2">
         <div class="field"><label class="lab">実子の人数</label><input type="text" inputmode="decimal" id="realChildren" value="2" min="0" max="15" step="1"></div>
-        <div class="field"><label class="lab">養子の人数</label><input type="text" inputmode="decimal" id="adoptedChildren" value="0" min="0" max="15" step="1"></div>
+        <div class="field"><label class="lab">養子の人数</label><input type="text" inputmode="decimal" id="adoptedChildren" value="" placeholder="0" min="0" max="15" step="1"></div>
       </div>
       <div class="row2">
-        <div class="field"><label class="lab">父母の人数<br><span style="font-weight:400;color:#8a8470;">子がいない場合</span></label><input type="text" inputmode="decimal" id="parents" value="0" min="0" max="2" step="1"></div>
-        <div class="field"><label class="lab">兄弟姉妹の人数<br><span style="font-weight:400;color:#8a8470;">子も父母もいない場合</span></label><input type="text" inputmode="decimal" id="siblings" value="0" min="0" max="15" step="1"></div>
+        <div class="field"><label class="lab">父母の人数<br><span style="font-weight:400;color:#8a8470;">子がいない場合</span></label><input type="text" inputmode="decimal" id="parents" value="" placeholder="0" min="0" max="2" step="1"></div>
+        <div class="field"><label class="lab">兄弟姉妹の人数<br><span style="font-weight:400;color:#8a8470;">子も父母もいない場合</span></label><input type="text" inputmode="decimal" id="siblings" value="" placeholder="0" min="0" max="15" step="1"></div>
       </div>
       <div class="hint">相続順位：①子（実子＋養子）→ ②父母 → ③兄弟姉妹。上位がいれば下位は相続人になりません。<b>養子は相続税の計算上、実子がいれば1人・いなければ2人まで</b>算入されます。</div>
 
@@ -392,7 +393,7 @@ window.FP=(function(){
   /* ---- 印刷ヘッダー ---- */
   function setPrintHead(){var h=document.getElementById('fpPrintHead');if(!h){h=document.createElement('div');h.id='fpPrintHead';h.className='fp-printhead';document.body.insertBefore(h,document.body.firstChild);}var t=document.querySelector('h1');var title=t?t.textContent:'FPシミュレーター';var p=settings().presenter;h.innerHTML='<span class="pt">'+title+'</span><span class="pp">'+(p?p+'　／　':'')+new Date().toLocaleDateString('ja-JP')+'</span>';}
   function printPDF(){setPrintHead();window.print();}
-  function toggleManual(){var m=document.getElementById('fpManual');if(!m)return;m.hidden=!m.hidden;if(!m.hidden)m.scrollIntoView({behavior:'smooth',block:'start'});}
+  function toggleManual(){var m=document.getElementById('fpManual');if(!m)return;m.hidden=!m.hidden;}
   function injectCSS(){var s=document.createElement('style');s.textContent=
     '.fpbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 20px;}'
     +'.fpbtn{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-soft,#46506a);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);border-radius:7px;padding:8px 14px;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;line-height:1.4;}'

@@ -65,6 +65,7 @@
   .placeholder .mark{font-family:var(--mincho);font-size:34px;color:var(--rule);display:block;margin-bottom:10px;}
   footer{margin-top:26px;font-size:11.5px;color:#8a8470;line-height:1.7;border-top:1px solid var(--rule);padding-top:16px;}
   footer b{color:var(--ink-soft);}
+  input::placeholder{color:#c0baa8;} /*FPPH-GREY*/
 </style>
 </head>
 <body>
@@ -110,7 +111,7 @@
       <div id="kouseiBox">
         <div class="field">
           <label class="lab" id="incomeLab">亡くなる方の平均年収（賞与込み・万円）</label>
-          <input type="text" inputmode="numeric" class="yen" id="income" value="">
+          <input type="text" inputmode="numeric" class="yen" id="income" value="" placeholder="0">
           <div class="hint">遺族厚生年金（報酬比例部分×3/4）の計算に使用。標準報酬は月65万円が上限です。</div>
         </div>
         <div class="row2">
@@ -158,8 +159,8 @@
 
       <div class="grp">配偶者自身の老齢年金（65歳〜・任意）</div>
       <div class="row2">
-        <div class="field"><label class="lab">老齢基礎年金 年額</label><input type="text" inputmode="numeric" class="yen" id="ownKiso" value=""></div>
-        <div class="field"><label class="lab">老齢厚生年金 年額</label><input type="text" inputmode="numeric" class="yen" id="ownKousei" value=""></div>
+        <div class="field"><label class="lab">老齢基礎年金 年額</label><input type="text" inputmode="numeric" class="yen" id="ownKiso" value="" placeholder="0"></div>
+        <div class="field"><label class="lab">老齢厚生年金 年額</label><input type="text" inputmode="numeric" class="yen" id="ownKousei" value="" placeholder="0"></div>
       </div>
       <div class="hint" style="margin-top:2px;">65歳から自分の老齢年金が始まります。<b>自分の老齢厚生年金と遺族厚生年金は併給調整</b>（自分の老齢厚生は全額、遺族厚生はそれを上回る差額のみ）を反映します。専業主婦等で老齢厚生がなければ0でOK。</div>
 
@@ -474,7 +475,7 @@ window.FP=(function(){
   /* ---- 印刷ヘッダー ---- */
   function setPrintHead(){var h=document.getElementById('fpPrintHead');if(!h){h=document.createElement('div');h.id='fpPrintHead';h.className='fp-printhead';document.body.insertBefore(h,document.body.firstChild);}var t=document.querySelector('h1');var title=t?t.textContent:'FPシミュレーター';var p=settings().presenter;h.innerHTML='<span class="pt">'+title+'</span><span class="pp">'+(p?p+'　／　':'')+new Date().toLocaleDateString('ja-JP')+'</span>';}
   function printPDF(){setPrintHead();window.print();}
-  function toggleManual(){var m=document.getElementById('fpManual');if(!m)return;m.hidden=!m.hidden;if(!m.hidden)m.scrollIntoView({behavior:'smooth',block:'start'});}
+  function toggleManual(){var m=document.getElementById('fpManual');if(!m)return;m.hidden=!m.hidden;}
   function injectCSS(){var s=document.createElement('style');s.textContent=
     '.fpbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 20px;}'
     +'.fpbtn{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-soft,#46506a);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);border-radius:7px;padding:8px 14px;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;line-height:1.4;}'
