@@ -196,7 +196,8 @@ const floor100=v=>Math.floor(v/100)*100;
 const yen=v=>Math.round(v).toLocaleString('ja-JP');
 
 function zen2han(s){return String(s).replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[，、]/g,',');}
-function numById(id){return parseFloat(zen2han(document.getElementById(id).value).replace(/,/g,''))||0;}
+function _pv(e){return (e&&String(e.value).trim()!=="")?e.value:((e&&e.placeholder)||"");}
+function numById(id){return parseFloat(zen2han(_pv(document.getElementById(id))).replace(/,/g,''))||0;}
 function segVal(id){const b=document.getElementById(id).querySelector('[aria-pressed=true]');return b?b.dataset.v:null;}
 
 function calcRekinen(){

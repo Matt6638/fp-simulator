@@ -137,12 +137,12 @@
         <summary>詳細な前提（保険料率・控除）を調整</summary>
         <div style="margin-top:12px;">
           <div class="row2">
-            <div><label class="lab" style="font-size:11.5px;">厚生年金 本人率(%)</label><input type="text" inputmode="decimal" id="rKousei" value="9.15" step="0.01"></div>
-            <div><label class="lab" style="font-size:11.5px;">健康保険 本人率(%)</label><input type="text" inputmode="decimal" id="rKenpo" value="4.98" step="0.01"></div>
+            <div><label class="lab" style="font-size:11.5px;">厚生年金 本人率(%)</label><input type="text" inputmode="decimal" id="rKousei" value="" placeholder="9.15" step="0.01"></div>
+            <div><label class="lab" style="font-size:11.5px;">健康保険 本人率(%)</label><input type="text" inputmode="decimal" id="rKenpo" value="" placeholder="4.98" step="0.01"></div>
           </div>
           <div class="row2" style="margin-top:11px;">
-            <div><label class="lab" style="font-size:11.5px;">介護保険 本人率(%)</label><input type="text" inputmode="decimal" id="rKaigo" value="0.91" step="0.01"></div>
-            <div><label class="lab" style="font-size:11.5px;">住民税 非課税ライン(円)</label><input type="text" inputmode="numeric" class="yen" id="jFree" value="1,100,000"></div>
+            <div><label class="lab" style="font-size:11.5px;">介護保険 本人率(%)</label><input type="text" inputmode="decimal" id="rKaigo" value="" placeholder="0.91" step="0.01"></div>
+            <div><label class="lab" style="font-size:11.5px;">住民税 非課税ライン(円)</label><input type="text" inputmode="numeric" class="yen" id="jFree" value="" placeholder="1,100,000"></div>
           </div>
           <div class="hint" style="margin-top:8px;">率は協会けんぽ全国平均の目安（本人負担分）。厚生年金の標準報酬は月65万円、健保は月139万円が上限。健保組合により異なります。</div>
         </div>
@@ -247,7 +247,8 @@ function evalSplit(total,R,route,io){
 
 function simulate(){
   const g=id=>document.getElementById(id);
-  const num=id=>parseFloat(zen2han(g(id).value).replace(/,/g,''))||0;
+  function _pv(e){return (e&&String(e.value).trim()!=="")?e.value:((e&&e.placeholder)||"");}
+const num=id=>parseFloat(zen2han(_pv(g(id))).replace(/,/g,''))||0;
   RATES={kousei:num('rKousei')/100,kenpo:num('rKenpo')/100,kaigo:num('rKaigo')/100};
   const io={corpRate:parseFloat(g('corpRate').value),wifeOther:num('wifeOther'),
     age40h:g('age40h').checked,age40w:g('age40w').checked,jFree:num('jFree')};

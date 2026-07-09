@@ -114,7 +114,7 @@
       </div>
       <div class="field">
         <label class="lab">青色申告特別控除</label>
-        <input type="text" inputmode="numeric" class="yen" id="aoiro" value="650,000">
+        <input type="text" inputmode="numeric" class="yen" id="aoiro" value="" placeholder="650,000">
       </div>
       <div class="field">
         <label class="lab">夫の公的医療・年金</label>
@@ -176,7 +176,7 @@
       <div class="grp">法人留保の取り出し（役員退職金）</div>
       <div class="field">
         <label class="lab">積立・勤続年数（退職金の勤続年数）</label>
-        <input type="text" inputmode="decimal" id="years" value="20" step="1" min="1">
+        <input type="text" inputmode="decimal" id="years" value="" placeholder="20" step="1" min="1">
         <div class="hint">法人に残した利益を毎年積み立て、この年数の勤続後に役員退職金で取り出す前提。退職所得控除（20年まで40万/年、超70万/年）＋1/2課税の優遇を反映。配当は使わない前提。</div>
       </div>
 
@@ -184,12 +184,12 @@
         <summary style="font-size:12.5px;font-weight:600;color:var(--brass-deep);cursor:pointer;">詳細な前提（妻の社保率など）</summary>
         <div style="margin-top:12px;">
           <div class="row2">
-            <div><label class="lab" style="font-size:11.5px;">厚生年金 本人率(%)</label><input type="text" inputmode="decimal" id="rKousei" value="9.15" step="0.01"></div>
-            <div><label class="lab" style="font-size:11.5px;">健康保険 本人率(%)</label><input type="text" inputmode="decimal" id="rKenpo" value="4.98" step="0.01"></div>
+            <div><label class="lab" style="font-size:11.5px;">厚生年金 本人率(%)</label><input type="text" inputmode="decimal" id="rKousei" value="" placeholder="9.15" step="0.01"></div>
+            <div><label class="lab" style="font-size:11.5px;">健康保険 本人率(%)</label><input type="text" inputmode="decimal" id="rKenpo" value="" placeholder="4.98" step="0.01"></div>
           </div>
           <div class="row2" style="margin-top:10px;">
-            <div><label class="lab" style="font-size:11.5px;">介護保険 本人率(%)</label><input type="text" inputmode="decimal" id="rKaigo" value="0.91" step="0.01"></div>
-            <div><label class="lab" style="font-size:11.5px;">住民税 非課税ライン(円)</label><input type="text" inputmode="numeric" class="yen" id="jFree" value="1,100,000"></div>
+            <div><label class="lab" style="font-size:11.5px;">介護保険 本人率(%)</label><input type="text" inputmode="decimal" id="rKaigo" value="" placeholder="0.91" step="0.01"></div>
+            <div><label class="lab" style="font-size:11.5px;">住民税 非課税ライン(円)</label><input type="text" inputmode="numeric" class="yen" id="jFree" value="" placeholder="1,100,000"></div>
           </div>
         </div>
       </details>
@@ -315,7 +315,8 @@ function bestForL(io,L,route){return bestOf(curveFor(io,L,route));}
 
 function simulate(){
   const g=id=>document.getElementById(id);
-  const num=id=>parseFloat(zen2han(g(id).value).replace(/,/g,''))||0;
+  function _pv(e){return (e&&String(e.value).trim()!=="")?e.value:((e&&e.placeholder)||"");}
+const num=id=>parseFloat(zen2han(_pv(g(id))).replace(/,/g,''))||0;
   RATES={kousei:num('rKousei')/100,kenpo:num('rKenpo')/100,kaigo:num('rKaigo')/100};
   const io={
     husbandType:g('husbandType').value,husbandRevenue:num('husbandRevenue'),husbandExp:num('husbandExp'),

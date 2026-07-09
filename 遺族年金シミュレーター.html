@@ -115,7 +115,7 @@
           <div class="hint">遺族厚生年金（報酬比例部分×3/4）の計算に使用。標準報酬は月65万円が上限です。</div>
         </div>
         <div class="row2">
-          <div class="field"><label class="lab" id="kanyuLab">厚生年金の加入年数</label><input type="text" inputmode="decimal" id="kanyuYears" value="25" step="1" min="0"></div>
+          <div class="field"><label class="lab" id="kanyuLab">厚生年金の加入年数</label><input type="text" inputmode="decimal" id="kanyuYears" value="" placeholder="25" step="1" min="0"></div>
           <div class="field" style="display:flex;align-items:flex-end;"><label style="font-size:12px;color:var(--ink-soft);display:flex;gap:7px;align-items:flex-start;cursor:pointer;"><input type="checkbox" id="tanki" checked style="width:auto;margin-top:3px;"> 在職中の死亡等（300月みなし保証）</label></div>
         </div>
       </div>
@@ -123,7 +123,7 @@
       <div id="kokuminBox" class="hide">
         <div class="field">
           <label class="lab" id="kokuminLab">亡くなる方の国民年金 納付年数（寡婦年金の計算用）</label>
-          <input type="text" inputmode="decimal" id="kokuminYears" value="40" step="1" min="0" max="40">
+          <input type="text" inputmode="decimal" id="kokuminYears" value="" placeholder="40" step="1" min="0" max="40">
           <div class="hint">国民年金のみの場合、遺族厚生年金はありません。子がいる間の遺族基礎年金と、妻の寡婦年金（60〜65歳）が対象です。</div>
         </div>
       </div>
@@ -131,20 +131,20 @@
       <div class="grp">残された家族</div>
       <div class="field">
         <label class="lab" id="survivorLab">残された配偶者（妻）の現在の年齢</label>
-        <input type="text" inputmode="decimal" id="survivorAge" value="40" step="1" min="18" max="100">
+        <input type="text" inputmode="decimal" id="survivorAge" value="" placeholder="40" step="1" min="18" max="100">
       </div>
       <div class="field">
         <label class="lab">婚姻年数</label>
-        <input type="text" inputmode="decimal" id="marriage" value="15" step="1" min="0">
+        <input type="text" inputmode="decimal" id="marriage" value="" placeholder="15" step="1" min="0">
         <div class="hint">寡婦年金は婚姻10年以上が要件。</div>
       </div>
       <div class="field">
         <label class="lab">夫の子（実子・夫の連れ子）の年齢 <span style="font-weight:400;color:#8a8470;">カンマ区切り</span></label>
-        <input type="text" id="childrenH" value="10, 8">
+        <input type="text" id="childrenH" value="" placeholder="10, 8">
       </div>
       <div class="field">
         <label class="lab">妻の子（実子・妻の連れ子）の年齢</label>
-        <input type="text" id="childrenW" value="15, 13, 11">
+        <input type="text" id="childrenW" value="" placeholder="15, 13, 11">
       </div>
       <div class="field">
         <label class="lab">夫婦共通の子の年齢</label>
@@ -231,7 +231,8 @@ updateLabels();
 
 function simulate(){
   const g=id=>document.getElementById(id);
-  const num=id=>parseFloat(zen2han(g(id).value).replace(/,/g,''))||0;
+  function _pv(e){return (e&&String(e.value).trim()!=="")?e.value:((e&&e.placeholder)||"");}
+const num=id=>parseFloat(zen2han(_pv(g(id))).replace(/,/g,''))||0;
   const dead=segVal('deceasedSeg');           // 'husband' or 'wife'
   const type=segVal('typeSeg');               // 'kousei' or 'kokumin'
   const survivorIsWife = dead==='husband';    // 夫が死亡→残されるのは妻
@@ -242,7 +243,7 @@ function simulate(){
   const startAge=Math.round(num('survivorAge'));
   const marriage=num('marriage');
   const ownKiso=num('ownKiso'), ownKousei=num('ownKousei');
-  const parseAges=id=>zen2han(g(id).value).split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n));
+  const parseAges=id=>zen2han(_pv(g(id))).split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n));
   const chH=parseAges('childrenH'), chW=parseAges('childrenW'), chBoth=parseAges('childrenBoth');
   const adoptH=g('adoptH').checked, adoptW=g('adoptW').checked;
   // 亡くなった人の「法律上の子」だけが遺族年金の対象

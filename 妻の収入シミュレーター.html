@@ -179,16 +179,16 @@
         <summary>詳細な前提（保険料率など）を調整</summary>
         <div style="margin-top:12px;">
           <div class="row2">
-            <div><label class="lab" style="font-size:11.5px;">厚年＋健保 本人負担率(%)</label><input type="text" inputmode="decimal" id="rShakai" value="14.4" step="0.1"></div>
-            <div><label class="lab" style="font-size:11.5px;">介護保険 上乗せ率(%)</label><input type="text" inputmode="decimal" id="rKaigo" value="0.9" step="0.1"></div>
+            <div><label class="lab" style="font-size:11.5px;">厚年＋健保 本人負担率(%)</label><input type="text" inputmode="decimal" id="rShakai" value="" placeholder="14.4" step="0.1"></div>
+            <div><label class="lab" style="font-size:11.5px;">介護保険 上乗せ率(%)</label><input type="text" inputmode="decimal" id="rKaigo" value="" placeholder="0.9" step="0.1"></div>
           </div>
           <div class="row2" style="margin-top:11px;">
-            <div><label class="lab" style="font-size:11.5px;">国民年金 年額(円)</label><input type="text" inputmode="numeric" class="yen" id="rNenkin" value="210,120"></div>
-            <div><label class="lab" style="font-size:11.5px;">国保 所得割率(%)</label><input type="text" inputmode="decimal" id="rKokuho" value="11" step="0.5"></div>
+            <div><label class="lab" style="font-size:11.5px;">国民年金 年額(円)</label><input type="text" inputmode="numeric" class="yen" id="rNenkin" value="" placeholder="210,120"></div>
+            <div><label class="lab" style="font-size:11.5px;">国保 所得割率(%)</label><input type="text" inputmode="decimal" id="rKokuho" value="" placeholder="11" step="0.5"></div>
           </div>
           <div class="row2" style="margin-top:11px;">
-            <div><label class="lab" style="font-size:11.5px;">国保 均等割 年額(円)</label><input type="text" inputmode="numeric" class="yen" id="rKintou" value="55,000"></div>
-            <div><label class="lab" style="font-size:11.5px;">住民税 非課税ライン(円)</label><input type="text" inputmode="numeric" class="yen" id="rJuminFree" value="1,100,000"></div>
+            <div><label class="lab" style="font-size:11.5px;">国保 均等割 年額(円)</label><input type="text" inputmode="numeric" class="yen" id="rKintou" value="" placeholder="55,000"></div>
+            <div><label class="lab" style="font-size:11.5px;">住民税 非課税ライン(円)</label><input type="text" inputmode="numeric" class="yen" id="rJuminFree" value="" placeholder="1,100,000"></div>
           </div>
           <div class="hint" style="margin-top:8px;">保険料率・国保・住民税非課税基準は自治体・年度・健保組合で変動します。お住まいの実額に合わせて上書きできます。</div>
         </div>
@@ -297,7 +297,8 @@ function man(v){return (v/10000).toFixed(1);}
 function readInputs(){
   const g=id=>document.getElementById(id);
   const seg=id=>{const b=g(id).querySelector('[aria-pressed=true]');return b?b.dataset.v:null;};
-  const num=id=>parseFloat(zen2han(g(id).value).replace(/,/g,''))||0;
+  function _pv(e){return (e&&String(e.value).trim()!=="")?e.value:((e&&e.placeholder)||"");}
+const num=id=>parseFloat(zen2han(_pv(g(id))).replace(/,/g,''))||0;
   return {
     mode:seg('modeSeg'), regime:seg('regSeg'), join:seg('joinSeg'),
     age60:g('age60').checked, age40:g('age40').checked,

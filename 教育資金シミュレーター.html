@@ -103,8 +103,8 @@
 
       <div class="grp">ご両親の年齢</div>
       <div class="row2">
-        <div class="field"><label class="lab">父の現在の年齢</label><input type="text" inputmode="decimal" id="fatherAge" value="40" step="1" min="18" max="80"></div>
-        <div class="field"><label class="lab">母の現在の年齢</label><input type="text" inputmode="decimal" id="motherAge" value="38" step="1" min="18" max="80"></div>
+        <div class="field"><label class="lab">父の現在の年齢</label><input type="text" inputmode="decimal" id="fatherAge" value="" placeholder="40" step="1" min="18" max="80"></div>
+        <div class="field"><label class="lab">母の現在の年齢</label><input type="text" inputmode="decimal" id="motherAge" value="" placeholder="38" step="1" min="18" max="80"></div>
       </div>
 
       <div class="grp">お子さま（＋で追加）</div>
@@ -115,7 +115,7 @@
 
       <div class="grp">準備の前提</div>
       <div class="row2">
-        <div class="field"><label class="lab" style="min-height:2.7em;">積立の想定利回り（年％）</label><input type="text" inputmode="decimal" id="rate" value="0.5" step="0.1"></div>
+        <div class="field"><label class="lab" style="min-height:2.7em;">積立の想定利回り（年％）</label><input type="text" inputmode="decimal" id="rate" value="" placeholder="0.5" step="0.1"></div>
         <div class="field"><label class="lab" style="min-height:2.7em;">在学中に収入から出す月額（子1人）</label><input type="text" inputmode="numeric" class="yen" id="zaigaku" value="" placeholder="0"></div>
       </div>
       <div class="hint" style="margin-top:-6px;">「在学中に収入から出す月額」を入れると、その分は<b>事前に積み立てなくてよい</b>ので毎月の積立額が下がります（大学期に給与等から支払う前提）。</div>
@@ -132,7 +132,7 @@
 
       <div class="grp">奨学金の返済（貸与型の場合）</div>
       <div class="row2">
-        <div class="field"><label class="lab">奨学金の利率（年％）</label><input type="text" inputmode="decimal" id="loanRate" value="0.5" step="0.1"></div>
+        <div class="field"><label class="lab">奨学金の利率（年％）</label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="0.5" step="0.1"></div>
         <div class="field"><label class="lab">卒業後の返済 月額</label><input type="text" inputmode="numeric" class="yen" id="repayMonthly" value="" placeholder="15,000"></div>
       </div>
       <div class="hint" style="margin-top:-6px;">「奨学金 月額」を入れた場合、卒業後に本人がいくらずつ返すと何歳で完済するかを試算します（第一種＝無利子は利率0、第二種＝有利子は0.5%前後が目安）。</div>
@@ -282,7 +282,8 @@ addChild({age:5,course:'shibun',live:'home'});
 addChild({age:2,course:'shiri',live:'away'});
 
 /* ===== 計算 ===== */
-function num(el){return parseFloat(zen2han(el.value).replace(/,/g,''))||0;}
+function _pv(e){return (e&&String(e.value).trim()!=="")?e.value:((e&&e.placeholder)||"");}
+function num(el){return parseFloat(zen2han(_pv(el)).replace(/,/g,''))||0;}
 function readChildren(){
   const arr=[];
   document.querySelectorAll('.child').forEach(c=>{
