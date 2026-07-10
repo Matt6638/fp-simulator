@@ -38,6 +38,12 @@
   .card .no{font-family:"SF Mono",monospace;font-size:12px;color:var(--brass);letter-spacing:.08em;flex:0 0 auto;min-width:22px;}
   .card h2{font-family:var(--mincho);font-size:15px;margin:0;font-weight:600;letter-spacing:.02em;flex:1;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .card .badge{margin:0;flex:0 0 auto;}
+  .card .drag{flex:0 0 auto;color:#cfc9b6;font-size:16px;line-height:1;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;margin:-4px 0 -4px -6px;padding:6px 4px;}
+  .card .drag:active{cursor:grabbing;}
+  .card.dragging{opacity:.7;border-color:var(--brass);box-shadow:0 12px 28px rgba(27,42,74,.22);}
+  .cards.reordering a.card{transition:none;}
+  .cards.reordering a.card:hover{transform:none;}
+  .rehint{font-size:11.5px;color:#8a8470;margin:0 0 12px;display:flex;align-items:center;gap:6px;}
   /* splash */
   #splash{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:radial-gradient(900px 520px at 50% 32%,#26385f 0%,#111a30 72%);animation:spBgOut 2.5s ease forwards;}
   #splash .sp-inner{text-align:center;animation:splashSeq 2.5s ease forwards;}
@@ -76,49 +82,50 @@
   <p class="sub">生命保険提案のための試算ツール群。すべて2025年（令和7年）税制改正・年金制度改正法 反映の<b>概算</b>です。各ツールはオフラインでも動作します。</p>
 </header>
 
+<p class="rehint"><span aria-hidden="true">⠿</span> ハンドルをドラッグして並び替えできます（番号は自動で振り直します）</p>
 <div class="cards">
   <a class="card" href="教育資金シミュレーター.html">
-    <span class="no">01</span>
+    <span class="drag" aria-hidden="true">⠿</span><span class="no">01</span>
     <h2>教育資金シミュレーター</h2>
     <span class="badge ready">利用可</span>
   </a>
   <a class="card" href="遺族年金シミュレーター.html">
-    <span class="no">02</span>
+    <span class="drag" aria-hidden="true">⠿</span><span class="no">02</span>
     <h2>遺族年金シミュレーター</h2>
     <span class="badge ready">利用可</span>
   </a>
   <a class="card" href="相続税シミュレーター.html">
-    <span class="no">03</span>
+    <span class="drag" aria-hidden="true">⠿</span><span class="no">03</span>
     <h2>相続税シミュレーター</h2>
     <span class="badge ready">利用可</span>
   </a>
   <a class="card" href="相続シミュレーター.html">
-    <span class="no">04</span>
+    <span class="drag" aria-hidden="true">⠿</span><span class="no">04</span>
     <h2>生命保険 受取課税 比較シミュレーター</h2>
     <span class="badge ready">利用可</span>
   </a>
   <a class="card" href="贈与税シミュレーター.html">
-    <span class="no">05</span>
+    <span class="drag" aria-hidden="true">⠿</span><span class="no">05</span>
     <h2>贈与税シミュレーター</h2>
     <span class="badge ready">利用可</span>
   </a>
   <a class="card" href="リタイア後所得シミュレーター.html">
-    <span class="no">06</span>
+    <span class="drag" aria-hidden="true">⠿</span><span class="no">06</span>
     <h2>リタイア後所得シミュレーター</h2>
     <span class="badge ready">利用可</span>
   </a>
   <a class="card" href="妻の収入シミュレーター.html">
-    <span class="no">07</span>
+    <span class="drag" aria-hidden="true">⠿</span><span class="no">07</span>
     <h2>妻の収入シミュレーター</h2>
     <span class="badge ready">利用可</span>
   </a>
   <a class="card" href="法人活用シミュレーター.html">
-    <span class="no">08</span>
+    <span class="drag" aria-hidden="true">⠿</span><span class="no">08</span>
     <h2>法人活用・所得分散シミュレーター</h2>
     <span class="badge ready">利用可</span>
   </a>
   <a class="card" href="役員報酬シミュレーター.html">
-    <span class="no">09</span>
+    <span class="drag" aria-hidden="true">⠿</span><span class="no">09</span>
     <h2>妻の役員報酬・健保（単純ケース）</h2>
     <span class="badge ready">利用可</span>
   </a>
@@ -158,5 +165,24 @@ window.FPS=(function(){
 })();
 </script>
 <script>(function(){var sp=document.getElementById("splash");if(!sp)return;if(sessionStorage.getItem("fp_splash")){sp.remove();return;}sessionStorage.setItem("fp_splash","1");setTimeout(function(){if(sp&&sp.parentNode)sp.remove();},2600);})();</script>
+<script>
+/* ハブ並び替え：ドラッグで順序変更→通し番号を上から振り直し→順序を保存(fp:order) */
+(function(){
+  var cards=document.querySelector('.cards'); if(!cards) return;
+  var KEY='fp:order';
+  function items(){return Array.prototype.slice.call(cards.querySelectorAll('a.card'));}
+  function renumber(){items().forEach(function(c,i){var n=c.querySelector('.no');if(n)n.textContent=('0'+(i+1)).slice(-2);});}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(items().map(function(c){return c.getAttribute('href');})));}catch(e){}}
+  (function applySaved(){try{var arr=JSON.parse(localStorage.getItem(KEY)||'null');if(arr&&arr.length){arr.forEach(function(h){var c=cards.querySelector('a.card[href="'+h.replace(/"/g,'\\"')+'"]');if(c)cards.appendChild(c);});}}catch(e){}renumber();})();
+  var dragEl=null,moved=false,sy=0;
+  function afterEl(y){var res=null,closest=-Infinity;items().forEach(function(c){if(c===dragEl)return;var b=c.getBoundingClientRect();var o=y-(b.top+b.height/2);if(o<0&&o>closest){closest=o;res=c;}});return res;}
+  cards.addEventListener('pointerdown',function(e){var h=e.target.closest('.drag');if(!h)return;var c=h.closest('a.card');if(!c)return;e.preventDefault();dragEl=c;moved=false;sy=e.clientY;c.classList.add('dragging');cards.classList.add('reordering');try{h.setPointerCapture(e.pointerId);}catch(x){}});
+  cards.addEventListener('pointermove',function(e){if(!dragEl)return;e.preventDefault();if(Math.abs(e.clientY-sy)>4)moved=true;var a=afterEl(e.clientY);if(a==null){if(cards.lastElementChild!==dragEl)cards.appendChild(dragEl);}else if(a!==dragEl){cards.insertBefore(dragEl,a);}});
+  function end(){if(!dragEl)return;dragEl.classList.remove('dragging');cards.classList.remove('reordering');dragEl=null;renumber();save();}
+  cards.addEventListener('pointerup',end); cards.addEventListener('pointercancel',end);
+  // ハンドル操作/ドラッグ後のクリックでの誤遷移を抑止
+  cards.addEventListener('click',function(e){if(e.target.closest('.drag')||moved){e.preventDefault();e.stopPropagation();moved=false;}},true);
+})();
+</script>
 </body>
 </html>
