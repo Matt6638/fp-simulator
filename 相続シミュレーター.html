@@ -65,6 +65,12 @@
   footer b{color:var(--ink-soft);}
   input::placeholder{color:#c0baa8;} /*FPPH-GREY*/
 </style>
+<!-- FP Auth (Phase1: login gate + usage log) -->
+<script src="config.js"></script>
+<script>if((window.FP_SB_URL||"").indexOf("http")===0)document.documentElement.style.visibility="hidden";</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="fp-auth.js"></script>
+<script>document.addEventListener("DOMContentLoaded",function(){if(window.FPAuth&&FPAuth.guard)FPAuth.guard().then(function(u){if(u&&FPAuth.logEvent)FPAuth.logEvent();});});</script>
 </head>
 <body>
 <div class="wrap">

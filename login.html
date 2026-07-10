@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ログイン｜FPシミュレーター</title>
+<style>
+  :root{--ink:#1b2a4a;--ink-soft:#46506a;--paper:#f7f5ef;--surface:#fffdf8;--brass:#9a7b4f;--brass-deep:#7d6240;--rule:#e3ddcf;--rule-soft:#eee9dd;
+    --shadow:0 1px 2px rgba(27,42,74,.05),0 14px 40px rgba(27,42,74,.1);
+    --gothic:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+    --mincho:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;}
+  *{box-sizing:border-box;}html,body{margin:0;padding:0;}
+  body{min-height:100vh;background:radial-gradient(1000px 500px at 50% -10%,#fffef9,rgba(255,255,255,0) 60%),var(--paper);
+    color:var(--ink);font-family:var(--gothic);line-height:1.7;-webkit-font-smoothing:antialiased;
+    display:flex;align-items:center;justify-content:center;padding:32px 18px;}
+  .card{width:100%;max-width:410px;background:var(--surface);border:1px solid var(--rule);border-radius:16px;box-shadow:var(--shadow);padding:34px 30px 30px;}
+  .brand{text-align:center;margin-bottom:22px;}
+  .logo{width:66px;height:66px;border-radius:16px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(160deg,#fffdf7,#e6dece);border:1px solid var(--rule);box-shadow:0 4px 14px rgba(27,42,74,.12);}
+  .logo span{font-family:var(--mincho);font-weight:600;font-size:30px;color:var(--ink);letter-spacing:-1px;}
+  .brand h1{font-family:var(--mincho);font-size:20px;font-weight:600;margin:0;letter-spacing:.04em;}
+  .brand p{margin:6px 0 0;font-size:12px;color:var(--ink-soft);}
+  .tabs{display:flex;gap:8px;margin-bottom:18px;}
+  .tabs button{flex:1;font-family:var(--gothic);font-size:13.5px;font-weight:600;color:var(--ink-soft);background:#fcfbf8;border:1px solid var(--rule);border-radius:8px;padding:10px;cursor:pointer;}
+  .tabs button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink);}
+  label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin:14px 0 6px;}
+  input{width:100%;font-family:var(--gothic);font-size:15px;color:var(--ink);background:#fcfbf8;border:1px solid var(--rule);border-radius:8px;padding:12px;}
+  input:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 3px rgba(154,123,79,.16);}
+  .btn{width:100%;font-family:var(--gothic);font-size:15px;font-weight:600;color:#fff;background:var(--brass);border:1px solid var(--brass-deep);border-radius:9px;padding:13px;cursor:pointer;margin-top:20px;transition:background .15s;}
+  .btn:hover{background:var(--brass-deep);}
+  .btn:disabled{opacity:.6;cursor:default;}
+  .alt{margin-top:14px;text-align:center;font-size:12.5px;}
+  .alt a{color:var(--brass-deep);cursor:pointer;text-decoration:underline;}
+  .msg{margin-top:16px;font-size:12.5px;border-radius:8px;padding:10px 12px;line-height:1.6;display:none;}
+  .msg.err{display:block;color:#8a4b2f;background:#fbf1e8;border:1px solid #e3c3a8;}
+  .msg.ok{display:block;color:#2f6b4f;background:#eef4ef;border:1px solid #bcd6c4;}
+  .foot{margin-top:20px;font-size:11px;color:#8a8470;text-align:center;line-height:1.6;}
+  .foot a{color:#8a8470;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand">
+    <div class="logo"><span>FP</span></div>
+    <h1>FPシミュレーター</h1>
+    <p>生保営業のための試算ツール</p>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button data-v="in" aria-pressed="true">ログイン</button>
+    <button data-v="up" aria-pressed="false">新規登録</button>
+  </div>
+
+  <form id="form" autocomplete="on">
+    <label for="email">メールアドレス</label>
+    <input type="email" id="email" required autocomplete="email" placeholder="you@example.com">
+    <label for="pw">パスワード <span id="pwhint" style="font-weight:400;color:#8a8470;"></span></label>
+    <input type="password" id="pw" required autocomplete="current-password" minlength="6" placeholder="6文字以上">
+    <button class="btn" id="submit" type="submit">ログイン</button>
+  </form>
+
+  <div class="alt"><a id="magic">パスワードなしでログイン（メールにリンク送信）</a></div>
+  <div class="msg" id="msg"></div>
+
+  <div class="foot">
+    利用には<a href="terms.html">利用規約</a>・<a href="privacy.html">プライバシーポリシー</a>への同意が必要です。<br>
+    ご登録のメール・利用状況は品質改善に利用します。
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  var URL=(window.FP_SB_URL||'').trim(), KEY=(window.FP_SB_ANON||'').trim();
+  var configured=URL.indexOf('http')===0 && KEY.length>20 && window.supabase;
+  var msg=document.getElementById('msg'), submit=document.getElementById('submit');
+  function show(t,ok){msg.className='msg '+(ok?'ok':'err');msg.textContent=t;}
+  var params=new URLSearchParams(location.search);
+  var next=params.get('next')||'index.html';
+  var mode='in';
+
+  if(!configured){
+    show('現在ログイン機能は準備中です。ページはそのままご利用いただけます。',true);
+    submit.disabled=true;
+    document.getElementById('magic').style.pointerEvents='none';
+    document.getElementById('magic').style.opacity='.5';
+    return;
+  }
+  var sb=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+  // 既にログイン済みなら遷移
+  sb.auth.getSession().then(function(r){ if(r.data.session) location.replace(next); });
+
+  document.getElementById('tabs').addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    mode=b.dataset.v;
+    [].forEach.call(this.children,function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});
+    submit.textContent = mode==='in'?'ログイン':'アカウントを作成';
+    document.getElementById('pw').setAttribute('autocomplete', mode==='in'?'current-password':'new-password');
+    document.getElementById('pwhint').textContent = mode==='up'?'（6文字以上）':'';
+    msg.className='msg';
+  });
+
+  document.getElementById('form').addEventListener('submit',function(e){
+    e.preventDefault();
+    var email=document.getElementById('email').value.trim();
+    var pw=document.getElementById('pw').value;
+    submit.disabled=true; show('処理中…',true);
+    var p = mode==='in'
+      ? sb.auth.signInWithPassword({email:email,password:pw})
+      : sb.auth.signUp({email:email,password:pw});
+    p.then(function(r){
+      submit.disabled=false;
+      if(r.error){ show(jpErr(r.error.message)); return; }
+      if(mode==='up' && !r.data.session){
+        show('確認メールを送信しました。メール内のリンクを開くと登録が完了します。',true);
+        return;
+      }
+      location.replace(next);
+    });
+  });
+
+  document.getElementById('magic').addEventListener('click',function(){
+    var email=document.getElementById('email').value.trim();
+    if(!email){ show('先にメールアドレスを入力してください。'); return; }
+    show('送信中…',true);
+    sb.auth.signInWithOtp({email:email,options:{emailRedirectTo:location.origin+location.pathname.replace('login.html',next)}})
+      .then(function(r){ show(r.error?jpErr(r.error.message):'ログイン用リンクをメールで送信しました。メールを開いてリンクをタップしてください。', !r.error); });
+  });
+
+  function jpErr(m){
+    m=(m||'').toLowerCase();
+    if(m.indexOf('invalid login')>=0) return 'メールアドレスまたはパスワードが正しくありません。';
+    if(m.indexOf('already registered')>=0||m.indexOf('already exists')>=0) return 'このメールは既に登録済みです。「ログイン」からお進みください。';
+    if(m.indexOf('password')>=0) return 'パスワードは6文字以上で入力してください。';
+    if(m.indexOf('email')>=0) return 'メールアドレスの形式をご確認ください。';
+    return 'エラーが発生しました：'+m;
+  }
+})();
+</script>
+</body>
+</html>
