@@ -289,7 +289,7 @@ addChild({course:'shiri',live:'away'});
 
 /* ===== 計算 ===== */
 function _pv(e){return (e&&String(e.value).trim()!=="")?e.value:((e&&e.placeholder)||"");}
-function num(el){return parseFloat(zen2han(_pv(el)).replace(/,/g,''))||0;}
+function num(el){var v=parseFloat(zen2han(_pv(el)).replace(/,/g,''))||0;return (window.__fpU==='man'&&el&&el.classList&&el.classList.contains('yen'))?v*10000:v;}
 function readChildren(){
   const arr=[];
   document.querySelectorAll('.child').forEach(c=>{
@@ -517,8 +517,8 @@ simulate(); // 初期表示
 window.FP=(function(){
   var KEY='',RECALC=null,DEFAULTS={},obs=null,converting=false,SKEY='fp:settings';
   function els(){return Array.prototype.slice.call(document.querySelectorAll('input[id],select[id],textarea[id]')).filter(function(e){return e.id!=='fpLoadInput'&&e.id!=='fpPresenter';});}
-  function ser(){var o={};els().forEach(function(e){o[e.id]=(e.type==='checkbox')?e.checked:e.value;});return o;}
-  function resx(o){els().forEach(function(e){if(Object.prototype.hasOwnProperty.call(o,e.id)){if(e.type==='checkbox')e.checked=!!o[e.id];else e.value=o[e.id];}});}
+  function ser(){var o={};els().forEach(function(e){if(e.type==='checkbox'){o[e.id]=e.checked;}else if(e.classList&&e.classList.contains('yen')){var d=String(e.value).replace(/[^\d.\-]/g,'');o[e.id]=(d===''?'':String(Math.round(parseFloat(d)*(window.__fpU==='man'?10000:1))));}else{o[e.id]=e.value;}});return o;}
+  function resx(o){els().forEach(function(e){if(Object.prototype.hasOwnProperty.call(o,e.id)){if(e.type==='checkbox'){e.checked=!!o[e.id];}else if(e.classList&&e.classList.contains('yen')){var raw=String(o[e.id]).replace(/,/g,'');if(raw===''||raw==='null'||isNaN(Number(raw))){e.value='';}else{e.value=fpFmt(Number(raw)/(window.__fpU==='man'?10000:1));}}else{e.value=o[e.id];}}});}
   function getS(){try{return JSON.parse(localStorage.getItem(SKEY))||{};}catch(e){return {};}}
   function setS(o){try{localStorage.setItem(SKEY,JSON.stringify(o));}catch(e){}}
   function settings(){var s=getS();return {unit:s.unit==='man'?'man':'yen',autosave:s.autosave!==false,presenter:s.presenter||''};}
@@ -547,7 +547,7 @@ window.FP=(function(){
   }finally{converting=false;}}
   function startObs(){if(obs)return;obs=new MutationObserver(function(){if(converting)return;if(settings().unit!=='man')return;if(FP._raf)cancelAnimationFrame(FP._raf);FP._raf=requestAnimationFrame(function(){convert(document.body);});});obs.observe(document.body,{childList:true,subtree:true,characterData:true});}
   function afterRender(){if(settings().unit==='man'){convert(document.body);startObs();}}
-  function applyUnit(){if(settings().unit==='man'){if(RECALC)RECALC();convert(document.body);startObs();}else{if(obs){obs.disconnect();obs=null;}if(RECALC)RECALC();}}
+  function applyUnit(){var nu=settings().unit,ou=window.__fpU||'yen';if(ou!==nu){var of=(ou==='man'?10000:1),nf=(nu==='man'?10000:1);document.querySelectorAll('input.yen').forEach(function(e){var d=String(e.value).replace(/,/g,'');if(d.trim()!==''&&!isNaN(Number(d)))e.value=fpFmt(Number(d)*of/nf);});window.__fpU=nu;fpRefreshLabels();}if(nu==='man'){if(RECALC)RECALC();convert(document.body);startObs();}else{if(obs){obs.disconnect();obs=null;}if(RECALC)RECALC();}}
   /* ---- 設定モーダル ---- */
   function seg(id,val){var g=document.getElementById(id);if(!g)return;Array.prototype.forEach.call(g.children,function(b){b.setAttribute('aria-pressed',b.dataset.v===val?'true':'false');});}
   function syncModal(){var s=settings();seg('fpUnit',s.unit);seg('fpAuto',s.autosave?'on':'off');var p=document.getElementById('fpPresenter');if(p&&document.activeElement!==p)p.value=s.presenter;}
@@ -574,6 +574,9 @@ window.FP=(function(){
   function setPrintHead(){var h=document.getElementById('fpPrintHead');if(!h){h=document.createElement('div');h.id='fpPrintHead';h.className='fp-printhead';document.body.insertBefore(h,document.body.firstChild);}var t=document.querySelector('h1');var title=t?t.textContent:'FPシミュレーター';var p=settings().presenter;h.innerHTML='<span class="pt">'+title+'</span><span class="pp">'+(p?p+'　／　':'')+new Date().toLocaleDateString('ja-JP')+'</span>';}
   function printPDF(){setPrintHead();window.print();}
   function toggleManual(){var m=document.getElementById('fpManual');if(!m)return;m.hidden=!m.hidden;}
+function fpFmt(n){if(n===0)return '0';var r=Math.round(n*10000)/10000;return r.toLocaleString('ja-JP',{maximumFractionDigits:4});}
+  function fpMarkLabels(){document.querySelectorAll('input.yen').forEach(function(i){var s=i.nextElementSibling;if(s&&/^\s*円\s*$/.test(s.textContent||'')&&!s.getAttribute('data-fpu'))s.setAttribute('data-fpu','1');});}
+  function fpRefreshLabels(){document.querySelectorAll('[data-fpu]').forEach(function(e){e.textContent=(window.__fpU==='man'?'万円':'円');});}
   function injectCSS(){var s=document.createElement('style');s.textContent=
     'input:not([data-fpt]):not([type=checkbox]):not([type=radio]):not([type=file]),select:not([data-fpt]){color:#b3ab98!important;}'
      +'.fpbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 20px;}'
@@ -609,13 +612,13 @@ window.FP=(function(){
     +'.fp-printhead .pp{font-size:11px;color:#46506a;}'
     +'h1{font-size:19px!important;}}';
     document.head.appendChild(s);}
-  function init(key,recalc){KEY=key;RECALC=recalc;injectCSS();DEFAULTS=ser();
+  function init(key,recalc){KEY=key;RECALC=recalc;window.__fpU=settings().unit;injectCSS();fpMarkLabels();DEFAULTS=ser();
     var fi=document.getElementById('fpLoadInput');if(fi)fi.addEventListener('change',onFile);
     document.addEventListener('input',normZen,true);
     document.addEventListener('input',save);document.addEventListener('change',save);document.addEventListener('input',function(e){var t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='SELECT'))t.setAttribute('data-fpt','1');},true);document.addEventListener('change',function(e){var t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='SELECT'))t.setAttribute('data-fpt','1');},true);
     window.addEventListener('storage',function(e){if(e.key===SKEY){applyUnit();setPrintHead();}});
     if(load()){els().forEach(function(e){e.setAttribute('data-fpt','1');});if(RECALC)RECALC();}
-    setPrintHead();afterRender();}
+    setPrintHead();fpRefreshLabels();afterRender();}
   return {init:init,clearAll:clearAll,saveFile:saveFile,loadFile:loadFile,printPDF:printPDF,save:save,openSettings:openSettings,closeSettings:closeSettings,toggleManual:toggleManual};
 })();
 FP.init('kyoiku', simulate);
