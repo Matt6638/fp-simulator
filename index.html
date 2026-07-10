@@ -31,14 +31,24 @@
   .fpm .dn{font-family:inherit;font-size:13px;font-weight:600;background:var(--brass);color:#fff;border:1px solid var(--brass-deep);border-radius:8px;padding:9px 18px;cursor:pointer;}
   h1{font-family:var(--mincho);font-weight:600;font-size:28px;letter-spacing:.03em;margin:0;}
   .sub{margin:10px 0 0;color:var(--ink-soft);font-size:13.5px;}
-  .cards{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
-  @media(max-width:640px){.cards{grid-template-columns:1fr;}}
-  a.card{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--rule);border-radius:12px;box-shadow:var(--shadow);padding:22px 22px 20px;transition:transform .12s,border-color .12s,box-shadow .12s;}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(208px,1fr));gap:13px;}
+  @media(max-width:640px){.cards{grid-template-columns:1fr 1fr;gap:10px;}}
+  a.card{display:flex;flex-direction:column;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--rule);border-radius:11px;box-shadow:var(--shadow);padding:15px 16px 14px;min-height:112px;transition:transform .12s,border-color .12s,box-shadow .12s;}
   a.card:hover{transform:translateY(-2px);border-color:var(--brass);box-shadow:0 4px 10px rgba(27,42,74,.08),0 14px 36px rgba(27,42,74,.10);}
   a.card.soon{opacity:.55;pointer-events:none;}
   .card .no{font-family:"SF Mono",monospace;font-size:11px;color:var(--brass);letter-spacing:.1em;}
-  .card h2{font-family:var(--mincho);font-size:18px;margin:6px 0 8px;font-weight:600;}
-  .card p{margin:0;font-size:12.5px;color:var(--ink-soft);line-height:1.6;}
+  .card h2{font-family:var(--mincho);font-size:14.5px;margin:5px 0 auto;font-weight:600;line-height:1.45;letter-spacing:.01em;}
+  .card .badge{align-self:flex-start;margin-top:10px;}
+  /* splash */
+  #splash{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:radial-gradient(900px 520px at 50% 32%,#26385f 0%,#111a30 72%);animation:spOut .5s ease .95s forwards;}
+  #splash .sp-inner{text-align:center;animation:spIn .55s cubic-bezier(.2,.7,.2,1) both;}
+  .sp-logo{width:94px;height:94px;border-radius:23px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#fffdf7,#e6dece);box-shadow:0 12px 34px rgba(0,0,0,.4);}
+  .sp-logo span{font-family:var(--mincho);font-weight:600;font-size:44px;color:var(--ink);letter-spacing:-2px;}
+  .sp-title{font-family:var(--mincho);font-size:23px;color:#fff;letter-spacing:.16em;}
+  .sp-sub{margin-top:9px;font-size:11px;color:#c4ccdd;letter-spacing:.34em;}
+  @keyframes spIn{from{opacity:0;transform:translateY(12px) scale(.95);}to{opacity:1;transform:none;}}
+  @keyframes spOut{to{opacity:0;visibility:hidden;}}
+  @media(prefers-reduced-motion:reduce){#splash,#splash .sp-inner{animation:none;}}
   .badge{display:inline-block;font-size:10.5px;font-weight:600;color:#8a4b2f;background:#fbf1e8;border:1px solid #e3c3a8;border-radius:20px;padding:2px 9px;margin-top:12px;}
   .badge.ready{color:#2f6b4f;background:#eef4ef;border-color:#bcd6c4;}
   footer{margin-top:34px;font-size:11.5px;color:#8a8470;line-height:1.7;border-top:1px solid var(--rule);padding-top:16px;}
@@ -51,6 +61,7 @@
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.FPAuth&&FPAuth.guard)FPAuth.guard().then(function(u){if(u&&FPAuth.logEvent)FPAuth.logEvent();});});</script>
 </head>
 <body>
+<div id="splash"><div class="sp-inner"><div class="sp-logo"><span>FP</span></div><div class="sp-title">FPシミュレーター</div><div class="sp-sub">生保営業サポート</div></div></div>
 <div class="wrap">
 <header>
   <button type="button" class="gear" onclick="FPS.open()" aria-label="設定" title="設定（全ツール共通）">
@@ -65,55 +76,46 @@
   <a class="card" href="教育資金シミュレーター.html">
     <span class="no">01</span>
     <h2>教育資金シミュレーター</h2>
-    <p>大学 文系/理系/専門/医学部、自宅/下宿、奨学金、子の数から必要な月額積立と在学中の仕送り・教育費ピーク年を算出。</p>
     <span class="badge ready">利用可</span>
   </a>
   <a class="card" href="遺族年金シミュレーター.html">
     <span class="no">02</span>
     <h2>遺族年金シミュレーター</h2>
-    <p>夫死亡・妻死亡の両パターン。遺族基礎・遺族厚生、寡婦年金、中高齢寡婦加算、子の数から万一の受取額を年ごとに試算。必要保障額の根拠に。</p>
     <span class="badge ready">利用可</span>
   </a>
   <a class="card" href="相続税シミュレーター.html">
     <span class="no">03</span>
     <h2>相続税シミュレーター</h2>
-    <p>課税価格・基礎控除・法定相続分課税方式による相続税の総額を算定。配偶者の税額軽減・2割加算・生前贈与加算（3年＋4〜7年）・相続時精算課税加算・各種税額控除・相続人ごとの納付額まで。</p>
     <span class="badge ready">利用可</span>
   </a>
   <a class="card" href="相続シミュレーター.html">
     <span class="no">04</span>
     <h2>生命保険 受取課税 比較シミュレーター</h2>
-    <p>生命保険を「相続税で受け取る」場合と「一時所得で受け取る」場合の世帯税負担を比較。契約形態で税目が変わる点を可視化。基礎控除・生保非課税枠・配偶者軽減・養子節税も試算。</p>
     <span class="badge ready">利用可</span>
   </a>
   <a class="card" href="贈与税シミュレーター.html">
     <span class="no">05</span>
     <h2>贈与税シミュレーター</h2>
-    <p>暦年課税（一般贈与・特例贈与）と相続時精算課税の贈与税額を試算。配偶者控除・特別障害者信託・年110万基礎控除（令和6年〜）に対応。</p>
     <span class="badge ready">利用可</span>
   </a>
   <a class="card" href="リタイア後所得シミュレーター.html">
     <span class="no">06</span>
     <h2>リタイア後所得シミュレーター</h2>
-    <p>公的年金・在職老齢年金・不動産賃料・保険解約・上場株/自社株売却を通算し、税金（総合/分離）と手取りを試算。</p>
     <span class="badge ready">利用可</span>
   </a>
   <a class="card" href="妻の収入シミュレーター.html">
     <span class="no">07</span>
     <h2>妻の収入シミュレーター</h2>
-    <p>扶養の範囲で働くのと壁を超えて働くので、世帯の手取りがどう逆転するか。働き損ゾーンと回復ラインを試算。</p>
     <span class="badge ready">利用可</span>
   </a>
   <a class="card" href="法人活用シミュレーター.html">
     <span class="no">08</span>
     <h2>法人活用・所得分散シミュレーター</h2>
-    <p>個人事業主＋保有法人＋リース料＋妻の役員報酬＋役員退職金の総合最適化。夫の税・国保、妻の社保・厚生年金、法人税、退職金の優遇まで通算して世帯トータルで判断。</p>
     <span class="badge ready">利用可</span>
   </a>
   <a class="card" href="役員報酬シミュレーター.html">
     <span class="no">09</span>
     <h2>妻の役員報酬・健保（単純ケース）</h2>
-    <p>夫婦で法人役員報酬を配分する単純ケース。被扶養者のままか社保加入かを、所得分散・法人税・妻の年金権で比較。</p>
     <span class="badge ready">利用可</span>
   </a>
 </div>
@@ -151,5 +153,6 @@ window.FPS=(function(){
   return {open:function(){build();sync();document.getElementById('fpm').style.display='flex';},close:function(){var m=document.getElementById('fpm');if(m)m.style.display='none';}};
 })();
 </script>
+<script>(function(){var sp=document.getElementById("splash");if(!sp)return;if(sessionStorage.getItem("fp_splash")){sp.remove();return;}sessionStorage.setItem("fp_splash","1");setTimeout(function(){if(sp&&sp.parentNode)sp.remove();},1550);})();</script>
 </body>
 </html>
