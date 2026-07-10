@@ -31,28 +31,27 @@
   .fpm .dn{font-family:inherit;font-size:13px;font-weight:600;background:var(--brass);color:#fff;border:1px solid var(--brass-deep);border-radius:8px;padding:9px 18px;cursor:pointer;}
   h1{font-family:var(--mincho);font-weight:600;font-size:28px;letter-spacing:.03em;margin:0;}
   .sub{margin:10px 0 0;color:var(--ink-soft);font-size:13.5px;}
-  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(208px,1fr));gap:13px;}
-  @media(max-width:640px){.cards{grid-template-columns:1fr 1fr;gap:10px;}}
-  a.card{display:flex;flex-direction:column;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--rule);border-radius:11px;box-shadow:var(--shadow);padding:15px 16px 14px;min-height:112px;transition:transform .12s,border-color .12s,box-shadow .12s;}
-  a.card:hover{transform:translateY(-2px);border-color:var(--brass);box-shadow:0 4px 10px rgba(27,42,74,.08),0 14px 36px rgba(27,42,74,.10);}
+  .cards{display:flex;flex-direction:column;gap:8px;}
+  a.card{display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);padding:13px 18px;transition:transform .1s,border-color .12s,box-shadow .12s;}
+  a.card:hover{transform:translateX(3px);border-color:var(--brass);box-shadow:0 3px 10px rgba(27,42,74,.09);}
   a.card.soon{opacity:.55;pointer-events:none;}
-  .card .no{font-family:"SF Mono",monospace;font-size:11px;color:var(--brass);letter-spacing:.1em;}
-  .card h2{font-family:var(--mincho);font-size:14.5px;margin:5px 0 auto;font-weight:600;line-height:1.45;letter-spacing:.01em;}
-  .card .badge{align-self:flex-start;margin-top:10px;}
+  .card .no{font-family:"SF Mono",monospace;font-size:12px;color:var(--brass);letter-spacing:.08em;flex:0 0 auto;min-width:22px;}
+  .card h2{font-family:var(--mincho);font-size:15px;margin:0;font-weight:600;letter-spacing:.02em;flex:1;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .card .badge{margin:0;flex:0 0 auto;}
   /* splash */
-  #splash{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:radial-gradient(900px 520px at 50% 32%,#26385f 0%,#111a30 72%);animation:spBgOut 1.5s ease forwards;}
-  #splash .sp-inner{text-align:center;animation:splashSeq 1.5s ease forwards;}
+  #splash{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:radial-gradient(900px 520px at 50% 32%,#26385f 0%,#111a30 72%);animation:spBgOut 2.5s ease forwards;}
+  #splash .sp-inner{text-align:center;animation:splashSeq 2.5s ease forwards;}
   .sp-logo{width:94px;height:94px;border-radius:23px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#fffdf7,#e6dece);box-shadow:0 12px 34px rgba(0,0,0,.4);}
   .sp-logo span{font-family:var(--mincho);font-weight:600;font-size:44px;color:var(--ink);letter-spacing:-2px;}
   .sp-title{font-family:var(--mincho);font-size:23px;color:#fff;letter-spacing:.16em;}
   .sp-sub{margin-top:9px;font-size:11px;color:#c4ccdd;letter-spacing:.34em;}
   @keyframes splashSeq{
     0%{opacity:0;filter:blur(18px);transform:scale(1.05);}
-    24%{opacity:1;filter:blur(0);transform:scale(1);}
-    62%{opacity:1;filter:blur(0);transform:scale(1);}
+    16%{opacity:1;filter:blur(0);transform:scale(1);}
+    80%{opacity:1;filter:blur(0);transform:scale(1);}
     100%{opacity:0;filter:blur(18px);transform:scale(1.03);}
   }
-  @keyframes spBgOut{0%,60%{opacity:1;}100%{opacity:0;visibility:hidden;}}
+  @keyframes spBgOut{0%,78%{opacity:1;}100%{opacity:0;visibility:hidden;}}
   @media(prefers-reduced-motion:reduce){#splash,#splash .sp-inner{animation:none;}}
   .badge{display:inline-block;font-size:10.5px;font-weight:600;color:#8a4b2f;background:#fbf1e8;border:1px solid #e3c3a8;border-radius:20px;padding:2px 9px;margin-top:12px;}
   .badge.ready{color:#2f6b4f;background:#eef4ef;border-color:#bcd6c4;}
@@ -70,7 +69,7 @@
 <div class="wrap">
 <header>
   <button type="button" class="gear" onclick="FPS.open()" aria-label="設定" title="設定（全ツール共通）">
-    <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.6v2.4M12 19v2.4M4.5 4.5l1.7 1.7M17.8 17.8l1.7 1.7M2.6 12h2.4M19 12h2.4M4.5 19.5l1.7-1.7M17.8 6.2l1.7-1.7"/></svg>
+    <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
   </button>
   <p class="eyebrow">Financial Planning Simulators</p>
   <h1>FPシミュレーター</h1>
@@ -158,6 +157,6 @@ window.FPS=(function(){
   return {open:function(){build();sync();document.getElementById('fpm').style.display='flex';},close:function(){var m=document.getElementById('fpm');if(m)m.style.display='none';}};
 })();
 </script>
-<script>(function(){var sp=document.getElementById("splash");if(!sp)return;if(sessionStorage.getItem("fp_splash")){sp.remove();return;}sessionStorage.setItem("fp_splash","1");setTimeout(function(){if(sp&&sp.parentNode)sp.remove();},1550);})();</script>
+<script>(function(){var sp=document.getElementById("splash");if(!sp)return;if(sessionStorage.getItem("fp_splash")){sp.remove();return;}sessionStorage.setItem("fp_splash","1");setTimeout(function(){if(sp&&sp.parentNode)sp.remove();},2600);})();</script>
 </body>
 </html>
