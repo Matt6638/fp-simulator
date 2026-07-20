@@ -119,6 +119,7 @@
         <div class="field"><label class="lab">役員就任年齢</label><div class="inrow"><input type="text" inputmode="numeric" class="num" id="t_join" value="" placeholder="40"><span class="u">歳</span></div></div>
         <div class="field"><label class="lab">役員勇退年齢</label><div class="inrow"><input type="text" inputmode="numeric" class="num" id="t_ret" value="" placeholder="70"><span class="u">歳</span></div></div>
       </div>
+      <div class="field"><label class="lab">勤続年数（在任年数） <span class="q">直接入力できます。空欄なら「勇退−就任」で自動</span></label><div class="inrow"><input type="text" inputmode="numeric" class="num" id="t_years" value="" placeholder="自動"><span class="u">年</span></div></div>
       <div class="field"><label class="chk" style="font-size:12.5px;color:var(--ink-soft);display:flex;gap:7px;align-items:flex-start;cursor:pointer;"><input type="checkbox" id="t_yakuin" checked style="width:auto;margin-top:3px;"> 役員（勤続5年以下は1/2課税なし＝特定役員退職手当等）</label></div>
       <div class="hint">勤続年数＝勇退年齢−就任年齢（1年未満は切上げ）。退職金は分離課税で、退職所得控除を引いた後さらに1/2にして課税される優遇があります。</div>
     </div>
@@ -248,7 +249,9 @@ function salaryTotals(monthly,ageFrom,ageTo){
 /* ===== 描画 ===== */
 function renderTax(){
   var gross=num('t_gross'),join=intV('t_join'),ret=intV('t_ret'),yk=g('t_yakuin').checked;
-  var years=Math.max(0,ret-join);
+  var yInput=String(g('t_years').value||'').trim();
+  var years = yInput!=='' ? Math.max(0,intV('t_years')) : Math.max(0,ret-join);
+  if(yInput===''){try{g('t_years').placeholder=(ret-join>0?String(ret-join):'自動');}catch(e){}}
   var r=taishokuTax(gross,years,yk);
   var o='';
   o+=row('退職金額',yen(gross)+' 円');
