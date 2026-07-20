@@ -129,6 +129,11 @@
     <h2>妻の役員報酬・健保（単純ケース）</h2>
     <span class="badge ready">利用可</span>
   </a>
+  <a class="card" href="退職金シミュレーター.html">
+    <span class="drag" aria-hidden="true">⠿</span><span class="no">10</span>
+    <h2>退職金シミュレーター</h2>
+    <span class="badge ready">利用可</span>
+  </a>
 </div>
 
 <footer>
@@ -173,7 +178,7 @@ window.FPS=(function(){
   function items(){return Array.prototype.slice.call(cards.querySelectorAll('a.card'));}
   function renumber(){items().forEach(function(c,i){var n=c.querySelector('.no');if(n)n.textContent=('0'+(i+1)).slice(-2);});}
   function save(){try{localStorage.setItem(KEY,JSON.stringify(items().map(function(c){return c.getAttribute('href');})));}catch(e){}}
-  (function applySaved(){try{var arr=JSON.parse(localStorage.getItem(KEY)||'null');if(arr&&arr.length){arr.forEach(function(h){var c=cards.querySelector('a.card[href="'+h.replace(/"/g,'\\"')+'"]');if(c)cards.appendChild(c);});}}catch(e){}renumber();})();
+  (function applySaved(){try{var arr=JSON.parse(localStorage.getItem(KEY)||'null');if(arr&&arr.length){arr.forEach(function(h){var c=cards.querySelector('a.card[href="'+h.replace(/"/g,'\\"')+'"]');if(c)cards.appendChild(c);});items().forEach(function(c){if(arr.indexOf(c.getAttribute('href'))<0)cards.appendChild(c);});}}catch(e){}renumber();})();
   var dragEl=null,moved=false,sy=0;
   function afterEl(y){var res=null,closest=-Infinity;items().forEach(function(c){if(c===dragEl)return;var b=c.getBoundingClientRect();var o=y-(b.top+b.height/2);if(o<0&&o>closest){closest=o;res=c;}});return res;}
   cards.addEventListener('pointerdown',function(e){var h=e.target.closest('.drag');if(!h)return;var c=h.closest('a.card');if(!c)return;e.preventDefault();dragEl=c;moved=false;sy=e.clientY;c.classList.add('dragging');cards.classList.add('reordering');try{h.setPointerCapture(e.pointerId);}catch(x){}});
