@@ -11,11 +11,11 @@
   *{box-sizing:border-box;}html,body{margin:0;padding:0;}
   body{background:var(--paper);color:var(--ink);font-family:var(--gothic);line-height:1.7;font-size:15px;-webkit-font-smoothing:antialiased;}
   .wrap{max-width:1240px;margin:0 auto;padding:18px 20px 60px;display:flex;gap:20px;align-items:flex-start;}
-  .side{flex:0 0 78px;position:sticky;top:14px;display:flex;flex-direction:column;align-items:center;gap:9px;}
+  .side{flex:0 0 62px;position:sticky;top:14px;display:flex;flex-direction:column;align-items:center;gap:9px;}
   .side-eyebrow{font-family:var(--mincho);font-size:10px;letter-spacing:.3em;color:var(--brass-deep);margin:0;}
   .side-tt{font-family:var(--mincho);font-weight:600;font-size:23px;color:var(--ink);writing-mode:vertical-rl;text-orientation:upright;letter-spacing:.14em;line-height:1;margin:0 0 8px;}
   .side .fpbar{flex-direction:column;align-items:stretch;gap:6px;margin:0;flex-wrap:nowrap;width:100%;}
-  .side .fpbtn{width:100%;text-align:center;padding:8px 4px;font-size:12px;white-space:nowrap;}
+  .side .fpbtn{width:100%;text-align:center;padding:7px 2px;font-size:11.5px;letter-spacing:0;white-space:nowrap;}
   .main{flex:1 1 auto;min-width:0;}
   @media(max-width:760px){.wrap{flex-direction:column;gap:14px;padding-top:14px;}.side{position:static;flex-basis:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px;width:100%;}.side-eyebrow{display:none;}.side-tt{writing-mode:horizontal-tb;text-orientation:mixed;margin:0 6px 0 0;font-size:20px;letter-spacing:.02em;}.side .fpbar{flex-direction:row;flex-wrap:wrap;width:auto;}.side .fpbtn{width:auto;}}
   .back{font-size:12px;color:var(--brass-deep);text-decoration:none;}.back:hover{text-decoration:underline;}
@@ -25,8 +25,17 @@
   .sub{margin:9px 0 0;color:var(--ink-soft);font-size:13.5px;}
   .lead{margin:0 0 16px;color:var(--ink-soft);font-size:12.5px;line-height:1.55;}
   .lead-note{color:var(--brass-deep);}
-  .grid{display:grid;grid-template-columns:minmax(0,0.95fr) minmax(0,1.22fr);gap:26px;align-items:start;}
-  @media(max-width:900px){.grid{grid-template-columns:1fr;gap:22px;}}
+  .grid{display:block;}
+  .grid>.panel{margin-bottom:22px;}
+  .grid>.panel:last-child{margin-bottom:0;}
+  /* 入力パネルは幅が広いときだけ複数カラムで横長に流す */
+  @media(min-width:820px){
+    .panel-input .panel-body{column-width:255px;column-gap:28px;}
+    .panel-input .grp{break-after:avoid;}
+    .panel-input .grp:first-child{margin-top:0;}
+    .panel-input .grp,.panel-input .field,.panel-input .row2,.panel-input details,.panel-input .hint,.panel-input #childList,.panel-input .btn{break-inside:avoid;}
+    .panel-input #calcBtn{column-span:all;}
+  }
   .panel{background:var(--surface);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;}
   .panel-head{padding:15px 20px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:baseline;gap:10px;}
   .panel-head .no{font-family:var(--mono);font-size:12px;color:var(--brass);}
@@ -83,7 +92,7 @@
   footer{margin-top:26px;font-size:11.5px;color:#8a8470;line-height:1.7;border-top:1px solid var(--rule);padding-top:16px;}
   footer b{color:var(--ink-soft);}
   input::placeholder{color:#c0baa8;} /*FPPH-GREY*/
-  @media screen and (min-width:901px){.grid{align-items:start;}.grid>.panel:last-child{position:sticky;top:14px;align-self:start;max-height:calc(100vh - 28px);overflow:auto;}}
+  /* 縦積みのため結果パネルの sticky は解除 */
 </style>
 <!-- FP Auth (Phase1: login gate + usage log) -->
 <script src="config.js"></script>
@@ -114,7 +123,7 @@
 <div id="fpManual" class="fp-manual" hidden><span class="tag">取扱説明書</span><h3>教育資金シミュレーターの使い方</h3><p>子どもの進学プランから、在学中の教育費と<b>今から準備する月額積立</b>を試算します。</p><h4>入力のポイント</h4><ul><li>子を追加し、<b>現在の年齢・進路（文系/理系/専門/医学部）・自宅/下宿</b>を選びます。</li><li>奨学金・現在の貯蓄・想定利回りを入れると、必要積立が調整されます。</li></ul><h4>結果の見方</h4><ul><li>必要総額、<b>毎月の積立目安</b>、教育費のピーク年、在学中の年別支出が出ます。</li></ul><h4>注意</h4><ul><li>学費は代表的な目安値。私立・学部・地域で変動します。概算です。</li></ul></div>
 
 <div class="grid">
-  <section class="panel">
+  <section class="panel panel-input">
     <div class="panel-head"><span class="no">01</span><h2>条件を入力</h2></div>
     <div class="panel-body">
 
