@@ -616,7 +616,7 @@ function fpFmt(n){if(n===0)return '0';var r=Math.round(n*10000)/10000;return r.t
   function init(key,recalc){KEY=key;RECALC=recalc;window.__fpU=settings().unit;injectCSS();fpMarkLabels();DEFAULTS=ser();
     var fi=document.getElementById('fpLoadInput');if(fi)fi.addEventListener('change',onFile);
     document.addEventListener('input',normZen,true);
-    document.addEventListener('input',save);document.addEventListener('change',save);document.addEventListener('input',function(e){var t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='SELECT'))t.setAttribute('data-fpt','1');},true);document.addEventListener('change',function(e){var t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='SELECT'))t.setAttribute('data-fpt','1');},true);
+    document.addEventListener('input',save);document.addEventListener('change',save);document.addEventListener('input',function(e){var t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='SELECT'))t.setAttribute('data-fpt','1');},true);document.addEventListener('change',function(e){var t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='SELECT'))t.setAttribute('data-fpt','1');},true);document.addEventListener('focusin',function(e){var t=e.target;if(t&&t.tagName==='SELECT')t.setAttribute('data-fpt','1');},true);
     window.addEventListener('storage',function(e){if(e.key===SKEY){applyUnit();setPrintHead();}});
     if(load()){els().forEach(function(e){e.setAttribute('data-fpt','1');});if(RECALC)RECALC();}
     setPrintHead();fpRefreshLabels();afterRender();}

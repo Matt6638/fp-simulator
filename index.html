@@ -62,6 +62,12 @@
   .badge{display:inline-block;font-size:10.5px;font-weight:600;color:#8a4b2f;background:#fbf1e8;border:1px solid #e3c3a8;border-radius:20px;padding:2px 9px;margin-top:12px;}
   .badge.ready{color:#2f6b4f;background:#eef4ef;border-color:#bcd6c4;}
   footer{margin-top:34px;font-size:11.5px;color:#8a8470;line-height:1.7;border-top:1px solid var(--rule);padding-top:16px;}
+  .hubbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 14px;}
+  .hubbtn{font-family:var(--gothic);font-size:12.5px;font-weight:600;color:var(--ink-soft);background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:9px 14px;cursor:pointer;transition:all .15s;}
+  .hubbtn:hover{border-color:var(--brass);color:var(--ink);}
+  .hubbtn.clr{color:#8a4b2f;}.hubbtn.clr:hover{border-color:#b5623a;color:#7d3f26;}
+  .card .stat{flex:0 0 auto;font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:20px;margin-left:6px;}
+  .card .stat.on{color:#25406b;background:#eef2fa;border:1px solid #c3d2ea;}
 </style>
 <!-- FP Auth (Phase1: login gate + usage log) -->
 <script src="config.js"></script>
@@ -81,6 +87,14 @@
   <h1>FPシミュレーター</h1>
   <p class="sub">生命保険提案のための試算ツール群。すべて2025年（令和7年）税制改正・年金制度改正法 反映の<b>概算</b>です。各ツールはオフラインでも動作します。</p>
 </header>
+
+<div class="hubbar">
+  <button type="button" class="hubbtn" onclick="HUB.save()">顧客データを保存</button>
+  <button type="button" class="hubbtn" onclick="HUB.load()">読込</button>
+  <button type="button" class="hubbtn" onclick="HUB.printAll()">PDF・共有</button>
+  <button type="button" class="hubbtn clr" onclick="HUB.clearAll()">全データをクリア</button>
+  <input type="file" id="hubLoad" accept=".json,application/json" style="display:none;">
+</div>
 
 <p class="rehint"><span aria-hidden="true">⠿</span> ハンドルをドラッグして並び替えできます（番号は自動で振り直します）</p>
 <div class="cards">
@@ -188,6 +202,34 @@ window.FPS=(function(){
   // ハンドル操作/ドラッグ後のクリックでの誤遷移を抑止
   cards.addEventListener('click',function(e){if(e.target.closest('.drag')||moved){e.preventDefault();e.stopPropagation();moved=false;}},true);
 })();
+</script>
+<script>
+window.HUB=(function(){
+  var MAP={"教育資金シミュレーター.html":"kyoiku","遺族年金シミュレーター.html":"izoku","相続税シミュレーター.html":"souzokuzei","相続シミュレーター.html":"seiho","贈与税シミュレーター.html":"gift","リタイア後所得シミュレーター.html":"retire","妻の収入シミュレーター.html":"tsuma","法人活用シミュレーター.html":"houjin","役員報酬シミュレーター.html":"yakuin","退職金シミュレーター.html":"taishoku"};
+  function hasData(key){try{var s=localStorage.getItem("fp:"+key);if(!s)return false;var o=JSON.parse(s);for(var k in o){var v=o[k];if(typeof v==="string"){var n=parseFloat(v.replace(/,/g,""));if(!isNaN(n)&&n>0)return true;}}return false;}catch(e){return false;}}
+  function refresh(){document.querySelectorAll("a.card").forEach(function(c){var href=c.getAttribute("href");var key=MAP[href];var st=c.querySelector(".stat");if(!st){st=document.createElement("span");st.className="stat";c.appendChild(st);}if(key&&hasData(key)){st.textContent="入力あり";st.className="stat on";}else{st.textContent="";st.className="stat";}});}
+  function collect(){var o={};Object.keys(MAP).forEach(function(h){var v=localStorage.getItem("fp:"+MAP[h]);if(v)o[MAP[h]]=v;});return o;}
+  function dl(name,text){var bl=new Blob([text],{type:"application/json"});var u=URL.createObjectURL(bl);var a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);}
+  function p2(n){return("0"+n).slice(-2);}
+  function save(){
+    var name=window.prompt("顧客名を入力してください（ファイル名に使用します）","");
+    if(name===null)return;
+    name=String(name).replace(/[\/\\:*?"<>|\s]/g,"").trim();if(name==="")name="顧客";
+    if(!/様$/.test(name))name=name+"様";
+    var d=new Date();var ymd=(""+d.getFullYear()).slice(2)+p2(d.getMonth()+1)+p2(d.getDate());
+    var payload=JSON.stringify({app:"FPシミュレーター",customer:name,savedAt:d.toISOString(),tools:collect(),settings:localStorage.getItem("fp:settings"),order:localStorage.getItem("fp:order")},null,2);
+    var fn=ymd+"_"+name+".json";
+    if(window.showSaveFilePicker){window.showSaveFilePicker({suggestedName:fn,types:[{description:"顧客データ",accept:{"application/json":[".json"]}}]}).then(function(h){return h.createWritable();}).then(function(w){return w.write(payload).then(function(){return w.close();});}).catch(function(){});}
+    else dl(fn,payload);
+  }
+  function load(){document.getElementById("hubLoad").click();}
+  function onFile(ev){var f=ev.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var o=JSON.parse(r.result);if(!o.tools)throw 0;if(!window.confirm("「"+(o.customer||"")+"」のデータを読み込みます。現在の入力は上書きされます。よろしいですか？"))return;Object.keys(o.tools).forEach(function(k){try{localStorage.setItem("fp:"+k,o.tools[k]);}catch(e){}});if(o.settings)localStorage.setItem("fp:settings",o.settings);if(o.order)localStorage.setItem("fp:order",o.order);refresh();window.alert("読み込みました："+(o.customer||"")+"\n各シミュレーターを開くと反映されます。");}catch(e){window.alert("読み込みに失敗しました（ファイル形式が不正です）。");}};r.readAsText(f);ev.target.value="";}
+  function clearAll(){if(!window.confirm("すべてのシミュレーターの入力内容を消去します（新しいお客様用にリセット）。よろしいですか？"))return;Object.keys(MAP).forEach(function(h){try{localStorage.removeItem("fp:"+MAP[h]);}catch(e){}});refresh();window.alert("全データをクリアしました。");}
+  function printAll(){window.print();}
+  return {save:save,load:load,onFile:onFile,clearAll:clearAll,printAll:printAll,refresh:refresh};
+})();
+document.getElementById("hubLoad").addEventListener("change",HUB.onFile);
+HUB.refresh();
 </script>
 </body>
 </html>
