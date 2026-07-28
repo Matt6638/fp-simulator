@@ -10,12 +10,21 @@
   :root{--ink:#1b2a4a;--ink-soft:#46506a;--paper:#f7f5ef;--surface:#fff;--brass:#9a7b4f;--brass-deep:#7d6240;--rule:#e3ddcf;--rule-soft:#eee9dd;--credit:#2f6b4f;--loss:#9b3b3b;--shadow:0 1px 2px rgba(27,42,74,.05),0 8px 28px rgba(27,42,74,.07);--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--gothic:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;--mincho:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;}
   *{box-sizing:border-box;}html,body{margin:0;padding:0;}
   body{background:var(--paper);color:var(--ink);font-family:var(--gothic);line-height:1.7;font-size:15px;-webkit-font-smoothing:antialiased;}
-  .wrap{max-width:1140px;margin:0 auto;padding:26px 20px 72px;}
+  .wrap{max-width:1240px;margin:0 auto;padding:18px 20px 60px;display:flex;gap:20px;align-items:flex-start;}
+  .side{flex:0 0 132px;position:sticky;top:14px;display:flex;flex-direction:column;gap:8px;}
+  .side-eyebrow{font-family:var(--mincho);font-size:10px;letter-spacing:.34em;color:var(--brass-deep);margin:2px 0 0;}
+  .side-tt{font-family:var(--mincho);font-weight:600;font-size:22px;color:var(--ink);line-height:1.15;letter-spacing:.02em;margin:0 0 10px;}
+  .side .fpbar{flex-direction:column;align-items:stretch;gap:6px;margin:0;flex-wrap:nowrap;}
+  .side .fpbtn{width:100%;text-align:center;padding:9px 8px;font-size:12.5px;}
+  .main{flex:1 1 auto;min-width:0;}
+  @media(max-width:760px){.wrap{flex-direction:column;gap:14px;padding-top:14px;}.side{position:static;flex-basis:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px;width:100%;}.side-eyebrow{display:none;}.side-tt{margin:0 6px 0 0;font-size:20px;}.side .fpbar{flex-direction:row;flex-wrap:wrap;}.side .fpbtn{width:auto;}}
   .back{font-size:12px;color:var(--brass-deep);text-decoration:none;}.back:hover{text-decoration:underline;}
   header{border-bottom:1px solid var(--rule);padding:14px 0 22px;margin-bottom:26px;}
   .eyebrow{font-family:var(--mincho);font-size:12px;letter-spacing:.42em;color:var(--brass-deep);margin:0 0 8px;}
   h1{font-family:var(--mincho);font-weight:600;font-size:24px;letter-spacing:.03em;margin:0;}
   .sub{margin:9px 0 0;color:var(--ink-soft);font-size:13.5px;}
+  .lead{margin:0 0 16px;color:var(--ink-soft);font-size:12.5px;line-height:1.55;}
+  .lead-note{color:var(--brass-deep);}
   .grid{display:grid;grid-template-columns:minmax(0,0.95fr) minmax(0,1.22fr);gap:26px;align-items:start;}
   @media(max-width:900px){.grid{grid-template-columns:1fr;gap:22px;}}
   .panel{background:var(--surface);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;}
@@ -85,13 +94,10 @@
 </head>
 <body>
 <div class="wrap">
-<header>
-  <p class="eyebrow">大学資金の準備 ─ 毎月いくら積み立てるか</p>
-  <h1>教育資金シミュレーター</h1>
-  <p class="sub">お子さまごとの進路・自宅／下宿・奨学金と、ご両親の年齢から、<b>今から毎月いくら積み立てればよいか</b>を逆算します。「在学中に収入から払う」で積立を抑える効果、<b>開始が遅れるほど毎月額が増える</b>こと、<b>教育が終わる頃の親の年齢</b>（＝ローンが組みにくくなる前に始める根拠）まで可視化。費用は各種調査に基づく<b>目安（概算）</b>。</p>
-</header>
-
-<div class="fpbar">
+<aside class="side">
+  <div class="side-eyebrow">FP</div>
+  <div class="side-tt">教育資金</div>
+  <div class="fpbar">
   <a class="fpbtn fphome" href="index.html">トップ</a>
   <button type="button" class="fpbtn" onclick="FP.toggleManual()">使い方</button>
   <button type="button" class="fpbtn" onclick="FP.clearAll()">クリア</button>
@@ -100,6 +106,10 @@
   <button type="button" class="fpbtn fpbtn-pdf" onclick="FP.printPDF()">PDF・共有</button>
   <input type="file" id="fpLoadInput" accept=".json,application/json" style="display:none;">
 </div>
+</aside>
+
+<main class="main">
+<p class="lead">お子さまごとの進路・自宅／下宿・奨学金と、ご両親の年齢から、<b>今から毎月いくら積み立てればよいか</b>を逆算します。<span class="lead-note">費用は各種調査に基づく目安（概算）。</span></p>
 
 <div id="fpManual" class="fp-manual" hidden><span class="tag">取扱説明書</span><h3>教育資金シミュレーターの使い方</h3><p>子どもの進学プランから、在学中の教育費と<b>今から準備する月額積立</b>を試算します。</p><h4>入力のポイント</h4><ul><li>子を追加し、<b>現在の年齢・進路（文系/理系/専門/医学部）・自宅/下宿</b>を選びます。</li><li>奨学金・現在の貯蓄・想定利回りを入れると、必要積立が調整されます。</li></ul><h4>結果の見方</h4><ul><li>必要総額、<b>毎月の積立目安</b>、教育費のピーク年、在学中の年別支出が出ます。</li></ul><h4>注意</h4><ul><li>学費は代表的な目安値。私立・学部・地域で変動します。概算です。</li></ul></div>
 
@@ -179,6 +189,7 @@
 <footer>
   <b>免責・前提</b>：費用は2025年時点の各種調査（文部科学省 学生納付金調査・国立大学標準額、日本政策金融公庫 教育費負担の実態調査 等）に基づく<b>目安（概算）</b>です。国立＝入学金282,000円＋授業料535,800円×年数、私立文系 約400万・理系 約540万・医歯系(6年) 約2,300万・薬学(6年) 約1,200万・短大/専門(2年) 約200〜230万（入学金込み総額の目安）。下宿は仕送り 年約90万＋初期費用 約40万。「在学中に収入から出す月額」は複数のお子さまの在学が重なる年は合算負担になる点にご留意ください。<b>2025年度からの多子世帯（扶養する子3人以上）大学等授業料無償化（上限あり）</b>等の支援制度は含めていません。正確な費用・利回りは各校・各商品でご確認ください。
 </footer>
+</main>
 </div>
 
 <script>
