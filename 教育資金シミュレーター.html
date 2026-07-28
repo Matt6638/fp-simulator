@@ -11,13 +11,13 @@
   *{box-sizing:border-box;}html,body{margin:0;padding:0;}
   body{background:var(--paper);color:var(--ink);font-family:var(--gothic);line-height:1.7;font-size:15px;-webkit-font-smoothing:antialiased;}
   .wrap{max-width:1240px;margin:0 auto;padding:18px 20px 60px;display:flex;gap:20px;align-items:flex-start;}
-  .side{flex:0 0 132px;position:sticky;top:14px;display:flex;flex-direction:column;gap:8px;}
-  .side-eyebrow{font-family:var(--mincho);font-size:10px;letter-spacing:.34em;color:var(--brass-deep);margin:2px 0 0;}
-  .side-tt{font-family:var(--mincho);font-weight:600;font-size:22px;color:var(--ink);line-height:1.15;letter-spacing:.02em;margin:0 0 10px;}
-  .side .fpbar{flex-direction:column;align-items:stretch;gap:6px;margin:0;flex-wrap:nowrap;}
-  .side .fpbtn{width:100%;text-align:center;padding:9px 8px;font-size:12.5px;}
+  .side{flex:0 0 78px;position:sticky;top:14px;display:flex;flex-direction:column;align-items:center;gap:9px;}
+  .side-eyebrow{font-family:var(--mincho);font-size:10px;letter-spacing:.3em;color:var(--brass-deep);margin:0;}
+  .side-tt{font-family:var(--mincho);font-weight:600;font-size:23px;color:var(--ink);writing-mode:vertical-rl;text-orientation:upright;letter-spacing:.14em;line-height:1;margin:0 0 8px;}
+  .side .fpbar{flex-direction:column;align-items:stretch;gap:6px;margin:0;flex-wrap:nowrap;width:100%;}
+  .side .fpbtn{width:100%;text-align:center;padding:8px 4px;font-size:12px;white-space:nowrap;}
   .main{flex:1 1 auto;min-width:0;}
-  @media(max-width:760px){.wrap{flex-direction:column;gap:14px;padding-top:14px;}.side{position:static;flex-basis:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px;width:100%;}.side-eyebrow{display:none;}.side-tt{margin:0 6px 0 0;font-size:20px;}.side .fpbar{flex-direction:row;flex-wrap:wrap;}.side .fpbtn{width:auto;}}
+  @media(max-width:760px){.wrap{flex-direction:column;gap:14px;padding-top:14px;}.side{position:static;flex-basis:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px;width:100%;}.side-eyebrow{display:none;}.side-tt{writing-mode:horizontal-tb;text-orientation:mixed;margin:0 6px 0 0;font-size:20px;letter-spacing:.02em;}.side .fpbar{flex-direction:row;flex-wrap:wrap;width:auto;}.side .fpbtn{width:auto;}}
   .back{font-size:12px;color:var(--brass-deep);text-decoration:none;}.back:hover{text-decoration:underline;}
   header{border-bottom:1px solid var(--rule);padding:14px 0 22px;margin-bottom:26px;}
   .eyebrow{font-family:var(--mincho);font-size:12px;letter-spacing:.42em;color:var(--brass-deep);margin:0 0 8px;}
