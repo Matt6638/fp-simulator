@@ -28,14 +28,32 @@
   .grid{display:block;}
   .grid>.panel{margin-bottom:22px;}
   .grid>.panel:last-child{margin-bottom:0;}
-  /* 入力パネルは幅が広いときだけ複数カラムで横長に流す */
+  /* 入力＝上部に省スペースで横長（複数カラム）／結果＝下に広く（およそ3:7） */
   @media(min-width:820px){
-    .panel-input .panel-body{column-width:255px;column-gap:28px;}
+    .panel-input .panel-body{column-width:222px;column-gap:26px;}
     .panel-input .grp{break-after:avoid;}
     .panel-input .grp:first-child{margin-top:0;}
     .panel-input .grp,.panel-input .field,.panel-input .row2,.panel-input details,.panel-input .hint,.panel-input #childList,.panel-input .btn{break-inside:avoid;}
     .panel-input #calcBtn{column-span:all;}
   }
+  /* 入力の省スペース化（余白・ラベル・ヒント・子カードを圧縮） */
+  .panel-input .panel-head{padding:9px 18px;}
+  .panel-input .panel-body{padding:13px 18px;}
+  .panel-input .grp{margin:11px 0 6px;padding-bottom:4px;}
+  .panel-input .field{margin-bottom:7px;}
+  .panel-input label.lab{margin-bottom:3px;font-size:12px;min-height:0!important;}
+  .panel-input input[type=text],.panel-input input[type=number],.panel-input select{padding:6px 9px;font-size:13px;}
+  .panel-input .hint{font-size:10.5px;line-height:1.42;margin-top:3px;}
+  .panel-input .row2{gap:8px;}
+  .panel-input .btn{padding:8px 12px;font-size:13px;}
+  .panel-input .btn-add{padding:7px 10px;}
+  .panel-input .btn-primary{margin-top:8px;}
+  .panel-input .child{padding:9px 10px;margin-bottom:7px;}
+  .panel-input .child .chead{margin-bottom:5px;}
+  .panel-input .child .chead b{font-size:12.5px;}
+  .panel-input .cf{margin-bottom:5px;}
+  .panel-input .cf label{font-size:10.5px;margin-bottom:3px;}
+  .panel-input details[style]{margin-top:8px!important;padding-top:8px!important;}
   .panel{background:var(--surface);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;}
   .panel-head{padding:15px 20px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:baseline;gap:10px;}
   .panel-head .no{font-family:var(--mono);font-size:12px;color:var(--brass);}
