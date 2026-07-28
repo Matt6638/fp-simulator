@@ -28,31 +28,42 @@
   .grid{display:block;}
   .grid>.panel{margin-bottom:22px;}
   .grid>.panel:last-child{margin-bottom:0;}
-  /* 入力＝上部に省スペースで横長（複数カラム）／結果＝下に広く（およそ3:7） */
-  @media(min-width:820px){
-    .panel-input .panel-body{column-width:222px;column-gap:26px;}
-    .panel-input .grp{break-after:avoid;}
-    .panel-input .grp:first-child{margin-top:0;}
-    .panel-input .grp,.panel-input .field,.panel-input .row2,.panel-input details,.panel-input .hint,.panel-input #childList,.panel-input .btn{break-inside:avoid;}
-    .panel-input #calcBtn{column-span:all;}
-  }
-  /* 入力の省スペース化（余白・ラベル・ヒント・子カードを圧縮） */
+  /* 入力＝上部に省スペース（対象者は表・条件は右に横並び）／結果＝下に広く（およそ3:7） */
   .panel-input .panel-head{padding:9px 18px;}
   .panel-input .panel-body{padding:13px 18px;}
+  .iwrap{display:flex;flex-wrap:wrap;gap:14px 26px;align-items:flex-start;}
+  .ipeople{flex:1 1 360px;min-width:300px;}
+  .iopts{flex:1 1 300px;min-width:270px;}
+  @media(min-width:1120px){.iopts{column-width:228px;column-gap:24px;}.iopts .grp:first-child{margin-top:0;}.iopts .field,.iopts .row2,.iopts details,.iopts .hint,.iopts .grp,.iopts .btn{break-inside:avoid;}.iopts .grp{break-after:avoid;}}
+  /* 対象者テーブル（父母・子を行、年齢/進路/金額を列） */
+  .itbl{width:100%;border-collapse:collapse;}
+  .itbl th{font-size:10px;color:var(--ink-soft);font-weight:700;text-align:left;padding:2px 6px 5px;border-bottom:1px solid var(--rule);white-space:nowrap;letter-spacing:.02em;}
+  .itbl td{padding:4px 4px;vertical-align:middle;border-bottom:1px solid var(--rule-soft);}
+  .itbl tbody tr:last-child td{border-bottom:none;}
+  .itbl .tobj{font-size:11.5px;font-weight:600;color:var(--ink-soft);white-space:nowrap;padding-right:8px;}
+  .itbl input.c-age,.itbl input#fatherAge,.itbl input#motherAge{width:56px;text-align:right;font-family:var(--mono);}
+  .itbl input.yen{width:82px;}
+  .itbl select.c-plan{width:100%;min-width:132px;}
+  .itbl .dash{color:#cfc9b6;text-align:center;font-family:var(--mono);}
+  .itbl .delcell{width:1%;white-space:nowrap;text-align:center;}
+  .itbl .del{font-size:12px;color:var(--loss);background:none;border:1px solid #e0c3c3;border-radius:5px;padding:2px 7px;cursor:pointer;line-height:1;}
+  .itbl .del:hover{background:#fbf0f0;}
+  .prow input{background:#fff;}
+  .itbl tr.child{background:transparent;border:0;padding:0;margin:0;}
+  .tbl-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;}
+  .tbl-actions .btn-add{width:auto;flex:1 1 auto;}
+  /* 条件欄・全般の省スペース化 */
   .panel-input .grp{margin:11px 0 6px;padding-bottom:4px;}
+  .panel-input .grp:first-child{margin-top:0;}
   .panel-input .field{margin-bottom:7px;}
   .panel-input label.lab{margin-bottom:3px;font-size:12px;min-height:0!important;}
   .panel-input input[type=text],.panel-input input[type=number],.panel-input select{padding:6px 9px;font-size:13px;}
+  .itbl input,.itbl select{padding:5px 7px!important;font-size:12.5px!important;}
   .panel-input .hint{font-size:10.5px;line-height:1.42;margin-top:3px;}
   .panel-input .row2{gap:8px;}
   .panel-input .btn{padding:8px 12px;font-size:13px;}
   .panel-input .btn-add{padding:7px 10px;}
   .panel-input .btn-primary{margin-top:8px;}
-  .panel-input .child{padding:9px 10px;margin-bottom:7px;}
-  .panel-input .child .chead{margin-bottom:5px;}
-  .panel-input .child .chead b{font-size:12.5px;}
-  .panel-input .cf{margin-bottom:5px;}
-  .panel-input .cf label{font-size:10.5px;margin-bottom:3px;}
   .panel-input details[style]{margin-top:8px!important;padding-top:8px!important;}
   .panel{background:var(--surface);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;}
   .panel-head{padding:15px 20px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:baseline;gap:10px;}
@@ -145,65 +156,68 @@
     <div class="panel-head"><span class="no">01</span><h2>条件を入力</h2></div>
     <div class="panel-body">
 
-      <div class="grp">ご両親の年齢</div>
-      <div class="row2">
-        <div class="field"><label class="lab">父の現在の年齢</label><input type="text" inputmode="decimal" id="fatherAge" value="" placeholder="40" step="1" min="18" max="80"></div>
-        <div class="field"><label class="lab">母の現在の年齢</label><input type="text" inputmode="decimal" id="motherAge" value="" placeholder="38" step="1" min="18" max="80"></div>
-      </div>
-
-      <div class="grp">お子さま（＋で追加）</div>
-      <div id="childList"></div>
-      <button class="btn btn-add" id="addChild">＋ お子さまを追加</button>
-      <button class="btn btn-add" id="applyFirst" style="margin-top:8px;">お子さま1の内容を以降にコピー（年齢は除く）</button>
-      <div class="hint" style="margin-top:5px;">進路（通学形態）・奨学金・貯蓄をコピーします（<b>年齢は各お子さまのまま</b>）。</div>
-
-      <div class="grp">準備の前提</div>
-      <div class="row2">
-        <div class="field"><label class="lab" style="min-height:2.7em;">積立の想定利回り（年％）</label><input type="text" inputmode="decimal" id="rate" value="" placeholder="0.5" step="0.1"></div>
-        <div class="field"><label class="lab" style="min-height:2.7em;">在学中に収入から出す月額（子1人）</label><input type="text" inputmode="numeric" class="yen" id="zaigaku" value="" placeholder="0"></div>
-      </div>
-      <div class="hint" style="margin-top:-6px;">「在学中に収入から出す月額」を入れると、その分は<b>事前に積み立てなくてよい</b>ので毎月の積立額が下がります（大学期に給与等から支払う前提）。</div>
-      <div class="field" style="margin-top:12px;">
-        <label class="lab">積立を完了する時期</label>
-        <select id="finishTiming"><option value="1" selected>入学の1年前まで（理想）</option><option value="0">入学時まで</option><option value="2">入学の2年前まで</option></select>
-        <div class="hint">在学中は仕送りで手一杯になりがちなので、<b>入学の1年前までに貯め終える</b>のが理想です。積立期間が短くなる分、毎月額は上がります。</div>
-      </div>
-      <div class="field" style="margin-top:12px;">
-        <label class="lab">開始遅延の比較（4つ目の年数）</label>
-        <select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select>
-        <div class="hint">比較表は「今すぐ・1年後・3年後」＋ここで選んだ年数で表示します。</div>
-      </div>
-
-      <div class="grp">奨学金の返済（貸与型の場合）</div>
-      <div class="row2">
-        <div class="field"><label class="lab">奨学金の利率（年％）</label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="0.5" step="0.1"></div>
-        <div class="field"><label class="lab">卒業後の返済 月額</label><input type="text" inputmode="numeric" class="yen" id="repayMonthly" value="" placeholder="15,000"></div>
-      </div>
-      <div class="hint" style="margin-top:-6px;">「奨学金 月額」を入れた場合、卒業後に本人がいくらずつ返すと何歳で完済するかを試算します（第一種＝無利子は利率0、第二種＝有利子は0.5%前後が目安）。</div>
-
-      <details style="margin-top:12px;border-top:1px dashed var(--rule);padding-top:12px;">
-        <summary style="font-size:12.5px;font-weight:600;color:var(--brass-deep);cursor:pointer;">下宿費用の前提を調整</summary>
-        <div class="row2" style="margin-top:12px;">
-          <div class="field"><label class="lab" style="font-size:11.5px;">仕送り 年額</label><input type="text" inputmode="numeric" class="yen" id="shiokuri" value="" placeholder="900,000"></div>
-          <div class="field"><label class="lab" style="font-size:11.5px;">下宿の初期費用（一括）</label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
+      <div class="iwrap">
+        <div class="ipeople">
+          <div class="grp">対象者（ご両親・お子さま）</div>
+          <table class="itbl">
+            <thead><tr><th>対象</th><th>年齢</th><th>進路（通学形態）</th><th>奨学金/月</th><th>教育貯蓄</th><th></th></tr></thead>
+            <tbody id="childList">
+              <tr class="prow"><td class="tobj">父</td><td><input type="text" inputmode="decimal" id="fatherAge" value="" placeholder="40" step="1" min="18" max="80"></td><td class="dash" colspan="3">—（親は年齢のみ）</td><td class="delcell"></td></tr>
+              <tr class="prow"><td class="tobj">母</td><td><input type="text" inputmode="decimal" id="motherAge" value="" placeholder="38" step="1" min="18" max="80"></td><td class="dash" colspan="3"></td><td class="delcell"></td></tr>
+            </tbody>
+          </table>
+          <div class="tbl-actions">
+            <button class="btn btn-add" id="addChild">＋ お子さまを追加</button>
+            <button class="btn btn-add" id="applyFirst">お子さま1をコピー（年齢除く）</button>
+          </div>
+          <div class="hint">進路・奨学金・貯蓄を以降のお子さまへコピー（<b>年齢は各自のまま</b>）。ご両親の年齢は「教育終了時の親の年齢」に使います。</div>
         </div>
-      </details>
 
-      <div class="grp">NISA・投資で貯める場合の暴落リスク</div>
-      <div class="row2" style="align-items:end;">
-        <div class="field"><label class="lab">投資で準備する教育資金</label><input type="text" inputmode="numeric" class="yen" id="nisaAmount" value="" placeholder="0"></div>
-        <div class="field"><label class="lab">想定する暴落（過去の実例）</label>
-          <select id="nisaScenario">
-            <option value="corona">コロナ級（−34%・回復1年）</option>
-            <option value="lehman" selected>リーマン級（−55%・回復5年）</option>
-            <option value="dotcom">ITバブル級（−49%・回復7年）</option>
-            <option value="nikkei">日経バブル級（−82%・回復34年）</option>
-          </select>
+        <div class="iopts">
+          <div class="grp">準備の前提・開始遅延 他</div>
+          <div class="row2">
+            <div class="field"><label class="lab">積立の想定利回り（年％）</label><input type="text" inputmode="decimal" id="rate" value="" placeholder="0.5" step="0.1"></div>
+            <div class="field"><label class="lab">在学中に収入から出す月額（子1人）</label><input type="text" inputmode="numeric" class="yen" id="zaigaku" value="" placeholder="0"></div>
+          </div>
+          <div class="hint">「在学中に収入から出す月額」を入れると、その分は<b>事前に積み立てなくてよい</b>ので毎月額が下がります。</div>
+          <div class="row2" style="margin-top:8px;">
+            <div class="field"><label class="lab">積立を完了する時期</label>
+              <select id="finishTiming"><option value="1" selected>入学の1年前まで（理想）</option><option value="0">入学時まで</option><option value="2">入学の2年前まで</option></select></div>
+            <div class="field"><label class="lab">開始遅延の比較（4つ目）</label>
+              <select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
+          </div>
+
+          <div class="grp">奨学金の返済（貸与型）</div>
+          <div class="row2">
+            <div class="field"><label class="lab">奨学金の利率（年％）</label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="0.5" step="0.1"></div>
+            <div class="field"><label class="lab">卒業後の返済 月額</label><input type="text" inputmode="numeric" class="yen" id="repayMonthly" value="" placeholder="15,000"></div>
+          </div>
+
+          <details style="margin-top:10px;border-top:1px dashed var(--rule);padding-top:10px;">
+            <summary style="font-size:12.5px;font-weight:600;color:var(--brass-deep);cursor:pointer;">下宿費用の前提を調整</summary>
+            <div class="row2" style="margin-top:10px;">
+              <div class="field"><label class="lab" style="font-size:11.5px;">仕送り 年額</label><input type="text" inputmode="numeric" class="yen" id="shiokuri" value="" placeholder="900,000"></div>
+              <div class="field"><label class="lab" style="font-size:11.5px;">下宿の初期費用（一括）</label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
+            </div>
+          </details>
+
+          <div class="grp">NISA・投資で貯める場合の暴落リスク</div>
+          <div class="row2" style="align-items:end;">
+            <div class="field"><label class="lab">投資で準備する教育資金</label><input type="text" inputmode="numeric" class="yen" id="nisaAmount" value="" placeholder="0"></div>
+            <div class="field"><label class="lab">想定する暴落（過去の実例）</label>
+              <select id="nisaScenario">
+                <option value="corona">コロナ級（−34%・回復1年）</option>
+                <option value="lehman" selected>リーマン級（−55%・回復5年）</option>
+                <option value="dotcom">ITバブル級（−49%・回復7年）</option>
+                <option value="nikkei">日経バブル級（−82%・回復34年）</option>
+              </select>
+            </div>
+          </div>
+          <div class="hint">入学時点で暴落が来ると評価額が下がり、回復まで満額使えません（金額0なら非表示）。</div>
+
+          <button class="btn btn-primary" id="calcBtn" style="margin-top:12px;">必要な積立額を計算</button>
         </div>
       </div>
-      <div class="hint">入学時点で暴落が来ると評価額が下がり、回復まで満額使えません。使う時期が決まった教育資金の投資リスクを可視化します（金額0なら非表示）。</div>
-
-      <button class="btn btn-primary" id="calcBtn" style="margin-top:16px;">必要な積立額を計算</button>
     </div>
   </section>
 
@@ -273,8 +287,8 @@ function attachClear(el){
 /* ===== 子リスト管理 ===== */
 function addChild(data){
   data=data||{};
-  const div=document.createElement('div');
-  div.className='child';
+  const tr=document.createElement('tr');
+  tr.className='child';
   let opts='';
   for(const k in COURSES){
     for(const live of ['home','away']){
@@ -283,25 +297,22 @@ function addChild(data){
       opts+=`<option value="${k}|${live}" ${sel}>${label}</option>`;
     }
   }
-  div.innerHTML=`
-    <div class="chead"><b>お子さま</b><button class="del" type="button">削除</button></div>
-    <div class="row2">
-      <div class="cf"><label>現在の年齢</label><input type="text" inputmode="decimal" class="c-age" value="${data.age!=null?data.age:''}" placeholder="10" step="1" min="0" max="30"></div>
-      <div class="cf"><label>進路（通学形態）</label><select class="c-plan">${opts}</select></div>
-    </div>
-    <div class="row2">
-      <div class="cf"><label>奨学金 月額</label><input type="text" inputmode="numeric" class="yen c-scholar" value="" placeholder="0"></div>
-      <div class="cf"><label>この子の現在の教育貯蓄</label><input type="text" inputmode="numeric" class="yen c-saved" value="" placeholder="0"></div>
-    </div>
+  tr.innerHTML=`
+    <td class="tobj"><b>子</b></td>
+    <td><input type="text" inputmode="decimal" class="c-age" value="${data.age!=null?data.age:''}" placeholder="10" step="1" min="0" max="30"></td>
+    <td><select class="c-plan">${opts}</select></td>
+    <td><input type="text" inputmode="numeric" class="yen c-scholar" value="" placeholder="0"></td>
+    <td><input type="text" inputmode="numeric" class="yen c-saved" value="" placeholder="0"></td>
+    <td class="delcell"><button class="del" type="button" title="削除">✕</button></td>
   `;
-  document.getElementById('childList').appendChild(div);
-  div.querySelector('.del').addEventListener('click',()=>{div.remove();renumber();if(ready)simulate();});
-  div.querySelectorAll('input.yen').forEach(attachAmount);
-  attachClear(div.querySelector('.c-age'));
+  document.getElementById('childList').appendChild(tr);
+  tr.querySelector('.del').addEventListener('click',()=>{tr.remove();renumber();if(ready)simulate();});
+  tr.querySelectorAll('input.yen').forEach(attachAmount);
+  attachClear(tr.querySelector('.c-age'));
   renumber();
   if(ready)simulate();
 }
-function renumber(){document.querySelectorAll('.child').forEach((c,i)=>{c.querySelector('.chead b').textContent='お子さま '+(i+1);});}
+function renumber(){document.querySelectorAll('.child').forEach((c,i)=>{c.querySelector('.tobj b').textContent='子'+(i+1);});}
 document.getElementById('addChild').addEventListener('click',()=>addChild());
 function applyFirstToAll(){
   const kids=document.querySelectorAll('.child');
