@@ -34,7 +34,21 @@
   .iwrap{display:flex;flex-wrap:wrap;gap:14px 26px;align-items:flex-start;}
   .ipeople{flex:1 1 360px;min-width:300px;}
   .iopts{flex:1 1 300px;min-width:270px;}
-  @media(min-width:1120px){.iopts{column-width:228px;column-gap:24px;}.iopts .grp:first-child{margin-top:0;}.iopts .field,.iopts .row2,.iopts details,.iopts .hint,.iopts .grp,.iopts .btn{break-inside:avoid;}.iopts .grp{break-after:avoid;}}
+  /* 対象者見出し＋父母年齢を右に横並び */
+  .ihead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px;}
+  .grp.ginline{margin:0;padding:0;border:0;}
+  .parent-ages{font-size:11.5px;color:var(--ink-soft);font-weight:600;display:inline-flex;align-items:center;white-space:nowrap;}
+  .parent-ages input{width:46px!important;text-align:right;font-family:var(--mono);padding:4px 6px!important;font-size:12.5px!important;margin:0 2px;display:inline-block;}
+  .parent-ages em{font-style:normal;font-size:10.5px;color:var(--ink-soft);margin-right:8px;}
+  /* 条件欄：小型フィールドを横に流して低く */
+  .grp.gtight{margin:0 0 7px;}
+  .fieldwrap{display:flex;flex-wrap:wrap;gap:8px 14px;}
+  .fieldwrap .ff{flex:1 1 128px;min-width:116px;margin-bottom:0;}
+  .btn-calc{width:auto!important;padding:7px 18px!important;margin-top:10px;}
+  .lodging>summary{font-size:12px;font-weight:600;color:var(--brass-deep);cursor:pointer;margin-top:8px;list-style:revert;}
+  /* NISA：結果パネル最下部 */
+  .nisa-foot{border-top:1px solid var(--rule);padding:13px 20px 18px;}
+  .nisa-foot .grp{margin-top:0;}
   /* 対象者テーブル（父母・子を行、年齢/進路/金額を列） */
   .itbl{width:100%;border-collapse:collapse;}
   .itbl th{font-size:10px;color:var(--ink-soft);font-weight:700;text-align:left;padding:2px 6px 5px;border-bottom:1px solid var(--rule);white-space:nowrap;letter-spacing:.02em;}
@@ -158,64 +172,38 @@
 
       <div class="iwrap">
         <div class="ipeople">
-          <div class="grp">対象者（ご両親・お子さま）</div>
+          <div class="ihead">
+            <span class="grp ginline">対象者</span>
+            <span class="parent-ages">父<input type="text" inputmode="decimal" id="fatherAge" value="" placeholder="40" step="1" min="18" max="80"><em>歳</em>母<input type="text" inputmode="decimal" id="motherAge" value="" placeholder="38" step="1" min="18" max="80"><em>歳</em></span>
+          </div>
           <table class="itbl">
-            <thead><tr><th>対象</th><th>年齢</th><th>進路（通学形態）</th><th>奨学金/月</th><th>教育貯蓄</th><th></th></tr></thead>
-            <tbody id="childList">
-              <tr class="prow"><td class="tobj">父</td><td><input type="text" inputmode="decimal" id="fatherAge" value="" placeholder="40" step="1" min="18" max="80"></td><td class="dash" colspan="3">—（親は年齢のみ）</td><td class="delcell"></td></tr>
-              <tr class="prow"><td class="tobj">母</td><td><input type="text" inputmode="decimal" id="motherAge" value="" placeholder="38" step="1" min="18" max="80"></td><td class="dash" colspan="3"></td><td class="delcell"></td></tr>
-            </tbody>
+            <thead><tr><th>子</th><th>年齢</th><th>進路（通学形態）</th><th>奨学金/月</th><th>教育貯蓄</th><th></th></tr></thead>
+            <tbody id="childList"></tbody>
           </table>
           <div class="tbl-actions">
             <button class="btn btn-add" id="addChild">＋ お子さまを追加</button>
-            <button class="btn btn-add" id="applyFirst">お子さま1をコピー（年齢除く）</button>
+            <button class="btn btn-add" id="applyFirst">子1をコピー（年齢除く）</button>
           </div>
-          <div class="hint">進路・奨学金・貯蓄を以降のお子さまへコピー（<b>年齢は各自のまま</b>）。ご両親の年齢は「教育終了時の親の年齢」に使います。</div>
         </div>
 
         <div class="iopts">
-          <div class="grp">準備の前提・開始遅延 他</div>
-          <div class="row2">
-            <div class="field"><label class="lab">積立の想定利回り（年％）</label><input type="text" inputmode="decimal" id="rate" value="" placeholder="0.5" step="0.1"></div>
-            <div class="field"><label class="lab">在学中に収入から出す月額（子1人）</label><input type="text" inputmode="numeric" class="yen" id="zaigaku" value="" placeholder="0"></div>
+          <div class="grp gtight">準備の前提・開始遅延 他</div>
+          <div class="fieldwrap">
+            <div class="field ff"><label class="lab">利回り(年%)</label><input type="text" inputmode="decimal" id="rate" value="" placeholder="0.5" step="0.1"></div>
+            <div class="field ff"><label class="lab">在学中の月額(子1)</label><input type="text" inputmode="numeric" class="yen" id="zaigaku" value="" placeholder="0"></div>
+            <div class="field ff"><label class="lab">積立の完了時期</label><select id="finishTiming"><option value="1" selected>入学1年前まで</option><option value="0">入学時まで</option><option value="2">入学2年前まで</option></select></div>
+            <div class="field ff"><label class="lab">開始遅延の比較</label><select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
+            <div class="field ff"><label class="lab">奨学金利率(年%)</label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="0.5" step="0.1"></div>
+            <div class="field ff"><label class="lab">卒業後の返済/月</label><input type="text" inputmode="numeric" class="yen" id="repayMonthly" value="" placeholder="15,000"></div>
           </div>
-          <div class="hint">「在学中に収入から出す月額」を入れると、その分は<b>事前に積み立てなくてよい</b>ので毎月額が下がります。</div>
-          <div class="row2" style="margin-top:8px;">
-            <div class="field"><label class="lab">積立を完了する時期</label>
-              <select id="finishTiming"><option value="1" selected>入学の1年前まで（理想）</option><option value="0">入学時まで</option><option value="2">入学の2年前まで</option></select></div>
-            <div class="field"><label class="lab">開始遅延の比較（4つ目）</label>
-              <select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
-          </div>
-
-          <div class="grp">奨学金の返済（貸与型）</div>
-          <div class="row2">
-            <div class="field"><label class="lab">奨学金の利率（年％）</label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="0.5" step="0.1"></div>
-            <div class="field"><label class="lab">卒業後の返済 月額</label><input type="text" inputmode="numeric" class="yen" id="repayMonthly" value="" placeholder="15,000"></div>
-          </div>
-
-          <details style="margin-top:10px;border-top:1px dashed var(--rule);padding-top:10px;">
-            <summary style="font-size:12.5px;font-weight:600;color:var(--brass-deep);cursor:pointer;">下宿費用の前提を調整</summary>
-            <div class="row2" style="margin-top:10px;">
-              <div class="field"><label class="lab" style="font-size:11.5px;">仕送り 年額</label><input type="text" inputmode="numeric" class="yen" id="shiokuri" value="" placeholder="900,000"></div>
-              <div class="field"><label class="lab" style="font-size:11.5px;">下宿の初期費用（一括）</label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
+          <details class="lodging">
+            <summary>下宿費用の前提を調整</summary>
+            <div class="fieldwrap" style="margin-top:8px;">
+              <div class="field ff"><label class="lab">仕送り 年額</label><input type="text" inputmode="numeric" class="yen" id="shiokuri" value="" placeholder="900,000"></div>
+              <div class="field ff"><label class="lab">下宿の初期費用</label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
             </div>
           </details>
-
-          <div class="grp">NISA・投資で貯める場合の暴落リスク</div>
-          <div class="row2" style="align-items:end;">
-            <div class="field"><label class="lab">投資で準備する教育資金</label><input type="text" inputmode="numeric" class="yen" id="nisaAmount" value="" placeholder="0"></div>
-            <div class="field"><label class="lab">想定する暴落（過去の実例）</label>
-              <select id="nisaScenario">
-                <option value="corona">コロナ級（−34%・回復1年）</option>
-                <option value="lehman" selected>リーマン級（−55%・回復5年）</option>
-                <option value="dotcom">ITバブル級（−49%・回復7年）</option>
-                <option value="nikkei">日経バブル級（−82%・回復34年）</option>
-              </select>
-            </div>
-          </div>
-          <div class="hint">入学時点で暴落が来ると評価額が下がり、回復まで満額使えません（金額0なら非表示）。</div>
-
-          <button class="btn btn-primary" id="calcBtn" style="margin-top:12px;">必要な積立額を計算</button>
+          <button class="btn btn-primary btn-calc" id="calcBtn">計算</button>
         </div>
       </div>
     </div>
@@ -224,6 +212,15 @@
   <section class="panel" id="out">
     <div class="panel-head"><span class="no">02</span><h2>結果</h2></div>
     <div id="outBody"><div class="placeholder"><span class="mark">✎</span>お子さまを追加して「必要な積立額を計算」を押してください。</div></div>
+    <div id="nisaFoot" class="nisa-foot">
+      <div class="grp">NISA・投資で貯める場合の暴落リスク（任意）</div>
+      <div class="fieldwrap">
+        <div class="field ff"><label class="lab">投資で準備する教育資金</label><input type="text" inputmode="numeric" class="yen" id="nisaAmount" value="" placeholder="0"></div>
+        <div class="field ff"><label class="lab">想定する暴落（過去の実例）</label><select id="nisaScenario"><option value="corona">コロナ級（−34%・回復1年）</option><option value="lehman" selected>リーマン級（−55%・回復5年）</option><option value="dotcom">ITバブル級（−49%・回復7年）</option><option value="nikkei">日経バブル級（−82%・回復34年）</option></select></div>
+      </div>
+      <div class="hint">使う時期が決まった教育資金の投資リスクを可視化します（金額0なら非表示）。</div>
+      <div id="nisaHost"></div>
+    </div>
   </section>
 </div>
 
@@ -487,25 +484,31 @@ function render(R){
   html+=chartSVG(R);
   html+=`<div class="legend"><span><i style="background:#9a7b4f;"></i>その年の教育費</span><span><i style="background:#dfe8d8;"></i>積立に集中できる期間（教育費が始まる前）</span></div>`;
 
-  // NISA・投資の暴落リスク
-  if(nisa){
-    const s=nisa.scenario, A=nisa.amount, crashVal=Math.round(A*(1-s.drop));
-    html+=`<div class="sec-h">NISA・投資で貯めた場合の暴落リスク（${s.name}）</div>`;
-    html+=`<div class="result-cards" style="padding-top:12px;">
-      <div class="rc"><div class="k">入学時に暴落すると評価額は</div><div class="v" style="font-size:18px;color:var(--loss);">${yen(A)} → ${yen(crashVal)}<small>円</small></div><div class="note">${(s.drop*100).toFixed(0)}%下落。含み損 ${yen(A-crashVal)}円。</div></div>
-      <div class="rc"><div class="k">元の水準に戻るまで</div><div class="v" style="font-size:18px;">約${s.recover}<small>年</small></div><div class="note">その間に取り崩すと安値で売り、損失が確定します。</div></div>
-    </div>`;
-    html+=nisaChartSVG(nisa);
-    html+=`<div style="padding:2px 20px 8px;font-size:11.5px;color:var(--ink-soft);">茶＝投資の評価額（入学時＝0年で暴落→回復）、緑の破線＝必要額（元本）。回復まで必要額を下回り、この間は満額を使えません。</div>`;
-    html+=`<div style="padding:0 20px 14px;"><div class="warn"><b>使う時期が決まったお金は投資に不向き：</b>教育資金は使う時期（入学）を動かせません。直前に暴落すると回復を待てず、安値で取り崩すことに。<b>入学の1〜2年前までに現金・預金へ移す（守りに切り替える）</b>のが鉄則です。増やすなら早い時期に、直前は取り崩しリスクを避ける設計を（前述の「入学1年前までに完了」と同じ考え方）。</div></div>`;
-  }
-
   html+=`<div style="padding:0 20px 22px;">
     <div class="info"><b>② 積立を抑えるアイデア：</b>「在学中に収入から出す月額」を使うと、その分は事前積立が不要になり毎月額が下がります。ほかに、児童手当を貯める・学資保険で18歳満期に合わせる・NISAで運用利回りを乗せる・進路の幅を現実的に見積もる、なども有効です。ただし在学中の支出は<b>家計の現役期</b>にかかるので、退職や収入減の時期と重ならないか確認を。</div>
     <div class="info" style="margin-top:8px;"><b>④ 貯蓄時期の可視化：</b>グラフの薄い帯が「教育費が始まる前＝積立に集中できる期間」です。ここを逃すと、在学中は家計から教育費が出ていくため貯めにくくなります。<b>末子卒業時に父は${fatherEnd}歳</b>——ローンで先送りしても返済年齢が高くなるため、今の積立が最も効きます。</div>
   </div>`;
 
   document.getElementById('outBody').innerHTML=html;
+
+  // NISA・投資の暴落リスク（結果パネル最下部の nisaHost に描画）
+  const nisaHost=document.getElementById('nisaHost');
+  if(nisaHost){
+    if(nisa){
+      const s=nisa.scenario, A=nisa.amount, crashVal=Math.round(A*(1-s.drop));
+      let nh=`<div class="sec-h" style="padding-left:0;">暴落が入学時に起きた場合（${s.name}）</div>`;
+      nh+=`<div class="result-cards" style="padding:12px 0 0;">
+        <div class="rc"><div class="k">入学時に暴落すると評価額は</div><div class="v" style="font-size:18px;color:var(--loss);">${yen(A)} → ${yen(crashVal)}<small>円</small></div><div class="note">${(s.drop*100).toFixed(0)}%下落。含み損 ${yen(A-crashVal)}円。</div></div>
+        <div class="rc"><div class="k">元の水準に戻るまで</div><div class="v" style="font-size:18px;">約${s.recover}<small>年</small></div><div class="note">その間に取り崩すと安値で売り、損失が確定します。</div></div>
+      </div>`;
+      nh+=nisaChartSVG(nisa);
+      nh+=`<div style="padding:2px 0 8px;font-size:11.5px;color:var(--ink-soft);">茶＝投資の評価額（入学時＝0年で暴落→回復）、緑の破線＝必要額（元本）。回復まで必要額を下回り、この間は満額を使えません。</div>`;
+      nh+=`<div class="warn"><b>使う時期が決まったお金は投資に不向き：</b>教育資金は使う時期（入学）を動かせません。直前に暴落すると回復を待てず、安値で取り崩すことに。<b>入学の1〜2年前までに現金・預金へ移す（守りに切り替える）</b>のが鉄則です。増やすなら早い時期に、直前は取り崩しリスクを避ける設計を。</div>`;
+      nisaHost.innerHTML=nh;
+    }else{
+      nisaHost.innerHTML='';
+    }
+  }
 }
 
 function chartSVG(R){
@@ -559,6 +562,9 @@ document.getElementById('calcBtn').addEventListener('click',simulate);
 const inputPanel=document.querySelectorAll('.panel')[0];
 inputPanel.addEventListener('input',()=>{if(ready)simulate();});
 inputPanel.addEventListener('change',()=>{if(ready)simulate();});
+// NISA入力は結果パネル(#out)最下部にあるため、そちらの変更も拾う（outBodyは再描画されるがnisaFootは静的）
+const outPanel=document.getElementById('out');
+if(outPanel){outPanel.addEventListener('input',()=>{if(ready)simulate();});outPanel.addEventListener('change',()=>{if(ready)simulate();});}
 ready=true;
 simulate(); // 初期表示
 </script>
