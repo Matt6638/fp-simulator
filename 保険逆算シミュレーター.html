@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>保障ライン｜保険で守れる財産額の逆算</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0D1F2D; --ink2:#3A5266; --mute:#6E8296;
+  --paper:#E9EDF1; --surface:#FFFFFF; --line:#CFD8E0; --line2:#E4EAEF;
+  --guard:#1B6B53; --guard-bg:#E6F1ED;
+  --alert:#A8321F; --alert-bg:#F7E9E6;
+  --rule:#B8873B;
+  --r:4px;
+  --mono:"Roboto Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  --disp:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink); font-family:var(--body);
+  font-size:15px; line-height:1.7; -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 72px}
+
+/* ---------- header ---------- */
+header{background:var(--ink);color:#fff;padding:26px 0 0}
+.hd{max-width:1180px;margin:0 auto;padding:0 20px}
+.hd h1{font-family:var(--disp);font-weight:700;font-size:27px;letter-spacing:.06em;margin:0 0 4px}
+.hd h1 span{color:var(--rule)}
+.hd p{margin:0 0 16px;font-size:13px;color:#A9BDCE;letter-spacing:.02em}
+.basis{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:18px}
+.basis b{
+  font:500 11px/1.6 var(--mono);letter-spacing:.04em;
+  background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);
+  padding:3px 9px;border-radius:2px;color:#D6E3EC
+}
+.tabs{display:flex;gap:0;border-top:1px solid rgba(255,255,255,.14)}
+.tabs button{
+  flex:0 0 auto;background:none;border:0;border-bottom:3px solid transparent;
+  color:#93A9BC;font-family:var(--body);font-weight:700;font-size:15px;
+  padding:13px 22px;cursor:pointer;letter-spacing:.06em
+}
+.tabs button[aria-selected="true"]{color:#fff;border-bottom-color:var(--rule)}
+
+/* ---------- layout ---------- */
+.cols{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:22px;margin-top:22px;align-items:start}
+@media(max-width:900px){.cols{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 18px 20px;margin-bottom:16px}
+.card > h2{
+  font-family:var(--disp);font-size:16px;font-weight:700;margin:0 0 14px;
+  letter-spacing:.08em;padding-bottom:8px;border-bottom:2px solid var(--ink)
+}
+.card > h2 em{font-style:normal;font:500 11px var(--mono);color:var(--mute);float:right;letter-spacing:0;padding-top:4px}
+h3.sub{font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--mute);margin:20px 0 8px;padding-bottom:4px;border-bottom:1px dotted var(--line)}
+h3.sub:first-of-type{margin-top:4px}
+
+/* ---------- fields ---------- */
+.f{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0}
+.f label{font-size:13.5px;color:var(--ink2);flex:1 1 auto}
+.f label small{display:block;font-size:11px;color:var(--mute);line-height:1.4}
+.f .in{flex:0 0 auto;display:flex;align-items:baseline;gap:4px}
+input[type=number],input[type=text],select{
+  font:500 15px var(--mono);color:var(--ink);background:#F9FAFB;
+  border:1px solid var(--line);border-bottom:2px solid var(--ink2);border-radius:2px;
+  padding:6px 8px;text-align:right;width:112px
+}
+select{width:auto;text-align:left;font-family:var(--body);font-size:13.5px}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--rule);outline-offset:1px}
+input::placeholder{color:#A3B2BF;font-weight:400;opacity:1}
+input:placeholder-shown{border-bottom-color:var(--line)}
+.unit{font:500 11px var(--mono);color:var(--mute)}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 6px}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{
+  font-size:12.5px;padding:5px 11px;border:1px solid var(--line);border-radius:2px;
+  cursor:pointer;color:var(--ink2);background:#F9FAFB
+}
+.seg input:checked + label{background:var(--ink);color:#fff;border-color:var(--ink)}
+.seg input:focus-visible + label{outline:2px solid var(--rule)}
+.chk{display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:13px;color:var(--ink2)}
+.chk input{margin-top:4px}
+.fillrow{display:flex;justify-content:flex-end;padding:2px 0 4px}
+button.fill{
+  font-family:var(--body);font-size:12.5px;font-weight:700;letter-spacing:.04em;
+  background:var(--guard-bg);color:var(--guard);border:1px solid var(--guard);
+  padding:6px 12px;border-radius:2px;cursor:pointer;max-width:100%;text-align:right
+}
+button.fill:disabled{background:#F2F4F6;color:var(--mute);border-color:var(--line);cursor:default}
+button.fill b{font-family:var(--mono);font-weight:700}
+button.minibtn{
+  float:right;font-family:var(--body);font-size:11.5px;font-weight:700;letter-spacing:.04em;
+  background:none;border:1px solid var(--line);color:var(--mute);
+  padding:2px 9px;border-radius:2px;cursor:pointer;margin-left:8px
+}
+button.minibtn:hover{border-color:var(--ink2);color:var(--ink2)}
+
+/* ---------- headline ---------- */
+.headline{background:var(--ink);color:#fff;border-radius:var(--r);padding:22px 22px 18px;position:relative;overflow:hidden}
+.headline .eyebrow{font:500 11px var(--mono);letter-spacing:.16em;color:var(--rule);margin-bottom:2px}
+.headline .num{font-family:var(--disp);font-size:clamp(38px,7.4vw,62px);font-weight:700;line-height:1.05;letter-spacing:.01em;font-feature-settings:"tnum"}
+.headline .num small{font-size:.32em;font-family:var(--body);font-weight:500;margin-left:6px;letter-spacing:.08em;color:#B9CCDB}
+.headline .note{font-size:12.5px;color:#A9BDCE;margin-top:8px;line-height:1.6}
+.headline.over .num{color:#8FD8BF}
+.headline.short .num{color:#FFB2A0}
+
+/* ---------- gauge (signature) ---------- */
+.gauge{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.gauge h3{font-family:var(--disp);font-size:14px;margin:0 0 2px;letter-spacing:.08em}
+.gauge p.cap{font-size:11.5px;color:var(--mute);margin:0 0 6px}
+svg{display:block;width:100%;height:auto}
+.lgd{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--ink2);margin-top:6px}
+.lgd i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:5px}
+
+/* ---------- tables ---------- */
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:7px 6px;border-bottom:1px solid var(--line2);text-align:right;vertical-align:top}
+th{text-align:left;font-weight:500;color:var(--ink2)}
+td.n{font:500 14px var(--mono);font-feature-settings:"tnum"}
+tr.tot th,tr.tot td{border-top:2px solid var(--ink);border-bottom:none;font-weight:700;padding-top:9px}
+tr.sub2 th{padding-left:14px;color:var(--mute);font-size:12.5px}
+td.neg{color:var(--alert)} td.pos{color:var(--guard)}
+.pill{display:inline-block;font:500 11px var(--mono);padding:2px 7px;border-radius:2px}
+.pill.ok{background:var(--guard-bg);color:var(--guard)}
+.pill.ng{background:var(--alert-bg);color:var(--alert)}
+
+.form{font:500 12px var(--mono);background:#F4F7F9;border-left:3px solid var(--rule);padding:8px 10px;margin:10px 0 0;color:var(--ink2);white-space:pre-wrap;line-height:1.85;overflow-x:auto}
+.warn{background:var(--alert-bg);border-left:3px solid var(--alert);padding:9px 11px;font-size:12.5px;color:#6E2415;margin-top:10px;border-radius:2px}
+.memo{font-size:12px;color:var(--mute);line-height:1.65;margin-top:10px}
+
+/* ---------- sources ---------- */
+details.src{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin-top:16px}
+details.src summary{padding:13px 18px;cursor:pointer;font-family:var(--disp);font-size:14px;letter-spacing:.08em;font-weight:700}
+details.src .body{padding:0 18px 16px;font-size:12.5px;color:var(--ink2)}
+details.src ul{margin:6px 0 0;padding-left:18px}
+details.src li{margin-bottom:5px}
+details.src a{color:var(--ink);text-decoration:underline;text-underline-offset:2px}
+.actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.actions button{
+  font-family:var(--body);font-size:13px;font-weight:700;letter-spacing:.06em;
+  background:var(--surface);border:1px solid var(--ink2);color:var(--ink);
+  padding:9px 16px;border-radius:2px;cursor:pointer
+}
+.actions button.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+footer{font-size:11.5px;color:var(--mute);margin-top:26px;line-height:1.8}
+
+/* ---------- 計算機 ---------- */
+button.calcbtn{
+  flex:0 0 auto;width:30px;height:30px;margin-left:2px;
+  background:#F2F5F8;border:1px solid var(--line);border-radius:2px;
+  color:var(--ink2);font-family:var(--body);font-size:13px;font-weight:700;cursor:pointer;line-height:1
+}
+button.calcbtn:hover{border-color:var(--ink2);background:#E8EDF2}
+.backdrop{
+  position:fixed;inset:0;background:rgba(13,31,45,.55);z-index:50;
+  display:flex;align-items:center;justify-content:center;padding:16px
+}
+.calc{
+  background:var(--surface);border-radius:var(--r);width:100%;max-width:352px;
+  max-height:92vh;overflow:auto;box-shadow:0 18px 48px rgba(13,31,45,.35)
+}
+.calc header{background:var(--ink);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:baseline}
+.calc header b{font-family:var(--disp);font-size:14px;letter-spacing:.08em;font-weight:700}
+.calc header span{font:500 11px var(--mono);color:#A9BDCE}
+.calc .pad{padding:14px 16px 16px}
+.calc .disp{
+  font:700 26px var(--mono);text-align:right;padding:8px 10px;background:#F4F7F9;
+  border:1px solid var(--line);border-bottom:2px solid var(--ink);border-radius:2px;
+  min-height:46px;font-feature-settings:"tnum";overflow-x:auto;white-space:nowrap
+}
+.calc .disp.empty{color:#A3B2BF}
+.calc input.lab{width:100%;text-align:left;font-family:var(--body);font-size:13px;margin-top:8px}
+.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.keys button{
+  font:600 17px var(--mono);padding:13px 0;background:#F9FAFB;border:1px solid var(--line);
+  border-radius:2px;color:var(--ink);cursor:pointer
+}
+.keys button:active{background:#E8EDF2}
+.keys button.fn{font-family:var(--body);font-size:13px;font-weight:700;color:var(--ink2)}
+.keys button.add{background:var(--guard-bg);color:var(--guard);border-color:var(--guard);grid-column:span 2}
+.calc ul.items{list-style:none;margin:12px 0 0;padding:0;border-top:1px solid var(--line2)}
+.calc ul.items li{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line2);font-size:13px}
+.calc ul.items li span.nm{flex:1 1 auto;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.calc ul.items li span.vl{font:500 14px var(--mono)}
+.calc ul.items li button{background:none;border:0;color:var(--mute);font-size:15px;cursor:pointer;padding:0 2px}
+.calc .sum{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0 2px;border-top:2px solid var(--ink);margin-top:6px}
+.calc .sum b{font-family:var(--disp);font-size:13px;letter-spacing:.08em}
+.calc .sum span{font:700 20px var(--mono);font-feature-settings:"tnum"}
+.calc .foot{display:flex;gap:8px;margin-top:12px}
+.calc .foot button{flex:1 1 auto;font-family:var(--body);font-size:13.5px;font-weight:700;padding:11px 0;border-radius:2px;cursor:pointer}
+.calc .foot .ok{background:var(--ink);color:#fff;border:1px solid var(--ink)}
+.calc .foot .cancel{background:var(--surface);color:var(--ink2);border:1px solid var(--line)}
+@media print{.backdrop{display:none !important} button.calcbtn{display:none}}
+
+
+/* ---------- 案件バー ---------- */
+.casebar{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-top:16px}
+.casebar h3{font-family:var(--disp);font-size:13px;letter-spacing:.1em;margin:0 0 9px;font-weight:700;display:flex;justify-content:space-between;align-items:baseline}
+.casebar h3 span{font:500 11px var(--mono);color:var(--mute);letter-spacing:0}
+.cases{display:flex;flex-wrap:wrap;gap:8px}
+.case{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:3px;overflow:hidden;background:#F9FAFB}
+.case.on{border-color:var(--ink);background:var(--ink)}
+.case > button.pick{
+  background:none;border:0;padding:7px 11px;text-align:left;cursor:pointer;font-family:var(--body);line-height:1.35
+}
+.case > button.pick b{display:block;font-size:13px;font-weight:700;color:var(--ink)}
+.case > button.pick i{display:block;font-style:normal;font-size:11px;color:var(--mute)}
+.case > button.pick u{display:block;text-decoration:none;font:500 11.5px var(--mono);color:var(--guard);margin-top:2px}
+.case.on > button.pick b{color:#fff} .case.on > button.pick i{color:#A9BDCE} .case.on > button.pick u{color:#8FD8BF}
+.case > button.del{background:none;border:0;border-left:1px solid var(--line);color:var(--mute);cursor:pointer;padding:0 8px;font-size:14px}
+.case.on > button.del{border-left-color:rgba(255,255,255,.25);color:#A9BDCE}
+.saverow{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.saverow input{flex:1 1 180px;text-align:left;font-family:var(--body);font-size:13px;width:auto;min-width:0}
+.saverow button{
+  font-family:var(--body);font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:2px;cursor:pointer;
+  background:var(--ink);color:#fff;border:1px solid var(--ink)
+}
+.saverow button.ghost{background:var(--surface);color:var(--ink2);border-color:var(--line)}
+.cmp{width:100%;margin-top:12px;font-size:12.5px}
+.cmp td.n{font-size:13px}
+.casenote{font-size:11.5px;color:var(--mute);margin-top:8px}
+
+
+/* ---------- 資料（冊子）モード ---------- */
+#report{display:none}
+body.rep #report{display:block}
+.repbar{
+  position:sticky;top:0;z-index:30;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+  background:var(--ink);padding:10px 14px;border-radius:var(--r);margin:16px 0 14px
+}
+.repbar button{
+  font-family:var(--body);font-size:13px;font-weight:700;padding:8px 14px;border-radius:2px;cursor:pointer;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);color:#fff
+}
+.repbar button.primary{background:#fff;color:var(--ink);border-color:#fff}
+.repbar span{color:#A9BDCE;font-size:11.5px;margin-left:auto}
+.hint{background:#FFF8E8;border-left:3px solid var(--rule);padding:10px 12px;font-size:12.5px;color:#5A4514;border-radius:2px;margin-bottom:14px}
+.sheet{
+  background:#fff;border:1px solid var(--line);border-radius:2px;margin:0 auto 16px;
+  padding:30px 32px 36px;box-sizing:border-box;position:relative;max-width:210mm
+}
+.sheet .rh{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font:500 10px var(--mono);letter-spacing:.1em;color:var(--mute);
+  border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:20px
+}
+.sheet .rf{
+  text-align:center;font:500 10px var(--mono);color:var(--mute);
+  border-top:1px solid var(--line2);margin-top:24px;padding-top:8px
+}
+.sheet h2.st{
+  font-family:var(--disp);font-size:19px;font-weight:700;letter-spacing:.06em;margin:0 0 4px;
+  display:flex;align-items:baseline;gap:12px
+}
+.sheet h2.st i{font-style:normal;font:700 12px var(--mono);color:var(--rule);letter-spacing:.1em}
+.sheet p.lead{font-size:13px;color:var(--ink2);margin:0 0 18px;line-height:1.8}
+.sheet h3.sh{
+  font-family:var(--disp);font-size:14px;font-weight:700;letter-spacing:.06em;
+  margin:22px 0 8px;padding-left:9px;border-left:3px solid var(--ink)
+}
+.sheet table{margin-bottom:4px}
+.sheet .fig{
+  border:1px solid var(--line);border-radius:2px;padding:14px;margin:12px 0 4px;background:#FCFDFE
+}
+.sheet .fig figcaption{font:500 10.5px var(--mono);color:var(--mute);letter-spacing:.08em;margin-bottom:8px}
+.sheet .kpi{border-top:3px solid var(--ink);border-bottom:1px solid var(--line);padding:16px 0 14px;margin:6px 0 18px}
+.sheet .kpi small{display:block;font:500 10.5px var(--mono);letter-spacing:.14em;color:var(--rule);margin-bottom:2px}
+.sheet .kpi b{font-family:var(--disp);font-size:44px;font-weight:700;line-height:1.1;letter-spacing:.01em;font-feature-settings:"tnum"}
+.sheet .kpi b em{font-style:normal;font-family:var(--body);font-size:.34em;font-weight:500;margin-left:6px;color:var(--ink2)}
+.sheet .kpi p{margin:8px 0 0;font-size:12.5px;color:var(--ink2);line-height:1.75}
+.cover{text-align:left;padding-top:56px}
+.cover .eyebrow{font:500 11px var(--mono);letter-spacing:.28em;color:var(--rule)}
+.cover h1{font-family:var(--disp);font-size:33px;font-weight:700;letter-spacing:.05em;margin:14px 0 6px;line-height:1.35}
+.cover .sub{font-size:15px;color:var(--ink2);margin-bottom:36px}
+.cover .rule{height:3px;background:var(--ink);width:88px;margin:26px 0}
+.cover dl{display:grid;grid-template-columns:96px 1fr;gap:7px 14px;font-size:13px;margin:0 0 34px}
+.cover dt{color:var(--mute);font-size:12px}
+.cover dd{margin:0;font-weight:500}
+.cover .disc{font-size:11.5px;color:var(--mute);line-height:1.8;border-top:1px solid var(--line);padding-top:14px}
+.sheet ol.src2{font-size:11.5px;color:var(--ink2);line-height:1.85;padding-left:20px;margin:6px 0 0}
+.sheet ol.src2 li{margin-bottom:5px}
+@media print{
+  body.rep header,body.rep .wrap>*:not(#report),body.rep .repbar,body.rep .hint{display:none !important}
+  #report{display:block !important}
+  .sheet{max-width:none;border:0;border-radius:0;padding:0;margin:0;page-break-after:always}
+  .sheet:last-child{page-break-after:auto}
+  @page{size:A4 portrait;margin:16mm 15mm}
+}
+
+[hidden]{display:none !important}
+@media print{
+  body{background:#fff}
+  header{background:#fff;color:var(--ink);border-bottom:2px solid var(--ink)}
+  .hd h1{color:var(--ink)} .hd p{color:var(--mute)} .basis b{color:var(--ink2);border-color:var(--line);background:#fff}
+  .tabs,.actions{display:none}
+  .headline{background:#fff;color:var(--ink);border:2px solid var(--ink)}
+  .headline .note{color:var(--ink2)} .headline .num{color:var(--ink) !important}
+  .card{break-inside:avoid}
+  details.src[open] .body{display:block}
+}
+@media (prefers-reduced-motion:no-preference){
+  .headline .num{transition:color .2s ease}
+}
+</style>
+</head>
+<body>
+<a href="index.html" style="position:fixed;top:10px;right:10px;z-index:9999;font:600 12px/1 -apple-system,system-ui,sans-serif;color:#1b2a4a;background:#fff;border:1px solid #d9d2c2;border-radius:8px;padding:8px 12px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.08);">← 一覧へ</a>
+
+<header>
+  <div class="hd">
+    <h1>保障ライン<span>／</span>いくらの財産まで守れるか</h1>
+    <p>加入中の死亡保障から、納税・返済・分割資金を賄える財産額の上限を逆算します。</p>
+    <div class="basis">
+      <b>相続税：令和7年4月1日現在法令等</b>
+      <b>出典確認日 2026-08-03</b>
+      <b>金額単位：万円</b>
+      <b>試算値（申告書ではありません）</b>
+    </div>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-p" aria-selected="true" aria-controls="pane-p">個人（相続税・分割）</button>
+      <button role="tab" id="tab-c" aria-selected="false" aria-controls="pane-c">法人（事業保障・自社株）</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="casebar">
+  <h3>案件<span id="caseStore"></span></h3>
+  <div class="cases" id="cases"></div>
+  <div class="saverow">
+    <input type="text" id="caseName" placeholder="特徴を入れて保存　例：自宅売却なし／保険増額後">
+    <button type="button" id="caseSave">保存</button>
+    <button type="button" class="ghost" id="caseUpdate">上書き</button>
+    <button type="button" class="ghost" id="caseCmp">比較表</button>
+  </div>
+  <table class="cmp" id="cmpTbl" hidden></table>
+  <div class="casenote" id="caseNote"></div>
+</div>
+
+
+<!-- ==================== 個人 ==================== -->
+<div id="pane-p" role="tabpanel" aria-labelledby="tab-p">
+<div class="cols">
+
+  <!-- 入力 -->
+  <div>
+    <div class="card">
+      <h2>相続人 <em>民法900</em></h2>
+      <div class="seg" id="pattern">
+        <input type="radio" name="pt" id="pt1" value="sc" checked><label for="pt1">配偶者＋子</label>
+        <input type="radio" name="pt" id="pt2" value="c"><label for="pt2">子のみ</label>
+        <input type="radio" name="pt" id="pt3" value="sp"><label for="pt3">配偶者＋直系尊属</label>
+        <input type="radio" name="pt" id="pt4" value="p"><label for="pt4">直系尊属のみ</label>
+        <input type="radio" name="pt" id="pt5" value="ss"><label for="pt5">配偶者＋兄弟姉妹</label>
+        <input type="radio" name="pt" id="pt6" value="s"><label for="pt6">兄弟姉妹のみ</label>
+      </div>
+      <div class="f" id="rowOther">
+        <label id="lblOther">子の人数<small>養子は実子ありで1人、実子なしで2人まで</small></label>
+        <div class="in"><input type="number" id="nOther" value="2" min="1" max="10" step="1"><span class="unit">人</span></div>
+      </div>
+      <div class="f">
+        <label>法定相続人の数<small>基礎控除・非課税枠の計算に使用</small></label>
+        <div class="in"><output id="nHeirs" style="font:700 20px var(--mono)">3</output><span class="unit">人</span></div>
+      </div>
+      <h3 class="sub">分割の前提</h3>
+      <div class="f">
+        <label>配偶者の取得割合<small>配偶者の税額軽減の効き方が変わります</small></label>
+        <div class="in"><input type="number" id="spRatio" value="50" min="0" max="100" step="5"><span class="unit">％</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>死亡時に入るお金 <em>INFLOW</em></h2>
+      <div class="f">
+        <label>死亡保険金（受取人＝相続人）</label>
+        <div class="in"><input type="text" inputmode="decimal" id="ins" placeholder="例 3,000"><span class="unit">万円</span></div>
+      </div>
+      <div class="fillrow"><button type="button" id="fillIns" class="fill">必要額を反映</button></div>
+      <div class="f">
+        <label>死亡退職金<small>法人から遺族へ支給する分</small></label>
+        <div class="in"><input type="text" inputmode="decimal" id="ret" placeholder="例 3,000"><span class="unit">万円</span></div>
+      </div>
+      <div class="f">
+        <label>弔慰金<small>非課税限度超過分は退職手当金等として課税</small></label>
+        <div class="in"><input type="text" inputmode="decimal" id="cond" placeholder="例 600"><span class="unit">万円</span></div>
+      </div>
+      <div class="f">
+        <label>死亡時の報酬月額<small>弔慰金の非課税限度の計算用</small></label>
+        <div class="in"><input type="text" inputmode="decimal" id="salary" placeholder="例 100"><span class="unit">万円</span></div>
+      </div>
+      <div class="chk"><input type="checkbox" id="gyomu"><label for="gyomu">業務上の死亡として計算する（限度＝普通給与3年分／業務外は半年分）</label></div>
+    </div>
+
+    <div class="card">
+      <h2>出ていくお金 <button type="button" class="minibtn" id="rsOut">リセット</button><em>OUTFLOW</em></h2>
+      <div class="f"><label>葬式費用</label>
+        <div class="in"><input type="text" inputmode="decimal" id="funeral" placeholder="例 200"><span class="unit">万円</span></div></div>
+      <div class="f"><label>遺族の生活費（確保したい額）</label>
+        <div class="in"><input type="text" inputmode="decimal" id="living" placeholder="例 3,000"><span class="unit">万円</span></div></div>
+      <div class="f"><label>代償金（他の相続人へ支払う額）</label>
+        <div class="in"><input type="text" inputmode="decimal" id="daisho" placeholder="例 2,000"><span class="unit">万円</span></div></div>
+    </div>
+
+    <div class="card">
+      <h2>財産の内訳 <button type="button" class="minibtn" id="rsAsset">リセット</button><em>相続税評価額</em></h2>
+      <div class="seg" id="amode">
+        <input type="radio" name="amode" id="am1" value="d" checked><label for="am1">明細で入力</label>
+        <input type="radio" name="amode" id="am2" value="t"><label for="am2">総額で入力</label>
+      </div>
+      <div id="totalMode" hidden>
+        <div class="f">
+          <label>財産の総額<small>保険金・退職金を除く相続税評価額</small></label>
+          <div class="in"><input type="text" inputmode="decimal" id="aTotal" placeholder="例 10,000"><span class="unit">万円</span></div>
+        </div>
+        <div class="f">
+          <label>うち流動資産<small>現預金・すぐ換価できる資産など、納税・返済に充てられる額</small></label>
+          <div class="in"><input type="text" inputmode="decimal" id="aLiq" placeholder="例 2,000"><span class="unit">万円</span></div>
+        </div>
+        <div class="f">
+          <label>マイナスの財産（債務の総額）<small>債務控除の対象</small></label>
+          <div class="in"><input type="text" inputmode="decimal" id="aDebt" placeholder="例 5,000"><span class="unit">万円</span></div>
+        </div>
+        <div class="f">
+          <label>うち死亡時に返済する額<small>返済資金の手当てが必要な分</small></label>
+          <div class="in"><input type="text" inputmode="decimal" id="aDebtPay" placeholder="例 5,000"><span class="unit">万円</span></div>
+        </div>
+      </div>
+      <div id="detailMode">
+      <div class="f">
+        <label>現預金</label>
+        <div class="in"><input type="text" inputmode="decimal" id="a1" placeholder="例 3,000"><span class="unit">万円</span></div>
+      </div>
+      <div class="chk"><input type="checkbox" id="l1"><label for="l1">納税・返済に充当する</label></div>
+      <div class="f">
+        <label>有価証券<small>上場株式・投資信託など</small></label>
+        <div class="in"><input type="text" inputmode="decimal" id="a2" placeholder="例 1,000"><span class="unit">万円</span></div>
+      </div>
+      <div class="chk"><input type="checkbox" id="l2"><label for="l2">納税・返済に充当する</label></div>
+      <div class="f">
+        <label>自社株<small>取引相場のない株式</small></label>
+        <div class="in"><input type="text" inputmode="decimal" id="a3" placeholder="例 8,000"><span class="unit">万円</span></div>
+      </div>
+      <div class="chk"><input type="checkbox" id="l3"><label for="l3">納税・返済に充当する（金庫株など換価の手当てがある場合）</label></div>
+      <div class="f">
+        <label>土地・建物<small>自宅・事業用不動産</small></label>
+        <div class="in"><input type="text" inputmode="decimal" id="a4" placeholder="例 7,000"><span class="unit">万円</span></div>
+      </div>
+      <div class="chk"><input type="checkbox" id="l4"><label for="l4">納税・返済に充当する（売却前提）</label></div>
+      <div class="f">
+        <label>その他の財産</label>
+        <div class="in"><input type="text" inputmode="decimal" id="a5" placeholder="例 500"><span class="unit">万円</span></div>
+      </div>
+      <div class="chk"><input type="checkbox" id="l5"><label for="l5">納税・返済に充当する</label></div>
+
+      <h3 class="sub">マイナスの財産</h3>
+      <div class="f">
+        <label>借入金<small>事業性借入・団信なしの住宅ローンなど</small></label>
+        <div class="in"><input type="text" inputmode="decimal" id="d1" placeholder="例 5,000"><span class="unit">万円</span></div>
+      </div>
+      <div class="chk"><input type="checkbox" id="p1" checked><label for="p1">死亡時に返済する（返済資金が必要）</label></div>
+      <div class="f">
+        <label>未払金・未払税金<small>未払医療費、未納の固定資産税など</small></label>
+        <div class="in"><input type="text" inputmode="decimal" id="d2" placeholder="例 300"><span class="unit">万円</span></div>
+      </div>
+      <div class="chk"><input type="checkbox" id="p2" checked><label for="p2">死亡時に返済する（返済資金が必要）</label></div>
+      <div class="f">
+        <label>その他の債務</label>
+        <div class="in"><input type="text" inputmode="decimal" id="d3" placeholder="例 500"><span class="unit">万円</span></div>
+      </div>
+      <div class="chk"><input type="checkbox" id="p3" checked><label for="p3">死亡時に返済する（返済資金が必要）</label></div>
+
+      </div>
+
+      <table id="tblAsset" style="margin-top:12px"></table>
+      <div class="memo">
+        小規模宅地等の特例は計算に含めていません。土地の評価額は特例適用後の金額を入力してください。<br>
+        マイナスの財産は債務控除に反映し、「死亡時に返済する」にチェックした分だけを返済資金として必要資金に加えます。相続人が引き継いで分割返済する借入などは、チェックを外してください。<br>
+        <b>団体信用生命保険で返済が免除される住宅ローンは、この欄に入力しないでください。</b>相続人が支払う必要のない債務にあたり、債務控除の対象になりません（国税庁「相続税の申告書作成時の誤りやすい事例集」事例13）。<br>明細と総額はボタンで切り替えられます。明細では区分ごとにチェック、総額では「うち流動資産」の欄が納税・返済への充当額になります。初期状態は充当ゼロ（保険金だけで賄う前提）です。
+      </div>
+    </div>
+  </div>
+
+  <!-- 結果 -->
+  <div>
+    <div class="headline" id="hl">
+      <div class="eyebrow">保険金・退職金・流動資産で守り切れる財産額の上限</div>
+      <div class="num" id="limitNum">—<small>万円</small></div>
+      <div class="note" id="limitNote"></div>
+    </div>
+
+    <div class="gauge">
+      <h3>財産額と必要資金の交点</h3>
+      <p class="cap">横軸＝保険等以外の財産額。必要資金の線が保険金の線を上回った点から先は、財産を売らないと払えません。</p>
+      <svg id="chart" viewBox="0 0 700 260" role="img" aria-label="財産額に対する必要資金と保険金の比較チャート"></svg>
+      <div class="lgd">
+        <span><i style="background:#A8321F"></i>必要資金（相続税＋返済＋生活費＋代償金）</span>
+        <span><i style="background:#1B6B53"></i>充当できる資金（保険金＋退職金＋弔慰金＋流動資産）</span>
+        <span><i style="background:#0D1F2D"></i>守れる上限</span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h2>納税資金の充足判定 <em>CHECK</em></h2>
+      <table id="tblCheck"></table>
+      <div id="checkWarn"></div>
+      <div class="form" id="formCheck"></div>
+    </div>
+
+    <div class="card">
+      <h2>必要保険金額の逆算 <em>不動点で解く</em></h2>
+      <table id="tblReq"></table>
+      <div id="reqNote"></div>
+      <div class="form" id="formReq"></div>
+    </div>
+
+    <div class="card">
+      <h2>相続税の計算過程 <em>相法／No.4152・4155</em></h2>
+      <table id="tblTax"></table>
+      <div class="memo" id="taxMemo"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== 法人 ==================== -->
+<div id="pane-c" role="tabpanel" aria-labelledby="tab-c" hidden>
+<div class="cols">
+  <div>
+    <div class="card">
+      <h2>法人契約の保障 <em>INFLOW</em></h2>
+      <div class="f"><label>法人受取の死亡保険金</label>
+        <div class="in"><input type="text" inputmode="decimal" id="cIns" placeholder="例 10,000"><span class="unit">万円</span></div></div>
+      <div class="f"><label>その時点の現預金（充当可能額）</label>
+        <div class="in"><input type="text" inputmode="decimal" id="cCash" placeholder="例 2,000"><span class="unit">万円</span></div></div>
+    </div>
+
+    <div class="card">
+      <h2>必要資金 <em>OUTFLOW</em></h2>
+      <div class="f"><label>借入金残高<small>個人保証分を含む</small></label>
+        <div class="in"><input type="text" inputmode="decimal" id="cDebt" placeholder="例 5,000"><span class="unit">万円</span></div></div>
+      <div class="f"><label>月商</label>
+        <div class="in"><input type="text" inputmode="decimal" id="cSales" placeholder="例 1,000"><span class="unit">万円</span></div></div>
+      <div class="f"><label>確保したい運転資金<small>月商の何か月分か</small></label>
+        <div class="in"><input type="number" id="cMonths" value="6" min="0" max="36" step="1"><span class="unit">か月</span></div></div>
+      <h3 class="sub">死亡退職金・弔慰金</h3>
+      <div class="f"><label>最終報酬月額</label>
+        <div class="in"><input type="text" inputmode="decimal" id="cSalary" placeholder="例 100"><span class="unit">万円</span></div></div>
+      <div class="f"><label>役員在任年数</label>
+        <div class="in"><input type="number" id="cYears" value="25" min="0" step="1"><span class="unit">年</span></div></div>
+      <div class="f"><label>功績倍率<small>法令に定めはありません。個別に検討が必要な前提値です</small></label>
+        <div class="in"><input type="number" id="cMult" value="3" min="0" step="0.1"><span class="unit">倍</span></div></div>
+      <div class="chk"><input type="checkbox" id="cGyomu"><label for="cGyomu">業務上の死亡として弔慰金を計算する（3年分／業務外は半年分）</label></div>
+      <div class="chk"><input type="checkbox" id="cCondPay" checked><label for="cCondPay">弔慰金を非課税限度いっぱいまで支給する</label></div>
+      <h3 class="sub">自社株の買取（金庫株）</h3>
+      <div class="f"><label>1株あたり評価額</label>
+        <div class="in"><input type="text" inputmode="decimal" id="cPrice" placeholder="例 5,000"><span class="unit">円</span></div></div>
+      <div class="f"><label>買い取りたい株数</label>
+        <div class="in"><input type="text" inputmode="decimal" id="cShares" placeholder="例 10,000"><span class="unit">株</span></div></div>
+      <div class="f"><label>法定相続人の数<small>退職金の非課税枠に使用</small></label>
+        <div class="in"><input type="number" id="cHeirs" value="3" min="1" max="10" step="1"><span class="unit">人</span></div></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="headline" id="cHl">
+      <div class="eyebrow">保険金で確保できる自社株の買取上限</div>
+      <div class="num" id="cLimitNum">—<small>万円</small></div>
+      <div class="note" id="cLimitNote"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h2>資金の過不足 <em>法人</em></h2>
+      <table id="cTbl"></table>
+      <div id="cWarn"></div>
+    </div>
+
+    <div class="card">
+      <h2>遺族側にかかる相続税の材料 <em>No.4117・4120</em></h2>
+      <table id="cTbl2"></table>
+      <div class="actions"><button id="toPersonal">個人タブに退職金・弔慰金を反映する</button></div>
+      <div class="memo">
+        法人が受け取る保険金と、支払う退職金・弔慰金の法人税の取扱い（益金・損金の時期、過大部分の否認の有無）は、本アプリでは計算していません。顧問税理士に確認してください。<br>
+        自社株を発行会社へ譲渡した場合の課税関係（みなし配当の特例、取得費加算など）も、本アプリの計算には含まれていません。
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<details class="src">
+  <summary>使っている数値と出典（すべて国税庁タックスアンサー／2026-08-03 確認）</summary>
+  <div class="body">
+    <ul>
+      <li>相続税の速算表・2割加算 ── <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4155.htm" target="_blank" rel="noopener">No.4155 相続税の税率</a>（令和7年4月1日現在法令等）／10％〜55％の8段階、控除額は50・200・700・1,700・2,700・4,200・7,200万円</li>
+      <li>基礎控除 3,000万円＋600万円×法定相続人の数、税額控除の順序 ── <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4152.htm" target="_blank" rel="noopener">No.4152 相続税の計算</a>（令和7年4月1日現在法令等）</li>
+      <li>死亡保険金の非課税限度額 500万円×法定相続人の数 ── <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4114.htm" target="_blank" rel="noopener">No.4114 相続税の課税対象になる死亡保険金</a></li>
+      <li>死亡退職金の非課税限度額 500万円×法定相続人の数 ── <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4117.htm" target="_blank" rel="noopener">No.4117 相続税の課税対象になる死亡退職金</a></li>
+      <li>弔慰金の非課税限度（業務上＝普通給与の3年分／業務外＝半年分） ── <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4120.htm" target="_blank" rel="noopener">No.4120 弔慰金を受け取ったときの取扱い</a></li>
+      <li>配偶者の税額軽減 1億6,000万円または法定相続分相当額 ── <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4158.htm" target="_blank" rel="noopener">No.4158 配偶者の税額の軽減</a>（令和7年4月1日現在法令等）</li>
+      <li>法定相続分 ── <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/sozoku/4132.htm" target="_blank" rel="noopener">No.4132 相続人の範囲と法定相続分</a>（根拠：民法887・889・890・900ほか）</li>
+      <li>団体信用生命保険で返済が免除される住宅ローンは債務控除の対象外 ── <a href="https://www.nta.go.jp/taxes/shiraberu/sozoku-tokushu/souzoku-ayamarijireishu/ayamarijirei13.pdf" target="_blank" rel="noopener">国税庁「相続税の申告書作成時の誤りやすい事例集」事例13（申告書第13表関係）</a></li>
+    </ul>
+    <p style="margin-top:12px"><b>この試算に入っていないもの</b>：小規模宅地等の特例、生前贈与加算、相続時精算課税、未成年者控除・障害者控除・相次相続控除、延納・物納、二次相続。個別事案では顧問税理士の検算が必要です。</p>
+  </div>
+</details>
+
+<div class="actions" id="mainActions">
+  <button class="primary" id="mkReport">資料を作成する（冊子形式）</button>
+  <button id="resetAll">入力をリセット</button>
+</div>
+
+<div id="report">
+  <div class="repbar">
+    <button id="repBack">編集に戻る</button>
+    <button class="primary" id="repPrint">印刷する</button>
+    <button id="repSave">HTMLで保存</button>
+    <span id="repInfo"></span>
+  </div>
+  <div class="hint" id="printHint" hidden></div>
+  <div id="sheets"></div>
+</div>
+
+<footer>
+  試算値です。実際の申告額を保証するものではありません。相続税額は前提の置き方（分割割合・評価額・各種特例）で大きく変わります。<br>
+  税制は改正されます。使用前に上記出典の「現在法令等」の日付が最新かを確認してください。
+</footer>
+
+</div>
+
+
+<div class="backdrop" id="calcWrap" hidden>
+  <div class="calc" role="dialog" aria-modal="true" aria-labelledby="calcTitle">
+    <header><b id="calcTitle">合計を計算</b><span>単位：万円</span></header>
+    <div class="pad">
+      <div class="disp empty" id="calcDisp">0</div>
+      <input class="lab" type="text" id="calcLab" placeholder="名称（任意）　例：〇〇銀行、自宅土地">
+      <div class="keys">
+        <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button><button type="button" class="fn" data-k="bs">←</button>
+        <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button><button type="button" class="fn" data-k="clr">C</button>
+        <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button><button type="button" data-k="000">000</button>
+        <button type="button" data-k="0">0</button><button type="button" data-k=".">.</button><button type="button" class="add" data-k="add">＋ 明細に足す</button>
+      </div>
+      <ul class="items" id="calcList"></ul>
+      <div class="sum"><b>合計</b><span id="calcSum">0</span></div>
+      <div class="foot">
+        <button type="button" class="cancel" id="calcCancel">やめる</button>
+        <button type="button" class="ok" id="calcOk">この合計を入力</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============ 定数（すべて出典つき・万円単位） ============
+   速算表：国税庁 No.4155（令和7年4月1日現在法令等）
+   [法定相続分に応ずる取得金額の上限, 税率, 控除額] */
+var RATES = [
+  [1000, 0.10, 0],
+  [3000, 0.15, 50],
+  [5000, 0.20, 200],
+  [10000, 0.30, 700],
+  [20000, 0.40, 1700],
+  [30000, 0.45, 2700],
+  [60000, 0.50, 4200],
+  [Infinity, 0.55, 7200]
+];
+var KISO_FIX = 3000, KISO_PER = 600;   // No.4152
+var HIKAZEI_PER = 500;                 // No.4114 / No.4117
+var SPOUSE_FLOOR = 16000;              // No.4158
+var ADD20 = 0.20;                      // No.4152（配偶者・父母・子以外）
+
+function $(id){ return document.getElementById(id); }
+function num(id){
+  var el = $(id); if(!el) return 0;          // 入力欄が無い場合も落とさない
+  var raw = String(el.value).replace(/[,，\s]/g, "");
+  var v = parseFloat(raw);
+  return isFinite(v) ? v : 0;   // 空欄（サンプル表示のみ）は 0 として扱う
+}
+function fmt(v){
+  if(!isFinite(v)) return "—";
+  var r = Math.round(v);
+  return r.toLocaleString("ja-JP");
+}
+function taxOf(amount){
+  for(var i=0;i<RATES.length;i++){
+    if(amount <= RATES[i][0]) return Math.max(0, amount*RATES[i][1] - RATES[i][2]);
+  }
+  return 0;
+}
+function floorSen(man){ return Math.floor(man*10)/10; } // 千円未満切捨て
+
+/* ---- 相続人構成 ---- */
+function heirs(){
+  var pt = document.querySelector('input[name=pt]:checked').value;
+  var k = Math.max(1, Math.round(num("nOther")));
+  var spouse = (pt==="sc"||pt==="sp"||pt==="ss");
+  var spShare = 0, othShare = 0, sib = (pt==="ss"||pt==="s");
+  if(pt==="sc"){ spShare=1/2; othShare=(1/2)/k; }
+  else if(pt==="c"){ othShare=1/k; }
+  else if(pt==="sp"){ spShare=2/3; othShare=(1/3)/k; }
+  else if(pt==="p"){ othShare=1/k; }
+  else if(pt==="ss"){ spShare=3/4; othShare=(1/4)/k; }
+  else { othShare=1/k; }
+  return { pt:pt, k:k, spouse:spouse, n:(spouse?1:0)+k, spShare:spShare, othShare:othShare, sib:sib };
+}
+
+/* ---- 財産の内訳 ---- */
+var ASSETS = [
+  ["a1","l1","現預金"], ["a2","l2","有価証券"], ["a3","l3","自社株"],
+  ["a4","l4","土地・建物"], ["a5","l5","その他の財産"]
+];
+function isDetail(){ return document.querySelector('input[name=amode]:checked').value === "d"; }
+function assetTotal(){
+  if(!isDetail()) return num("aTotal");
+  var s=0; ASSETS.forEach(function(a){ s += num(a[0]); }); return s;
+}
+function assetLiquid(){
+  if(!isDetail()) return Math.min(num("aLiq"), num("aTotal"));
+  var s=0; ASSETS.forEach(function(a){ if($(a[1]).checked) s += num(a[0]); }); return s;
+}
+function liqRatio(){ var t = assetTotal(); return t>0 ? Math.min(1, assetLiquid()/t) : 0; }
+var DEBTS = [ ["d1","p1","借入金"], ["d2","p2","未払金・未払税金"], ["d3","p3","その他の債務"] ];
+function debtTotal(){                    // 債務控除の対象
+  if(!isDetail()) return num("aDebt");
+  var s=0; DEBTS.forEach(function(x){ s += num(x[0]); }); return s;
+}
+function debtRepay(){                    // 死亡時に返済資金が必要な分
+  if(!isDetail()) return Math.min(num("aDebtPay"), num("aDebt"));
+  var s=0; DEBTS.forEach(function(x){ if($(x[1]).checked) s += num(x[0]); }); return s;
+}
+
+/* ---- 弔慰金の非課税限度（No.4120） ---- */
+function condLimit(salary, gyomu){ return salary * (gyomu ? 36 : 6); }
+
+/* ---- 相続税（納付税額の合計） ---- */
+function inheritanceTax(estate, h, P, R, C, salary, gyomu, debt, funeral, spRatio){
+  var insTaxable = Math.max(0, P - HIKAZEI_PER*h.n);
+  var condOver   = Math.max(0, C - condLimit(salary, gyomu));      // 退職手当金等として扱われる部分
+  var retTaxable = Math.max(0, (R + condOver) - HIKAZEI_PER*h.n);
+  var T = Math.max(0, estate + insTaxable + retTaxable - debt - funeral); // 課税価格の合計額
+  var kiso = KISO_FIX + KISO_PER*h.n;
+  var kazei = Math.max(0, T - kiso);
+
+  var total = 0, rows = [];
+  if(h.spouse){ var a = floorSen(kazei*h.spShare); rows.push(["配偶者", h.spShare, a, taxOf(a)]); total += taxOf(a); }
+  for(var i=0;i<h.k;i++){
+    var b = floorSen(kazei*h.othShare);
+    rows.push([(h.pt==="sc"||h.pt==="c")?"子":(h.pt==="sp"||h.pt==="p")?"直系尊属":"兄弟姉妹", h.othShare, b, taxOf(b)]);
+    total += taxOf(b);
+  }
+
+  // 実際の取得割合で按分 → 2割加算 → 配偶者の税額軽減
+  var sp = h.spouse ? Math.min(1, Math.max(0, spRatio/100)) : 0;
+  var othEach = h.k>0 ? (1-sp)/h.k : 0;
+  var payable = 0, spouseTax = 0, spouseRelief = 0, add20 = 0;
+  if(h.spouse){
+    spouseTax = total * sp;
+    var cap = Math.max(SPOUSE_FLOOR, T*h.spShare);
+    spouseRelief = T>0 ? total * Math.min(sp*T, cap) / T : 0;
+    spouseRelief = Math.min(spouseRelief, spouseTax);
+    payable += Math.max(0, spouseTax - spouseRelief);
+  }
+  for(var j=0;j<h.k;j++){
+    var t = total * othEach;
+    if(h.sib){ add20 += t*ADD20; t = t*(1+ADD20); }
+    payable += t;
+  }
+  return { T:T, kiso:kiso, kazei:kazei, total:total, payable:payable, rows:rows,
+           insTaxable:insTaxable, retTaxable:retTaxable, condOver:condOver,
+           spouseTax:spouseTax, spouseRelief:spouseRelief, add20:add20 };
+}
+
+/* ---- 逆算 ---- */
+function needAvail(estate, insOverride){
+  var h = heirs();
+  var P = (insOverride === undefined) ? num("ins") : insOverride;
+  var R = num("ret"), C = num("cond"), sal = num("salary"), g = $("gyomu").checked;
+  var fun = num("funeral"), liv = num("living"), dai = num("daisho");
+  var r = inheritanceTax(estate, h, P, R, C, sal, g, debtTotal(), fun, num("spRatio"));
+  var need  = r.payable + debtRepay() + liv + dai;
+  // 充当できる資金は実額。財産が増えてもそれに比例して流動資産が増えるとは考えない。
+  // （流動資産は財産の一部なので、試算上の財産額 estate を超えることはない）
+  var avail = P + R + C + Math.min(assetLiquid(), estate);
+  return { need:need, avail:avail, gap:avail-need, r:r, h:h };
+}
+function solveLimit(){
+  var STEP = 500, MAX = 300000; // 30億円まで探索（粗くスキャンして二分法で追い込む）
+  if(needAvail(0).gap < 0) return { limit:0, capped:false };
+  var lo = 0, hi = null;
+  for(var x=STEP; x<=MAX; x+=STEP){
+    if(needAvail(x).gap < 0){ hi = x; lo = x-STEP; break; }
+  }
+  if(hi === null) return { limit:MAX, capped:true };
+  for(var i=0;i<60;i++){
+    var m = (lo+hi)/2;
+    if(needAvail(m).gap >= 0) lo = m; else hi = m;
+  }
+  return { limit:lo, capped:false };
+}
+
+/* ---- 必要保険金額の逆算（不動点）----
+   保険金を増やすと非課税枠の超過分が課税価格に加わり税額も増えるため、
+   「不足額をそのまま足す」では収束しない。増額後の保険金で税額を計算し直し、
+   充当資金 ≧ 必要資金 を満たす最小の保険金額を二分法で求める。 */
+function solveRequiredIns(estate){
+  if(needAvail(estate, 0).gap >= 0) return { ok:true, total:0 };
+  var hi = Math.max(1000, num("ins")*2 + 1000), guard = 0;
+  while(needAvail(estate, hi).gap < 0 && guard < 80){ hi *= 2; guard++; }
+  if(needAvail(estate, hi).gap < 0) return { ok:false, total:Infinity };
+  var lo = 0;
+  for(var i=0;i<80;i++){
+    var m = (lo+hi)/2;
+    if(needAvail(estate, m).gap >= 0) hi = m; else lo = m;
+  }
+  return { ok:true, total:hi };
+}
+/* 保険金を1万円増やしたときに手元に残る額（＝1 − 限界税率） */
+function marginalNet(estate, at){
+  var d = 1;
+  return (needAvail(estate, at + d).gap - needAvail(estate, at).gap) / d;
+}
+
+/* ---- チャート ---- */
+function drawChart(limit, capped){
+  var W=700, H=260, ml=64, mr=14, mt=14, mb=34;
+  var cur = assetTotal();
+  var xMax = Math.max(limit*1.7, cur*1.4, 3000);
+  var pts = 70, needs = [], avails = [], yMax = 0;
+  for(var i=0;i<=pts;i++){
+    var x = xMax*i/pts, d = needAvail(x);
+    needs.push([x, d.need]); avails.push([x, d.avail]);
+    yMax = Math.max(yMax, d.need, d.avail);
+  }
+  yMax = yMax*1.12 || 1;
+  var X = function(v){ return ml + (W-ml-mr)*v/xMax; };
+  var Y = function(v){ return H-mb - (H-mt-mb)*v/yMax; };
+  var path = function(arr){ return arr.map(function(p,i){ return (i?"L":"M")+X(p[0]).toFixed(1)+" "+Y(p[1]).toFixed(1); }).join(" "); };
+
+  var s = "";
+  // grid
+  for(var g=0; g<=4; g++){
+    var yv = yMax*g/4, y = Y(yv);
+    s += '<line x1="'+ml+'" y1="'+y.toFixed(1)+'" x2="'+(W-mr)+'" y2="'+y.toFixed(1)+'" stroke="#E4EAEF"/>';
+    s += '<text x="'+(ml-8)+'" y="'+(y+4).toFixed(1)+'" text-anchor="end" font-family="Roboto Mono,monospace" font-size="10" fill="#6E8296">'+fmt(yv)+'</text>';
+  }
+  s += '<line x1="'+ml+'" y1="'+(H-mb)+'" x2="'+(W-mr)+'" y2="'+(H-mb)+'" stroke="#0D1F2D"/>';
+  for(var t=0;t<=4;t++){
+    var xv = xMax*t/4;
+    s += '<text x="'+X(xv).toFixed(1)+'" y="'+(H-mb+16)+'" text-anchor="middle" font-family="Roboto Mono,monospace" font-size="10" fill="#6E8296">'+fmt(xv)+'</text>';
+  }
+  s += '<text x="'+((ml+W-mr)/2)+'" y="'+(H-4)+'" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#6E8296">保険等以外の財産額（万円）</text>';
+  // 安全域
+  if(limit>0 && !capped){
+    s += '<rect x="'+ml+'" y="'+mt+'" width="'+(X(Math.min(limit,xMax))-ml).toFixed(1)+'" height="'+(H-mt-mb)+'" fill="#1B6B53" opacity="0.06"/>';
+  }
+  s += '<path d="'+path(avails)+'" fill="none" stroke="#1B6B53" stroke-width="2.4"/>';
+  s += '<path d="'+path(needs)+'" fill="none" stroke="#A8321F" stroke-width="2.4"/>';
+  if(capped){
+    s += '<text x="'+((ml+W-mr)/2)+'" y="'+(mt+16)+'" text-anchor="middle" font-family="Shippori Mincho,serif" font-size="12.5" font-weight="700" fill="#1B6B53">2本の線は交差しません（上限なし）</text>';
+  }
+  if(!capped && limit>0 && limit<=xMax){
+    var lx = X(limit);
+    s += '<line x1="'+lx.toFixed(1)+'" y1="'+mt+'" x2="'+lx.toFixed(1)+'" y2="'+(H-mb)+'" stroke="#0D1F2D" stroke-width="1.6" stroke-dasharray="5 4"/>';
+    s += '<circle cx="'+lx.toFixed(1)+'" cy="'+Y(needAvail(limit).need).toFixed(1)+'" r="4.5" fill="#0D1F2D"/>';
+    var anch = (lx > W*0.62) ? "end" : "start", dx = (anch==="end") ? -8 : 8;
+    s += '<text x="'+(lx+dx).toFixed(1)+'" y="'+(mt+14)+'" text-anchor="'+anch+'" font-family="Shippori Mincho,serif" font-size="12.5" font-weight="700" fill="#0D1F2D">上限 '+fmt(limit)+' 万円'+(capped?"超":"")+'</text>';
+  }
+  // 現状マーカー
+  if(cur>0 && cur<=xMax){
+    var cx = X(cur);
+    s += '<line x1="'+cx.toFixed(1)+'" y1="'+(H-mb-6)+'" x2="'+cx.toFixed(1)+'" y2="'+(H-mb+6)+'" stroke="#B8873B" stroke-width="2.5"/>';
+    s += '<text x="'+cx.toFixed(1)+'" y="'+(H-mb-11)+'" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#B8873B">現状</text>';
+  }
+  $("chart").innerHTML = s;
+}
+
+/* ---- 描画 ---- */
+function render(){
+  var h = heirs();
+  $("nHeirs").textContent = h.n;
+  $("lblOther").innerHTML = (h.pt==="sc"||h.pt==="c") ? '子の人数<small>養子は実子ありで1人、実子なしで2人まで</small>'
+    : (h.pt==="sp"||h.pt==="p") ? '直系尊属の人数<small>父母が優先されます</small>'
+    : '兄弟姉妹の人数<small>相続税額の2割加算の対象です</small>';
+  $("rowOther").querySelector("input").disabled = false;
+  $("spRatio").disabled = !h.spouse;
+
+  var sol = solveLimit();
+  var limit = sol.limit;
+  $("limitNum").innerHTML = sol.capped ? "上限なし" : ((limit<=0 ? "0" : fmt(limit)) + "<small>万円</small>");
+  var P = num("ins"), R = num("ret"), C = num("cond");
+  var atLimit = needAvail(limit);
+  var hl = $("hl"); hl.className = "headline" + (limit<=0 ? " short" : "");
+  if(sol.capped){
+    $("limitNote").textContent = "30億円まで不足が生じませんでした。返済・生活費・代償金の入力と、相続人の設定をご確認ください。";
+  } else if(limit<=0){
+    $("limitNote").textContent = "財産がゼロでも資金が不足します。まず返済・生活費・代償金の前提を見直すか、保障額を積み増す必要があります。";
+  } else {
+    var src = [];
+    if(P>0) src.push("保険金 " + fmt(P));
+    if(R>0) src.push("退職金 " + fmt(R));
+    if(C>0) src.push("弔慰金 " + fmt(C));
+    if(assetLiquid()>0) src.push("流動資産 " + fmt(Math.min(assetLiquid(), limit)));
+    $("limitNote").textContent = (src.length ? src.join("＋") + " ＝ 合計" + fmt(atLimit.avail) + "万円" : "充当できる資金が0万円")
+      + "で、財産がこの額までなら納税・返済・分割資金を賄えます（そのときの相続税 "
+      + fmt(atLimit.r.payable) + "万円）。保険金・退職金を含めた総資産ベースでは約" + fmt(limit+P+R+C) + "万円です。";
+  }
+  drawChart(limit, sol.capped);
+
+  /* 現状判定 */
+  var cur = assetTotal(), d = needAvail(cur);
+
+  var detail = isDetail();
+  $("detailMode").hidden = !detail;
+  $("totalMode").hidden = detail;
+  var atbl = '<tr><th style="width:auto">区分</th><td style="width:104px">評価額</td><td style="width:104px">充当可能</td></tr>';
+  if(detail){
+    ASSETS.forEach(function(a){
+      var v = num(a[0]), lq = $(a[1]).checked;
+      atbl += '<tr><th>'+a[2]+'</th><td class="n">'+fmt(v)+'</td><td class="n'+(lq&&v>0?" pos":"")+'">'+(lq&&v>0?fmt(v):"—")+'</td></tr>';
+    });
+  } else {
+    atbl += '<tr><th>財産の総額</th><td class="n">'+fmt(num("aTotal"))+'</td><td class="n">—</td></tr>'
+          + '<tr><th>うち流動資産</th><td class="n">'+fmt(num("aLiq"))+'</td><td class="n pos">'+fmt(assetLiquid())+'</td></tr>';
+  }
+  atbl += '<tr class="tot"><th>プラスの財産 合計</th><td class="n">'+fmt(cur)+'</td><td class="n pos">'+fmt(assetLiquid())
+        + '</td></tr><tr class="sub2"><th>うち流動資産の割合</th><td class="n"></td><td class="n">'+(liqRatio()*100).toFixed(0)+'％</td></tr>';
+  if(detail){
+    DEBTS.forEach(function(x){
+      var v = num(x[0]); if(v === 0) return;
+      atbl += '<tr><th>△ '+x[2]+'</th><td class="n neg">'+fmt(-v)+'</td><td class="n">'
+            + ($(x[1]).checked ? '<span class="pill ng">要返済</span>' : "—")+'</td></tr>';
+    });
+  } else if(num("aDebt") > 0){
+    atbl += '<tr><th>△ 債務の総額</th><td class="n neg">'+fmt(-num("aDebt"))+'</td><td class="n">'
+          + (debtRepay()>0 ? '<span class="pill ng">要返済 '+fmt(debtRepay())+'</span>' : "—")+'</td></tr>';
+  }
+  atbl += '<tr class="tot"><th>純財産（プラス − マイナス）</th><td class="n'+(cur-debtTotal()<0?" neg":"")+'">'
+        + fmt(cur - debtTotal())+'</td><td class="n"></td></tr>';
+  $("tblAsset").innerHTML = atbl;
+  if(!detail && num("aLiq") > num("aTotal")){
+    $("tblAsset").innerHTML += '<tr class="sub2"><th colspan="3" style="text-align:left;color:#A8321F">流動資産が総額を超えています。総額の範囲で計算しています。</th></tr>';
+  }
+
+  var ok = d.gap >= 0;
+  var other = debtRepay() + num("living") + num("daisho");
+  var forTax = d.avail - other;                 // 納税に回せる資金
+  var rowsC = ""
+    + tr2("死亡保険金", num("ins")) + tr2("死亡退職金", num("ret")) + tr2("弔慰金", num("cond"))
+    + tr2("流動資産（納税・返済に充当する分）", assetLiquid())
+    + '<tr class="tot"><th>充当できる資金 合計</th><td class="n">'+fmt(d.avail)+'</td></tr>'
+    + tr2("△ 債務の返済", -debtRepay())
+    + tr2("△ 遺族の生活費", -num("living"))
+    + tr2("△ 代償金", -num("daisho"))
+    + '<tr class="tot"><th>納税に回せる資金</th><td class="n '+(forTax<0?"neg":"")+'">'+fmt(forTax)+'</td></tr>'
+    + tr2("△ 相続税（納付税額の合計）", -d.r.payable)
+    + '<tr class="tot"><th>納税資金の過不足</th><td class="n '+(ok?"pos":"neg")+'">'+(ok?"＋":"△")+fmt(Math.abs(d.gap))+' <span class="pill '+(ok?"ok":"ng")+'">'+(ok?"充足":"不足")+'</span></td></tr>';
+  $("tblCheck").innerHTML = '<tr><th style="width:auto">項目</th><td style="width:150px">金額（万円）</td></tr>' + rowsC;
+  $("checkWarn").innerHTML = ok
+    ? (forTax < d.r.payable*1.2
+        ? '<div class="memo">納税資金は足りていますが、余裕は'+fmt(d.gap)+'万円です。評価額が上振れすると不足に転じます。</div>' : "")
+    : '<div class="warn"><b>納税資金が'+fmt(-d.gap)+'万円不足します。</b>'
+      + (forTax < 0 ? '返済・生活費・代償金の段階で資金を使い切っており、相続税の納付原資が残りません。' : '不足分は、財産の売却・延納・物納・借入のいずれかで埋めることになります。')
+      + 'なお、この額をそのまま増額しても解決しません（下の「必要保険金額の逆算」を参照）。</div>';
+
+  /* 必要保険金額（不動点） */
+  var P0 = num("ins"), req = solveRequiredIns(cur);
+  var rem = Math.max(0, HIKAZEI_PER*h.n - P0);
+  var eNow = marginalNet(cur, P0);
+  var simple = Math.max(0, -d.gap);
+  var fillBtn = $("fillIns");
+  if(!req.ok){
+    fillBtn.disabled = true; fillBtn.textContent = "必要額を算定できません";
+  } else {
+    var rounded = Math.ceil(req.total/10)*10;           // 10万円単位で切上げ
+    fillBtn.dataset.v = rounded;
+    if(Math.abs(rounded - P0) < 0.5){
+      fillBtn.disabled = true; fillBtn.textContent = "必要額を満たしています";
+    } else if(rounded > P0){
+      fillBtn.disabled = false;
+      fillBtn.innerHTML = "不足分 <b>＋"+fmt(rounded-P0)+"</b> を足して <b>"+fmt(rounded)+"</b> 万円にする";
+    } else {
+      fillBtn.disabled = false;
+      fillBtn.innerHTML = "必要額 <b>"+fmt(rounded)+"</b> 万円まで下げる";
+    }
+  }
+  if(!req.ok){
+    $("tblReq").innerHTML = '<tr><th>必要保険金額</th><td class="n neg">解なし</td></tr>';
+    $("reqNote").innerHTML = '<div class="warn">保険金を増やしても不足が埋まらない前提になっています。限界税率が100％を超える設定になっていないか、入力を確認してください。</div>';
+    $("formReq").textContent = "";
+  } else {
+    var diff = req.total - P0;
+    var rows = '<tr><th style="width:auto">項目</th><td style="width:150px">金額（万円）</td></tr>'
+      + tr("現在の死亡保険金", P0)
+      + tr("必要な死亡保険金額（税の増加を織り込んだ額）", req.total)
+      + '<tr class="tot"><th>'+(diff>=0 ? "追加が必要な保障額" : "減らせる余地")+'</th><td class="n '+(diff>0?"neg":"pos")+'">'
+        + (diff>0?"＋":"△")+fmt(Math.abs(diff))+'</td></tr>'
+      + '<tr><th style="padding-top:14px">参考：税の増加を無視した単純な不足額</th><td class="n" style="padding-top:14px">'+fmt(simple)+'</td></tr>'
+      + tr2("循環を織り込んだことによる差", Math.max(0, diff) - simple)
+      + tr2("死亡保険金の非課税枠の残り", rem);
+    $("tblReq").innerHTML = rows;
+    $("reqNote").innerHTML = diff > 0
+      ? '<div class="memo">いまの保障水準では、保険金を1万円増やしても手元に残るのは <b>'+Math.round(eNow*10000).toLocaleString("ja-JP")+'円</b>（残り '+fmt(Math.round((1-eNow)*10000))+'円は増えた相続税に消えます）。'
+        + (rem>0 ? '非課税枠が'+fmt(rem)+'万円残っているため、その範囲の増額は全額が手取りになります。' : '非課税枠は使い切っています。')
+        + 'ボタンで反映する額は10万円単位に切り上げています。</div>'
+      : '<div class="memo">必要額を満たしています。上の「減らせる余地」は、他の前提を変えずに保障を落とせる理論上の幅です。</div>';
+    $("formReq").textContent =
+      "なぜ単純な足し算にならないか\n"
+    + "  保険金を ΔP 増やす → 非課税枠(500万円×" + h.n + "人)の超過分が課税価格に加算\n"
+    + "  → 相続税が ΔP×限界税率 だけ増加 → 手取りは ΔP×(1−限界税率) しか増えない\n"
+    + "  よって 追加額 ≒ 不足額 ÷ (1−限界税率)。枠の残り・税率区分の切り上がり・\n"
+    + "  配偶者の税額軽減があるため一定率では表せず、増額後の保険金で税額を計算し直し、\n"
+    + "  充当資金(P) ≧ 必要資金(P) を満たす最小の P を二分法で求めています。\n"
+    + "  現在の限界での手残り率：" + (eNow*100).toFixed(1) + "％";
+  }
+  $("formCheck").textContent =
+    "守れる財産額の上限 X の求め方（数値解）\n"
+  + "  必要資金(X) = 相続税(X) ＋ 債務返済 ＋ 生活費 ＋ 代償金\n"
+  + "  充当資金(X) = 保険金 ＋ 退職金 ＋ 弔慰金 ＋ 流動資産（実額）\n"
+  + "  上限 X＊ ＝ 必要資金(X) ≦ 充当資金(X) を満たす最大の X\n"
+  + "  ※ 保険金・退職金は非課税枠超過分が課税価格に入るため、X が増えると税額も増える循環構造。二分法で解いています。";
+
+  /* 税額の内訳 */
+  var r = d.r;
+  var head = '<tr><th style="width:auto">項目</th><td style="width:150px">金額（万円）</td></tr>';
+  var t = head
+    + tr("財産（保険・退職金以外）", cur)
+    + tr("死亡保険金の課税部分（"+fmt(num("ins"))+" − 非課税 "+fmt(HIKAZEI_PER*h.n)+"）", r.insTaxable)
+    + tr("退職手当金等の課税部分（非課税 "+fmt(HIKAZEI_PER*h.n)+" 控除後）", r.retTaxable)
+    + tr("△ 債務控除", -debtTotal()) + tr("△ 葬式費用", -num("funeral"))
+    + '<tr class="tot"><th>課税価格の合計額</th><td class="n">'+fmt(r.T)+'</td></tr>'
+    + tr("△ 基礎控除（3,000＋600×"+h.n+"人）", -r.kiso)
+    + '<tr class="tot"><th>課税遺産総額</th><td class="n">'+fmt(r.kazei)+'</td></tr>';
+  t += '<tr><th style="padding-top:14px">法定相続分に応ずる取得金額と税額</th><td style="padding-top:14px"></td></tr>';
+  r.rows.forEach(function(row){
+    t += '<tr class="sub2"><th>'+row[0]+'（'+(row[1]*100).toFixed(row[1]*100%1?1:0)+'％）　'+fmt(row[2])+'</th><td class="n">'+fmt(row[3])+'</td></tr>';
+  });
+  t += '<tr class="tot"><th>相続税の総額</th><td class="n">'+fmt(r.total)+'</td></tr>';
+  if(r.add20>0) t += tr("＋ 2割加算", r.add20);
+  if(h.spouse) t += tr("△ 配偶者の税額軽減（取得"+fmt(num("spRatio"))+"％）", -r.spouseRelief);
+  t += '<tr class="tot"><th>納付税額の合計</th><td class="n">'+fmt(r.payable)+'</td></tr>';
+  $("tblTax").innerHTML = t;
+
+  var cl = condLimit(num("salary"), $("gyomu").checked);
+  $("taxMemo").innerHTML = "弔慰金の非課税限度は " + fmt(cl) + " 万円（報酬月額 " + fmt(num("salary")) + " 万円 × "
+    + ($("gyomu").checked ? "3年分＝36か月" : "半年分＝6か月") + "）。超過分 " + fmt(r.condOver)
+    + " 万円は退職手当金等として計算に含めています。<br>各人の課税価格の千円未満切捨てなど、申告書上の端数処理の一部は簡略化しています。";
+}
+
+function tr(label, v){ return '<tr><th>'+label+'</th><td class="n">'+fmt(v)+'</td></tr>'; }
+function tr2(label, v){ return '<tr class="sub2"><th>'+label+'</th><td class="n">'+fmt(v)+'</td></tr>'; }
+
+/* ============ 法人 ============ */
+function renderCorp(){
+  var ins = num("cIns"), cash = num("cCash");
+  var debt = num("cDebt"), work = num("cSales")*num("cMonths");
+  var sal = num("cSalary"), yrs = num("cYears"), mult = num("cMult");
+  var ret = sal*yrs*mult;
+  var cl = condLimit(sal, $("cGyomu").checked);
+  var cond = $("cCondPay").checked ? cl : 0;
+  var buy = num("cPrice")*num("cShares")/10000; // 円 → 万円
+  var n = Math.max(1, Math.round(num("cHeirs")));
+
+  var need = debt + work + ret + cond + buy;
+  var avail = ins + cash;
+  var gap = avail - need;
+  var buyLimit = Math.max(0, avail - debt - work - ret - cond);
+  var shareLimit = num("cPrice")>0 ? Math.floor(buyLimit*10000/num("cPrice")) : 0;
+
+  $("cLimitNum").innerHTML = fmt(buyLimit) + "<small>万円</small>";
+  $("cHl").className = "headline" + (buyLimit<=0 ? " short" : "");
+  $("cLimitNote").textContent = buyLimit<=0
+    ? "借入返済・運転資金・退職金で保険金を使い切ります。自社株の買取資金は残りません。"
+    : "1株 " + fmt(num("cPrice")) + " 円なら約 " + fmt(shareLimit) + " 株分。ご希望の " + fmt(num("cShares")) + " 株に対して"
+      + (buy<=buyLimit ? "足りています。" : "不足します（あと " + fmt(buy-buyLimit) + " 万円）。");
+
+  $("cTbl").innerHTML = '<tr><th style="width:auto">項目</th><td style="width:150px">金額（万円）</td></tr>'
+    + tr("借入金残高の返済", debt)
+    + tr("運転資金（月商"+fmt(num("cSales"))+"×"+fmt(num("cMonths"))+"か月）", work)
+    + tr("死亡退職金（"+fmt(sal)+"×"+fmt(yrs)+"年×"+fmt(mult)+"倍）", ret)
+    + tr("弔慰金", cond)
+    + tr("自社株の買取（"+fmt(num("cPrice"))+"円×"+fmt(num("cShares"))+"株）", buy)
+    + '<tr class="tot"><th>必要資金 合計</th><td class="n">'+fmt(need)+'</td></tr>'
+    + tr("法人受取の死亡保険金", ins) + tr("現預金", cash)
+    + '<tr class="tot"><th>過不足</th><td class="n '+(gap>=0?"pos":"neg")+'">'+(gap>=0?"＋":"△")+fmt(Math.abs(gap))
+    + ' <span class="pill '+(gap>=0?"ok":"ng")+'">'+(gap>=0?"充足":"不足")+'</span></td></tr>';
+  $("cWarn").innerHTML = gap>=0 ? "" :
+    '<div class="warn"><b>'+fmt(-gap)+'万円不足しています。</b>不足分は、買取株数を減らす・退職金の支給水準を見直す・保障額を積み増すのいずれかで調整することになります。</div>';
+
+  var condOver = Math.max(0, cond - cl);
+  var retTaxable = Math.max(0, ret + condOver - HIKAZEI_PER*n);
+  $("cTbl2").innerHTML = '<tr><th style="width:auto">項目</th><td style="width:150px">金額（万円）</td></tr>'
+    + tr("死亡退職金", ret)
+    + tr("弔慰金の非課税限度（"+($("cGyomu").checked?"3年分":"半年分")+"）", cl)
+    + tr("弔慰金のうち退職手当金等とされる部分", condOver)
+    + tr("△ 退職手当金等の非課税枠（500×"+n+"人）", -HIKAZEI_PER*n)
+    + '<tr class="tot"><th>相続税の課税価格に加わる額</th><td class="n">'+fmt(retTaxable)+'</td></tr>';
+}
+
+/* ============ 初期化 ============ */
+document.addEventListener("input", function(){ render(); renderCorp(); });
+document.addEventListener("change", function(){ render(); renderCorp(); });
+
+/* ---- 資料（冊子）モード ---- */
+var PAGE = 0;
+function today(){
+  var d = new Date();
+  return d.getFullYear() + "年" + (d.getMonth()+1) + "月" + d.getDate() + "日";
+}
+function caseTitle(){
+  var c = CASES.filter(function(x){ return x.id === ACTIVE; })[0];
+  return c ? c.name : ($("caseName").value.trim() || "無題の案件");
+}
+function sheet(no, title, lead, body){
+  PAGE++;
+  return '<section class="sheet">'
+    + '<div class="rh"><span>' + caseTitle() + '</span><span>保険で守れる財産額の逆算</span></div>'
+    + (title ? '<h2 class="st"><i>' + no + '</i>' + title + '</h2>' : "")
+    + (lead ? '<p class="lead">' + lead + '</p>' : "")
+    + body
+    + '<div class="rf">— ' + PAGE + ' —</div></section>';
+}
+var SEC = 0;
+function sn(){ SEC++; return (SEC<10 ? "0" : "") + SEC; }
+function buildReport(){
+  PAGE = 0; SEC = 0;
+  var h = heirs(), cur = assetTotal(), d = needAvail(cur), sol = solveLimit(), req = solveRequiredIns(cur);
+  var P = num("ins"), R = num("ret"), C = num("cond");
+  var out = "";
+
+  /* 表紙 */
+  PAGE++;
+  out += '<section class="sheet cover">'
+    + '<div class="eyebrow">DISCUSSION PAPER</div>'
+    + '<h1>保険で守れる財産額の逆算</h1>'
+    + '<div class="sub">相続時の納税・返済・分割資金からみた保障水準の検証</div>'
+    + '<div class="rule"></div>'
+    + '<dl>'
+    + '<dt>案件</dt><dd>' + caseTitle() + '</dd>'
+    + '<dt>相続人</dt><dd>' + heirsLabel() + '（法定相続人の数 ' + h.n + '人）</dd>'
+    + '<dt>現在の保障</dt><dd>死亡保険金 ' + fmt(P) + ' 万円' + (R>0 ? '／死亡退職金 ' + fmt(R) + ' 万円' : "") + '</dd>'
+    + '<dt>財産</dt><dd>プラス ' + fmt(cur) + ' 万円／マイナス ' + fmt(debtTotal()) + ' 万円</dd>'
+    + '<dt>作成日</dt><dd>' + today() + '</dd>'
+    + '</dl>'
+    + '<div class="disc">本書は入力条件に基づく試算であり、相続税の申告額を保証するものではありません。'
+    + '税額は分割の方法、財産評価、各種特例の適用により変動します。実行にあたっては顧問税理士による検算が必要です。<br>'
+    + '相続税の税率・控除額は国税庁タックスアンサー（令和7年4月1日現在法令等）を出典とし、2026年8月3日に確認しています。'
+    + '小規模宅地等の特例、生前贈与加算、未成年者控除・障害者控除・相次相続控除、延納・物納、二次相続は計算に含んでいません。</div>'
+    + '<div class="rf">— ' + PAGE + ' —</div></section>';
+
+  /* 1 前提条件 */
+  var t1 = '<h3 class="sh">相続人と分割の前提</h3><table>'
+    + '<tr><th style="width:auto">項目</th><td style="width:150px">内容</td></tr>'
+    + '<tr><th>相続人の構成</th><td class="n">' + heirsLabel() + '</td></tr>'
+    + '<tr><th>法定相続人の数</th><td class="n">' + h.n + ' 人</td></tr>'
+    + '<tr><th>配偶者の取得割合</th><td class="n">' + (h.spouse ? fmt(num("spRatio")) + " ％" : "—") + '</td></tr>'
+    + '</table>'
+    + '<h3 class="sh">死亡時に入るお金</h3><table>'
+    + '<tr><th style="width:auto">項目</th><td style="width:150px">金額（万円）</td></tr>'
+    + '<tr><th>死亡保険金（受取人＝相続人）</th><td class="n">' + fmt(P) + '</td></tr>'
+    + '<tr><th>死亡退職金</th><td class="n">' + fmt(R) + '</td></tr>'
+    + '<tr><th>弔慰金</th><td class="n">' + fmt(C) + '</td></tr>'
+    + '<tr class="tot"><th>合計</th><td class="n">' + fmt(P+R+C) + '</td></tr></table>'
+    + '<h3 class="sh">財産の内訳</h3><table>' + $("tblAsset").innerHTML + '</table>'
+    + '<h3 class="sh">その他の必要資金</h3><table>'
+    + '<tr><th style="width:auto">項目</th><td style="width:150px">金額（万円）</td></tr>'
+    + '<tr><th>債務の返済（死亡時に必要な分）</th><td class="n">' + fmt(debtRepay()) + '</td></tr>'
+    + '<tr><th>葬式費用</th><td class="n">' + fmt(num("funeral")) + '</td></tr>'
+    + '<tr><th>遺族の生活費</th><td class="n">' + fmt(num("living")) + '</td></tr>'
+    + '<tr><th>代償金</th><td class="n">' + fmt(num("daisho")) + '</td></tr></table>';
+  out += sheet(sn(), "前提条件", "以下の条件で試算しています。条件が変われば結論も変わるため、まず前提の妥当性をご確認ください。", t1);
+
+  /* 2 結論 */
+  var kpi = '<div class="kpi"><small>保険金・退職金・流動資産で守り切れる財産額の上限</small>'
+    + '<b>' + (sol.capped ? "上限なし" : fmt(sol.limit) + '<em>万円</em>') + '</b>'
+    + '<p>' + $("limitNote").textContent + '</p></div>'
+    + '<figure class="fig"><figcaption>図1　財産額と必要資金の交点</figcaption>' + $("chart").outerHTML + '</figure>'
+    + '<p class="lead" style="margin-top:10px">横軸は保険等以外の財産額。緑の線（充当できる資金）が赤の線（必要資金）を下回る点から先は、財産を売却しなければ納税・返済を賄えません。</p>'
+    + '<h3 class="sh">納税資金の充足判定（現在の財産額）</h3><table>' + $("tblCheck").innerHTML + '</table>';
+  out += sheet(sn(), "結論", "現在の保障水準で、どこまでの財産を売却せずに承継できるかを示します。", kpi);
+
+  /* 3 相続税の計算過程 */
+  out += sheet(sn(), "相続税の計算過程",
+    "国税庁タックスアンサー No.4152・No.4155 の計算順序に沿って算出しています。",
+    '<table>' + $("tblTax").innerHTML + '</table>'
+    + '<p class="lead" style="margin-top:14px">' + $("taxMemo").innerHTML + '</p>');
+
+  /* 4 必要保険金額 */
+  out += sheet(sn(), "必要保険金額の逆算",
+    "不足額をそのまま増額しても解決しません。増額分のうち非課税枠を超える部分が課税価格に加わり、税額が増えるためです。",
+    '<table>' + $("tblReq").innerHTML + '</table>'
+    + '<div class="fig" style="margin-top:14px"><figcaption>算式</figcaption>'
+    + '<div class="form">' + $("formReq").textContent + '</div></div>');
+
+  /* 法人（入力がある場合のみ） */
+  if(num("cIns") > 0 || num("cDebt") > 0 || num("cShares") > 0){
+    out += sheet(sn(), "法人の事業保障と自社株",
+      "法人契約の保障で、借入返済・運転資金・退職金・自社株の買取をどこまで賄えるかを示します。",
+      '<table>' + $("cTbl").innerHTML + '</table>'
+      + '<h3 class="sh">遺族側にかかる相続税の材料</h3><table>' + $("cTbl2").innerHTML + '</table>'
+      + '<p class="lead" style="margin-top:14px">法人が受け取る保険金と支払う退職金・弔慰金の法人税の取扱い、'
+      + 'および自社株を発行会社へ譲渡した場合の課税関係は、本書の計算に含んでいません。顧問税理士にご確認ください。</p>');
+  }
+
+  /* 案件比較 */
+  if(CASES.length >= 2){
+    renderCompare();
+    out += sheet(sn(), "案件の比較", "保存した条件を横並びで比較します。",
+      '<table>' + $("cmpTbl").innerHTML + '</table>');
+  }
+
+  /* 出典 */
+  out += sheet("付", "出典と留意事項", "本書に用いた数値の出典です（いずれも2026年8月3日確認）。",
+    '<ol class="src2">'
+    + '<li>相続税の速算表・相続税額の2割加算：国税庁タックスアンサー No.4155「相続税の税率」（令和7年4月1日現在法令等）</li>'
+    + '<li>基礎控除 3,000万円＋600万円×法定相続人の数、税額控除の順序：同 No.4152「相続税の計算」（令和7年4月1日現在法令等）</li>'
+    + '<li>死亡保険金の非課税限度額 500万円×法定相続人の数：同 No.4114「相続税の課税対象になる死亡保険金」</li>'
+    + '<li>死亡退職金の非課税限度額 500万円×法定相続人の数：同 No.4117「相続税の課税対象になる死亡退職金」</li>'
+    + '<li>弔慰金の非課税限度（業務上の死亡は普通給与の3年分、業務外は半年分）：同 No.4120「弔慰金を受け取ったときの取扱い」</li>'
+    + '<li>配偶者の税額の軽減 1億6,000万円または法定相続分相当額：同 No.4158「配偶者の税額の軽減」（令和7年4月1日現在法令等）</li>'
+    + '<li>法定相続分：同 No.4132「相続人の範囲と法定相続分」（民法887・889・890・900ほか）</li>'
+    + '<li>団体信用生命保険により返済が免除される住宅ローンは債務控除の対象外：国税庁「相続税の申告書作成時の誤りやすい事例集」事例13（申告書第13表関係）</li>'
+    + '</ol>'
+    + '<h3 class="sh">計算に含めていない事項</h3>'
+    + '<p class="lead">小規模宅地等の特例、生前贈与加算、相続時精算課税、未成年者控除・障害者控除・相次相続控除、延納・物納、二次相続、'
+    + '法人が受け取る保険金および支払う退職金・弔慰金の法人税の取扱い、自社株を発行会社へ譲渡した場合の課税関係。</p>'
+    + '<h3 class="sh">端数処理</h3>'
+    + '<p class="lead">法定相続分に応ずる取得金額は千円未満を切り捨てています。各人の課税価格の端数処理など、申告書上の処理の一部は簡略化しています。</p>');
+
+  $("sheets").innerHTML = out;
+  $("repInfo").textContent = "A4縦・全" + PAGE + "ページ";
+}
+$("mkReport").addEventListener("click", function(){
+  render(); renderCorp();
+  buildReport();
+  document.body.classList.add("rep");
+  var kids = document.querySelectorAll(".wrap > *");
+  for(var i=0;i<kids.length;i++){ if(kids[i].id !== "report") kids[i].dataset.hid = kids[i].hidden ? "1" : "0", kids[i].hidden = true; }
+  document.querySelector("header").hidden = true;
+  window.scrollTo(0,0);
+});
+$("repBack").addEventListener("click", function(){
+  document.body.classList.remove("rep");
+  var kids = document.querySelectorAll(".wrap > *");
+  for(var i=0;i<kids.length;i++){ if(kids[i].id !== "report") kids[i].hidden = (kids[i].dataset.hid === "1"); }
+  document.querySelector("header").hidden = false;
+  $("printHint").hidden = true;
+  window.scrollTo(0,0);
+});
+$("repPrint").addEventListener("click", function(){
+  var ok = true;
+  try { window.print(); } catch(e){ ok = false; }
+  $("printHint").innerHTML = "印刷ダイアログが出ない場合は、この画面の枠内では印刷が制限されています。"
+    + "<b>「HTMLで保存」</b>でファイルに書き出し、ファイルアプリから開いて印刷するか、"
+    + "アーティファクトを別ウィンドウで開いてから印刷してください（iPadは共有ボタン →「プリント」）。";
+  $("printHint").hidden = false;
+});
+$("repSave").addEventListener("click", function(){
+  var css = document.querySelector("style").textContent;
+  var doc = '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">'
+    + '<meta name="viewport" content="width=device-width, initial-scale=1"><title>' + caseTitle() + '｜保障設計試算</title>'
+    + '<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">'
+    + '<style>' + css + ' body{background:#E9EDF1;padding:16px} #report{display:block}</style></head><body>'
+    + '<div id="report">' + $("sheets").innerHTML + '</div></body></html>';
+  try {
+    var url = URL.createObjectURL(new Blob([doc], { type:"text/html" }));
+    var a = document.createElement("a");
+    a.href = url; a.download = caseTitle().replace(/[\\/:*?"<>|]/g, "_") + "_保障設計試算.html";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+    $("printHint").innerHTML = "ファイルを書き出しました。ファイルアプリから開き、共有ボタン →「プリント」でPDF保存できます。";
+  } catch(e){
+    $("printHint").innerHTML = "この環境ではファイルの書き出しが制限されています。アーティファクトを別ウィンドウで開いてからお試しください。";
+  }
+  $("printHint").hidden = false;
+});
+$("resetAll").addEventListener("click", function(){ location.reload(); });
+
+/* ---- 案件の保存・切替・比較 ---- */
+var CASES = [], ACTIVE = null;
+var STORE = (typeof window !== "undefined" && window.storage) ? window.storage : null;
+var CASEKEY = "cases:v1";
+
+function captureState(){
+  var st = { inputs:{}, items: JSON.parse(JSON.stringify(CALC.items)) };
+  var els = document.querySelectorAll("input");
+  for(var i=0;i<els.length;i++){
+    var el = els[i];
+    if(!el.id || el.id.indexOf("calc") === 0 || el.id.indexOf("case") === 0) continue;
+    st.inputs[el.id] = (el.type === "checkbox" || el.type === "radio") ? el.checked : el.value;
+  }
+  return st;
+}
+function applyState(st){
+  for(var id in st.inputs){
+    var el = $(id); if(!el) continue;
+    if(el.type === "checkbox" || el.type === "radio") el.checked = st.inputs[id];
+    else el.value = st.inputs[id];
+  }
+  CALC.items = JSON.parse(JSON.stringify(st.items || {}));
+}
+function heirsLabel(){
+  var h = heirs();
+  var who = (h.pt === "sc" || h.pt === "c") ? "子" : (h.pt === "sp" || h.pt === "p") ? "直系尊属" : "兄弟姉妹";
+  return (h.spouse ? "配偶者＋" : "") + who + h.k + "人";
+}
+/* 保存済み案件の主要数値を、現在の入力を壊さずに算出 */
+function metricsOf(st){
+  var backup = captureState();
+  applyState(st);
+  var total = assetTotal(), d = needAvail(total), sol = solveLimit(), req = solveRequiredIns(total);
+  var m = {
+    heirs: heirsLabel(), assets: total, ins: num("ins"), tax: d.r.payable,
+    gap: d.gap, limit: sol.limit, capped: sol.capped, need: req.ok ? req.total : null
+  };
+  applyState(backup);
+  return m;
+}
+function caseMetrics(c){                       // 保存時に算出して持ち回る（毎回の再計算を避ける）
+  if(!c.metrics) c.metrics = metricsOf(c.state);
+  return c.metrics;
+}
+function renderCases(){
+  var html = "";
+  CASES.forEach(function(c){
+    var m = caseMetrics(c);
+    html += '<div class="case' + (c.id === ACTIVE ? " on" : "") + '">'
+          + '<button type="button" class="pick" data-case="' + c.id + '">'
+          + '<b>' + (c.name || "無題") + '</b><i>' + m.heirs + '</i>'
+          + '<u>' + (m.capped ? "上限なし" : "上限 " + fmt(m.limit)) + '／' + (m.gap >= 0 ? "充足" : "不足 " + fmt(-m.gap)) + '</u>'
+          + '</button><button type="button" class="del" data-delcase="' + c.id + '" aria-label="削除">×</button></div>';
+  });
+  $("cases").innerHTML = html || '<span class="casenote">まだ案件がありません。条件を入力して「保存」を押すと、ここにボタンが並びます。</span>';
+  $("caseStore").textContent = STORE ? "保存されます" : "この画面を閉じると消えます";
+  if(!$("cmpTbl").hidden) renderCompare();
+}
+function renderCompare(){
+  if(!CASES.length){ $("cmpTbl").innerHTML = ""; return; }
+  var head = '<tr><th style="width:auto">案件</th>';
+  CASES.forEach(function(c){ head += '<td>' + (c.name || "無題") + '</td>'; });
+  head += '</tr>';
+  var ms = CASES.map(caseMetrics);
+  function row(label, fn, cls){
+    var r = '<tr><th>' + label + '</th>';
+    ms.forEach(function(m){ r += '<td class="n ' + (cls ? cls(m) : "") + '">' + fn(m) + '</td>'; });
+    return r + '</tr>';
+  }
+  $("cmpTbl").innerHTML = head
+    + row("相続人", function(m){ return m.heirs; })
+    + row("財産合計", function(m){ return fmt(m.assets); })
+    + row("死亡保険金", function(m){ return fmt(m.ins); })
+    + row("相続税", function(m){ return fmt(m.tax); })
+    + row("納税資金の過不足", function(m){ return (m.gap >= 0 ? "＋" : "△") + fmt(Math.abs(m.gap)); },
+          function(m){ return m.gap >= 0 ? "pos" : "neg"; })
+    + row("必要保険金額", function(m){ return m.need === null ? "—" : fmt(m.need); })
+    + '<tr class="tot"><th>守れる財産の上限</th>'
+    + ms.map(function(m){ return '<td class="n">' + (m.capped ? "上限なし" : fmt(m.limit)) + '</td>'; }).join("")
+    + '</tr>';
+}
+function persist(){
+  if(!STORE) return;
+  try { STORE.set(CASEKEY, JSON.stringify(CASES)); } catch(e){}
+}
+function restore(){
+  if(!STORE){ renderCases(); return; }
+  Promise.resolve()
+    .then(function(){ return STORE.get(CASEKEY); })
+    .then(function(r){ if(r && r.value) CASES = JSON.parse(r.value) || []; })
+    .catch(function(){ CASES = []; })
+    .then(function(){ renderCases(); });
+}
+$("caseSave").addEventListener("click", function(){
+  var nm = $("caseName").value.trim();
+  if(!nm){ $("caseNote").textContent = "特徴を入力してから保存してください。"; $("caseName").focus(); return; }
+  var c = { id: "c" + Date.now(), name: nm, state: captureState() };
+  c.metrics = metricsOf(c.state);
+  CASES.push(c); ACTIVE = c.id; $("caseName").value = "";
+  $("caseNote").textContent = "";
+  persist(); renderCases();
+});
+$("caseUpdate").addEventListener("click", function(){
+  var c = CASES.filter(function(x){ return x.id === ACTIVE; })[0];
+  if(!c){ $("caseNote").textContent = "上書きする案件を選んでから押してください。"; return; }
+  c.state = captureState();
+  c.metrics = metricsOf(c.state);
+  var nm = $("caseName").value.trim(); if(nm) c.name = nm;
+  $("caseName").value = ""; $("caseNote").textContent = "「" + c.name + "」を現在の入力で上書きしました。";
+  persist(); renderCases();
+});
+$("caseCmp").addEventListener("click", function(){
+  var t = $("cmpTbl"); t.hidden = !t.hidden;
+  if(!t.hidden) renderCompare();
+});
+document.addEventListener("click", function(e){
+  var b = e.target.closest ? e.target.closest("[data-case],[data-delcase]") : null;
+  if(!b) return;
+  if(b.hasAttribute("data-delcase")){
+    var id = b.getAttribute("data-delcase");
+    CASES = CASES.filter(function(x){ return x.id !== id; });
+    if(ACTIVE === id) ACTIVE = null;
+    persist(); renderCases();
+  } else {
+    var c = CASES.filter(function(x){ return x.id === b.getAttribute("data-case"); })[0];
+    if(!c) return;
+    applyState(c.state); ACTIVE = c.id;
+    $("caseNote").textContent = "「" + c.name + "」を表示中。入力を変えたら「上書き」で更新できます。";
+    render(); renderCorp(); renderCases();
+  }
+});
+
+/* ---- 金額欄の合計計算機 ---- */
+var CALC = { target:null, entry:"", items:{} };   // items は入力欄ごとに明細を保持
+
+function attachCalcButtons(){
+  var els = document.querySelectorAll('input[inputmode="decimal"]');
+  for(var i=0;i<els.length;i++){
+    (function(el){
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "calcbtn"; b.textContent = "計";
+      b.title = "複数の金額を足して入力する";
+      b.setAttribute("aria-label", "合計を計算して入力");
+      b.addEventListener("click", function(){ openCalc(el); });
+      el.parentNode.appendChild(b);
+    })(els[i]);
+  }
+}
+function labelOf(el){
+  var f = el.closest(".f"), lb = f ? f.querySelector("label") : null;
+  if(!lb) return "金額";
+  return lb.childNodes[0].nodeValue.trim();
+}
+function openCalc(el){
+  CALC.target = el; CALC.entry = "";
+  if(!CALC.items[el.id]) CALC.items[el.id] = [];
+  $("calcTitle").textContent = labelOf(el) + "の合計";
+  $("calcLab").value = "";
+  $("calcWrap").hidden = false;
+  renderCalc();
+}
+function closeCalc(){ $("calcWrap").hidden = true; CALC.target = null; }
+function calcItems(){ return CALC.target ? (CALC.items[CALC.target.id] || []) : []; }
+function calcSum(){
+  var s = 0; calcItems().forEach(function(it){ s += it.v; });
+  return s;
+}
+function renderCalc(){
+  var disp = $("calcDisp");
+  disp.textContent = CALC.entry === "" ? "0" : CALC.entry;
+  disp.className = "disp" + (CALC.entry === "" ? " empty" : "");
+  var html = "";
+  calcItems().forEach(function(it, i){
+    html += '<li><span class="nm">' + (it.n ? it.n : "明細 " + (i+1)) + '</span>'
+          + '<span class="vl">' + fmt(it.v) + '</span>'
+          + '<button type="button" data-del="' + i + '" aria-label="削除">×</button></li>';
+  });
+  $("calcList").innerHTML = html;
+  $("calcSum").textContent = fmt(calcSum() + (parseFloat(CALC.entry) || 0));
+}
+function calcKey(k){
+  if(k === "bs"){ CALC.entry = CALC.entry.slice(0, -1); }
+  else if(k === "clr"){ CALC.entry = ""; }
+  else if(k === "add"){
+    var v = parseFloat(CALC.entry);
+    if(isFinite(v)){
+      CALC.items[CALC.target.id].push({ n: $("calcLab").value.trim(), v: v });
+      CALC.entry = ""; $("calcLab").value = "";
+    }
+  }
+  else if(k === "."){ if(CALC.entry.indexOf(".") < 0) CALC.entry += (CALC.entry === "" ? "0." : "."); }
+  else { CALC.entry += k; }
+  renderCalc();
+}
+document.addEventListener("click", function(e){
+  var b = e.target.closest ? e.target.closest("[data-k],[data-del]") : null;
+  if(!b || $("calcWrap").hidden) return;
+  if(b.hasAttribute("data-del")){
+    CALC.items[CALC.target.id].splice(parseInt(b.getAttribute("data-del"), 10), 1);
+    renderCalc();
+  } else {
+    calcKey(b.getAttribute("data-k"));
+  }
+});
+$("calcCancel").addEventListener("click", closeCalc);
+$("calcWrap").addEventListener("click", function(e){ if(e.target === this) closeCalc(); });
+document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !$("calcWrap").hidden) closeCalc(); });
+$("calcOk").addEventListener("click", function(){
+  var pending = parseFloat(CALC.entry);
+  if(isFinite(pending)) CALC.items[CALC.target.id].push({ n: $("calcLab").value.trim(), v: pending });
+  var total = calcSum();
+  CALC.target.value = total > 0 ? fmt(total) : "";
+  closeCalc();
+  render(); renderCorp();
+});
+attachCalcButtons();
+
+/* ---- 金額欄はフォーカス時にカーソルを右端へ ---- */
+document.addEventListener("focusin", function(e){
+  var el = e.target;
+  if(el.tagName !== "INPUT" || el.type !== "text") return;
+  setTimeout(function(){
+    var n = el.value.length;
+    try { el.setSelectionRange(n, n); } catch(err){}
+  }, 0);
+});
+document.addEventListener("mouseup", function(e){
+  var el = e.target;
+  if(el.tagName === "INPUT" && el.type === "text" && el.selectionStart === el.selectionEnd){
+    var n = el.value.length;
+    try { el.setSelectionRange(n, n); } catch(err){}
+  }
+});
+
+/* ---- 初期値の保存とリセット ---- */
+var DEFAULTS = {};
+(function(){
+  var els = document.querySelectorAll("input");
+  for(var i=0;i<els.length;i++){
+    var el = els[i]; if(!el.id) continue;
+    DEFAULTS[el.id] = (el.type==="checkbox"||el.type==="radio") ? el.checked : el.value;
+  }
+})();
+function resetFields(ids){
+  ids.forEach(function(id){
+    var el = $(id); if(!el || !(id in DEFAULTS)) return;
+    if(el.type==="checkbox"||el.type==="radio") el.checked = DEFAULTS[id]; else el.value = DEFAULTS[id];
+  });
+  render();
+}
+$("rsOut").addEventListener("click", function(){
+  resetFields(["funeral","living","daisho"]);
+});
+$("rsAsset").addEventListener("click", function(){
+  resetFields(["am1","am2","aTotal","aLiq","aDebt","aDebtPay","a1","a2","a3","a4","a5",
+    "l1","l2","l3","l4","l5","d1","d2","d3","p1","p2","p3"]);
+});
+
+$("fillIns").addEventListener("click", function(){
+  var v = parseFloat(this.dataset.v);
+  if(!isFinite(v)) return;
+  $("ins").dataset.prev = $("ins").value;   // 直前の値を保持
+  $("ins").value = fmt(v);
+  render();
+  $("ins").focus();
+});
+
+$("tab-p").addEventListener("click", function(){ switchTab(true); });
+$("tab-c").addEventListener("click", function(){ switchTab(false); });
+function switchTab(personal){
+  $("tab-p").setAttribute("aria-selected", personal);
+  $("tab-c").setAttribute("aria-selected", !personal);
+  $("pane-p").hidden = !personal;
+  $("pane-c").hidden = personal;
+  if(personal) render(); else renderCorp();
+}
+
+$("toPersonal").addEventListener("click", function(){
+  var sal = num("cSalary");
+  $("ret").value = fmt(sal*num("cYears")*num("cMult"));
+  $("salary").value = fmt(sal);
+  $("gyomu").checked = $("cGyomu").checked;
+  $("cond").value = $("cCondPay").checked ? fmt(condLimit(sal, $("cGyomu").checked)) : "";
+  $("cHeirs").value = $("nHeirs").textContent;
+  switchTab(true);
+  window.scrollTo({top:0, behavior:"smooth"});
+});
+
+render();
+renderCorp();
+restore();
+</script>
+</body>
+</html>
