@@ -374,7 +374,7 @@ body.rep #report{display:block}
     </div>
 
     <div class="card">
-      <h2>死亡時に入るお金 <em>INFLOW</em></h2>
+      <h2>死亡時に入るお金 <button type="button" class="minibtn" id="rsIn">リセット</button><em>INFLOW</em></h2>
       <div class="f">
         <label>死亡保険金（受取人＝相続人）</label>
         <div class="in"><input type="text" inputmode="decimal" id="ins" placeholder="例 3,000"><span class="unit">万円</span></div>
@@ -1575,6 +1575,9 @@ function resetFields(ids){
   });
   render();
 }
+$("rsIn").addEventListener("click", function(){
+  resetFields(["ins","ret","cond","salary","gyomu"]);
+});
 $("rsOut").addEventListener("click", function(){
   resetFields(["funeral","living","daisho"]);
 });
