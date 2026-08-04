@@ -503,6 +503,24 @@ body.rep #report{display:block}
       </div>
     </div>
 
+    <div class="card" id="cmpCard" style="margin-top:16px">
+      <h2>保険の有無で「売る財産」を比較 <em>SELL vs KEEP</em></h2>
+      <p class="cap">必要資金（相続税＋返済＋生活費＋代償金）のうち、充当できる資金で足りない分は<b>財産を売って</b>払うことになります。保険金がその売却をどれだけ減らすかを並べて比較します。</p>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:12px">
+        <div style="flex:1 1 210px;border:1px solid var(--line);border-left:3px solid var(--alert);border-radius:var(--r);padding:12px 14px;background:#FCF4F2">
+          <div class="eyebrow" style="color:var(--alert)">保険を使わない場合</div>
+          <div style="font:700 25px var(--mono);color:var(--alert);margin-top:4px" id="cmpNoInsSell">—</div>
+          <div class="note" id="cmpNoInsBk" style="margin-top:4px"></div>
+        </div>
+        <div style="flex:1 1 210px;border:1px solid var(--line);border-left:3px solid var(--guard);border-radius:var(--r);padding:12px 14px;background:#F0F6F3">
+          <div class="eyebrow" style="color:var(--guard)">保険を使う場合<small style="color:var(--mute)">（現在の保険金）</small></div>
+          <div style="font:700 25px var(--mono);color:var(--guard);margin-top:4px" id="cmpWithInsSell">—</div>
+          <div class="note" id="cmpWithInsBk" style="margin-top:4px"></div>
+        </div>
+      </div>
+      <div class="form" id="cmpSaved" style="margin-top:12px"></div>
+    </div>
+
     <div class="card" style="margin-top:16px">
       <h2>納税資金の充足判定 <em>CHECK</em></h2>
       <table id="tblCheck"></table>
@@ -913,6 +931,31 @@ function render(){
 
   /* 現状判定 */
   var cur = assetTotal(), d = needAvail(cur);
+
+  /* 保険の有無で「売る財産」を比較 */
+  (function(){
+    var withIns = d;                    // 現在の保険金での結果
+    var noIns   = needAvail(cur, 0);    // 保険金を0にした場合
+    var sellNo   = Math.max(0, -noIns.gap);
+    var sellWith = Math.max(0, -withIns.gap);
+    var saved    = Math.max(0, sellNo - sellWith);
+    var nonLiq   = Math.max(0, cur - Math.min(assetLiquid(), cur)); // 売却対象になり得る非流動財産
+    var suf = '<small style="font-size:13px;font-weight:500"> 万円 売却</small>';
+    $("cmpNoInsSell").innerHTML   = (sellNo>0   ? fmt(sellNo)   + suf : '売却不要 <small style="font-size:13px;font-weight:500;color:var(--guard)">0万円</small>');
+    $("cmpWithInsSell").innerHTML = (sellWith>0 ? fmt(sellWith) + suf : '売却不要 <small style="font-size:13px;font-weight:500;color:var(--guard)">0万円</small>');
+    $("cmpNoInsBk").textContent   = sellNo>0   ? "必要資金 "+fmt(noIns.need)+"万円 − 充当（保険金0）"+fmt(noIns.avail)+"万円" : "退職金・弔慰金・流動資産で賄えます";
+    $("cmpWithInsBk").textContent = sellWith>0 ? "必要資金 "+fmt(withIns.need)+"万円 − 充当 "+fmt(withIns.avail)+"万円" : "保険金等で賄えます";
+    var msg;
+    if(saved>0){
+      msg = "<b>保険金があることで、売らずに済む財産＝約"+fmt(saved)+"万円。</b>その分、自宅・事業用資産・自社株などを手放さずに納税・返済・生活費をまかなえます。";
+      if(sellNo > nonLiq){ msg += "<br>※保険がないと売却必要額が売れる財産（非流動 "+fmt(nonLiq)+"万円）を上回り、財産を売り切っても不足します。"; }
+    } else if(sellNo===0){
+      msg = "この試算では、保険がなくても退職金・弔慰金・流動資産で必要資金をまかなえます（売却不要）。";
+    } else {
+      msg = "現在の保険金では売却必要額が変わりません。保険金を増やすと売却をさらに減らせます。";
+    }
+    $("cmpSaved").innerHTML = msg;
+  })();
 
   var detail = isDetail();
   $("detailMode").hidden = !detail;
