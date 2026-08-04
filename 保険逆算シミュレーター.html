@@ -366,8 +366,8 @@ body.rep #report{display:block}
         <label>法定相続人の数<small>基礎控除・非課税枠の計算に使用</small></label>
         <div class="in"><output id="nHeirs" style="font:700 20px var(--mono)">3</output><span class="unit">人</span></div>
       </div>
-      <h3 class="sub">分割の前提</h3>
-      <div class="f">
+      <h3 class="sub" id="splitHead">分割の前提</h3>
+      <div class="f" id="rowSpRatio">
         <label>配偶者の取得割合<small>配偶者の税額軽減の効き方が変わります</small></label>
         <div class="in"><input type="number" id="spRatio" value="50" min="0" max="100" step="5"><span class="unit">％</span></div>
       </div>
@@ -906,6 +906,8 @@ function render(){
     : '兄弟姉妹の人数<small>相続税額の2割加算の対象です</small>';
   $("rowOther").querySelector("input").disabled = false;
   $("spRatio").disabled = !h.spouse;
+  $("rowSpRatio").hidden = !h.spouse;   // 配偶者なし（子のみ等）は取得割合欄ごと非表示
+  $("splitHead").hidden  = !h.spouse;
 
   var sol = solveLimit();
   var limit = sol.limit;
