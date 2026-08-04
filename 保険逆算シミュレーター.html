@@ -693,9 +693,14 @@ var SPOUSE_FLOOR = 16000;              // No.4158
 var ADD20 = 0.20;                      // No.4152（配偶者・父母・子以外）
 
 function $(id){ return document.getElementById(id); }
+function zen2han(s){
+  return String(s)
+    .replace(/[０-９]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+    .replace(/，/g, ",").replace(/[．。]/g, ".").replace(/　/g, " ");
+}
 function num(id){
   var el = $(id); if(!el) return 0;          // 入力欄が無い場合も落とさない
-  var raw = String(el.value).replace(/[,，\s]/g, "");
+  var raw = zen2han(el.value).replace(/[,\s]/g, "");   // 全角数字も半角化してから読む
   var v = parseFloat(raw);
   return isFinite(v) ? v : 0;   // 空欄（サンプル表示のみ）は 0 として扱う
 }
@@ -1470,6 +1475,18 @@ function attachCalcButtons(){
       b.setAttribute("aria-label", "合計を計算して入力");
       b.addEventListener("click", function(){ openCalc(el); });
       el.parentNode.appendChild(b);
+      // 全角で入力しても自動で半角に変換する
+      el.addEventListener("input", function(e){
+        if(e.isComposing) return;
+        var h = zen2han(this.value);
+        if(h !== this.value){ var p = this.selectionStart; this.value = h; try{ this.setSelectionRange(p, p); }catch(x){} }
+      });
+      el.addEventListener("compositionend", function(){
+        var h = zen2han(this.value); if(h !== this.value) this.value = h;
+      });
+      el.addEventListener("blur", function(){
+        var h = zen2han(this.value); if(h !== this.value) this.value = h;
+      });
     })(els[i]);
   }
 }
