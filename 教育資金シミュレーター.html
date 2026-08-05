@@ -45,6 +45,26 @@
   .icol-opts .fieldwrap .ff{flex:1 1 116px;min-width:106px;}
   .icol-opts .grp.gtight{margin:0 0 6px;}
   .icol-opts .grp.gtight:not(:first-child){margin-top:10px;}
+  /* 結果ページ内で表を横並びにして詰める */
+  .rgrid2{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:flex-start;}
+  .rcol{flex:1 1 380px;min-width:0;}
+  .rcol .warn,.rcol .info{font-size:10px;padding:5px 8px;line-height:1.4;margin-top:4px;}
+  /* サマリーページ（1ページ目）は3カード横1列・注記非表示で高さを最小化 */
+  .deck-scroll>.rpage:first-child .result-cards{grid-template-columns:repeat(3,minmax(0,1fr));padding:12px 16px 2px;}
+  .deck-scroll>.rpage:first-child .rc.hero{grid-column:auto;max-width:none;}
+  .deck-scroll>.rpage:first-child .result-cards .note{display:none;}
+  .deck-scroll>.rpage:first-child .rc.hero .v{font-size:22px;}
+  .deck-scroll>.rpage:first-child .rc:not(.hero) .v{font-size:16px;}
+  .rcol>.sec-h{padding-left:0;padding-top:4px;padding-bottom:2px;font-size:10.5px;}
+  /* サマリーページを縦に圧縮して1ページに収める */
+  .deck-result .result-cards{gap:8px;padding:14px 16px 4px;}
+  .deck-result .rc{padding:10px 14px;}
+  .deck-result .rc.hero .v{font-size:22px;}
+  .deck-result .rc .k{margin-bottom:3px;}
+  .deck-result .rc .note{margin-top:3px;}
+  .rcol table.tbl th{padding:4px 6px;font-size:9.5px;}
+  .rcol table.tbl td{padding:4px 6px;font-size:11px;}
+  .rcol>div[style*="padding:8px"]{padding-top:2px!important;}
   @media(max-width:760px){.wrap{flex-direction:column;gap:14px;padding-top:14px;}.side{position:static;flex-basis:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px;width:100%;}.side-eyebrow{display:none;}.side-tt{writing-mode:horizontal-tb;text-orientation:mixed;margin:0 6px 0 0;font-size:20px;letter-spacing:.02em;}.side .fpbar{flex-direction:row;flex-wrap:wrap;width:auto;}.side .fpbtn{width:auto;}}
   .back{font-size:12px;color:var(--brass-deep);text-decoration:none;}.back:hover{text-decoration:underline;}
   header{border-bottom:1px solid var(--rule);padding:14px 0 22px;margin-bottom:26px;}
@@ -456,8 +476,8 @@ function render(R){
     <div class="rc"><div class="k">教育が終わる頃の親の年齢</div><div class="v" style="font-size:18px;${fatherEnd>=60?'color:var(--loss);':''}">父${fatherEnd}歳 / 母${motherEnd}歳</div><div class="note">末子卒業まで約${eduEndYears}年後。${fatherEnd>=60?'この年齢では教育ローンの返済が難しくなります。':'ここまでに準備を終えたい。'}</div></div>
   </div>`;
 
-  // 開始遅延の比較
-  html+=`</div><div class="rpage">`;
+  // 開始遅延の比較（サマリーと同じページに横並びで載せる）
+  html+=`<div class="rgrid2"><div class="rcol">`;
   html+=`<div class="sec-h">③ 積立の開始が遅れると毎月額はどれだけ増えるか（世帯合計）</div>`;
   html+=`<div style="padding:8px 16px 6px;overflow-x:auto;"><table class="tbl"><thead><tr><th>積立の開始</th><th>毎月の必要積立額</th><th>今すぐとの差</th></tr></thead><tbody>`;
   const base=delayScan[0].sum;
@@ -468,8 +488,8 @@ function render(R){
   html+=`</tbody></table></div>`;
   html+=`<div style="padding:0 20px 4px;"><div class="warn"><b>先送りは高くつく：</b>開始が遅れるほど積立期間が短くなり、同じ目標でも毎月額が跳ね上がります（⚠は入学までに間に合わずローンが必要になるケース）。<b>親の年齢を考えると、教育ローンは末子卒業時に返済しづらい</b>——だからこそ今から始めるのが有利です。</div></div>`;
 
-  // 子ごとの表（学費から差し引ける額の内訳つき）
-  html+=`</div><div class="rpage">`;
+  // 子ごとの表（同じページの2カラム目へ）
+  html+=`</div><div class="rcol">`;
   html+=`<div class="sec-h">お子さまごとの内訳（総費用 − 奨学金 − 在学中払い ＝ 積立で用意）</div>`;
   html+=`<div style="padding:8px 16px 18px;overflow-x:auto;"><table class="tbl"><thead><tr><th>お子さま</th><th>進路</th><th>総費用</th><th>−奨学金</th><th>−在学中払い</th><th>積立で用意</th><th>積立期間</th><th>毎月積立</th></tr></thead><tbody>`;
   results.forEach((r,i)=>{
@@ -477,8 +497,8 @@ function render(R){
   });
   html+=`</tbody></table></div>`;
 
-  // 奨学金の返済シミュレーション
-  html+=`</div><div class="rpage">`;
+  // 奨学金の返済シミュレーション（rcol/rgrid2/ページを閉じて新ページ）
+  html+=`</div></div></div><div class="rpage">`;
   const withLoan=results.filter(r=>r.borrowed>0);
   if(withLoan.length){
     html+=`<div class="sec-h">奨学金の返済シミュレーション（卒業後・本人が返済）</div>`;
@@ -498,17 +518,18 @@ function render(R){
     html+=`<div style="padding:8px 20px 16px;"><div class="hint" style="font-size:12.5px;line-height:1.7;">お子さま欄の<b>「奨学金 月額」</b>に金額を入れて計算すると、貸与型奨学金の<b>借入総額・返済期間・完済年齢・総返済額</b>がここに表示されます（現在は0円のため非表示）。返済条件（利率・卒業後の返済月額）は入力パネルの「奨学金の返済（貸与型の場合）」で設定できます。</div></div>`;
   }
 
-  // タイムライン
-  html+=`</div><div class="rpage">`;
+  // タイムライン（チャート左・解説右の2カラムで1ページに）
+  html+=`</div><div class="rpage"><div class="rgrid2"><div class="rcol">`;
   html+=chartSVG(R);
   html+=`<div class="legend"><span><i style="background:#9a7b4f;"></i>その年の教育費</span><span><i style="background:#dfe8d8;"></i>積立に集中できる期間（教育費が始まる前）</span></div>`;
+  html+=`</div><div class="rcol">`;
 
-  html+=`<div style="padding:0 20px 22px;">
+  html+=`<div style="padding:0 4px;">
     <div class="info"><b>② 積立を抑えるアイデア：</b>「在学中に収入から出す月額」を使うと、その分は事前積立が不要になり毎月額が下がります。ほかに、児童手当を貯める・学資保険で18歳満期に合わせる・NISAで運用利回りを乗せる・進路の幅を現実的に見積もる、なども有効です。ただし在学中の支出は<b>家計の現役期</b>にかかるので、退職や収入減の時期と重ならないか確認を。</div>
     <div class="info" style="margin-top:8px;"><b>④ 貯蓄時期の可視化：</b>グラフの薄い帯が「教育費が始まる前＝積立に集中できる期間」です。ここを逃すと、在学中は家計から教育費が出ていくため貯めにくくなります。<b>末子卒業時に父は${fatherEnd}歳</b>——ローンで先送りしても返済年齢が高くなるため、今の積立が最も効きます。</div>
   </div>`;
 
-  html+=`</div>`;   // 最終ページを閉じる
+  html+=`</div></div></div>`;   // rcol/rgrid2/最終ページを閉じる
 
   // NISA・暴落リスク（結果デッキの最後のページ）
   if(nisa){
