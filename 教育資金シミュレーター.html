@@ -18,8 +18,8 @@
   .side .fpbtn{width:100%;text-align:center;padding:7px 2px;font-size:11.5px;letter-spacing:0;white-space:nowrap;}
   .main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:8px;height:100%;}
   .deck{background:var(--surface);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;overflow:hidden;}
-  .deck-result{flex:1 1 60%;}
-  .deck-input{flex:1 1 40%;}
+  .deck-result{flex:1 1 55%;}
+  .deck-input{flex:1 1 45%;}
   .deck-head{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:5px 12px;border-bottom:1px solid var(--rule-soft);}
   .deck-head .no{font-family:var(--mono);font-size:11px;color:var(--brass);}
   .deck-head b{font-family:var(--mincho);font-size:14px;font-weight:600;letter-spacing:.03em;}
@@ -31,6 +31,20 @@
   .deck-scroll>.rpage,.deck-scroll>.ipage{flex:0 0 100%;scroll-snap-align:start;min-width:0;height:100%;overflow-y:auto;padding:12px 16px;}
   .deck-scroll>.rpage>.sec-h:first-child{padding-top:0;margin-top:0;}
   .placeholder-page{display:flex;align-items:center;justify-content:center;color:var(--ink-soft);text-align:center;}
+  /* 幅を詰めて高密度化（余白を減らし、項目を多く） */
+  .deck-result .result-cards{grid-template-columns:repeat(2,minmax(0,320px));justify-content:start;}
+  .deck-result .rc.hero{max-width:660px;}
+  .deck-input .itbl{width:auto;}
+  .deck-input .itbl select.c-plan{width:auto;min-width:150px;max-width:230px;}
+  .deck-input .tbl-actions{justify-content:flex-start;}
+  .deck-input .tbl-actions .btn-add{width:auto;flex:0 0 auto;}
+  .ipage-cols{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap;}
+  .icol-people{flex:0 0 auto;}
+  .icol-opts{flex:1 1 300px;min-width:260px;}
+  .icol-opts .fieldwrap{gap:7px 12px;}
+  .icol-opts .fieldwrap .ff{flex:1 1 116px;min-width:106px;}
+  .icol-opts .grp.gtight{margin:0 0 6px;}
+  .icol-opts .grp.gtight:not(:first-child){margin-top:10px;}
   @media(max-width:760px){.wrap{flex-direction:column;gap:14px;padding-top:14px;}.side{position:static;flex-basis:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px;width:100%;}.side-eyebrow{display:none;}.side-tt{writing-mode:horizontal-tb;text-orientation:mixed;margin:0 6px 0 0;font-size:20px;letter-spacing:.02em;}.side .fpbar{flex-direction:row;flex-wrap:wrap;width:auto;}.side .fpbtn{width:auto;}}
   .back{font-size:12px;color:var(--brass-deep);text-decoration:none;}.back:hover{text-decoration:underline;}
   header{border-bottom:1px solid var(--rule);padding:14px 0 22px;margin-bottom:26px;}
@@ -189,43 +203,41 @@
 <section class="deck deck-input">
   <div class="deck-head"><span class="no">01</span><b>入力</b><span class="deck-hint">◀ 横スワイプでページ切替 ▶</span><span class="deck-dots" id="iDots"></span></div>
   <div class="deck-scroll" id="inScroll">
-    <div class="ipage">
-      <div class="ihead">
-        <span class="grp ginline">対象者</span>
-        <span class="parent-ages">父<input type="text" inputmode="decimal" id="fatherAge" value="" placeholder="40" step="1" min="18" max="80"><em>歳</em>母<input type="text" inputmode="decimal" id="motherAge" value="" placeholder="38" step="1" min="18" max="80"><em>歳</em></span>
+    <div class="ipage ipage-cols">
+      <div class="icol icol-people">
+        <div class="ihead">
+          <span class="grp ginline">対象者</span>
+          <span class="parent-ages">父<input type="text" inputmode="decimal" id="fatherAge" value="" placeholder="40" step="1" min="18" max="80"><em>歳</em>母<input type="text" inputmode="decimal" id="motherAge" value="" placeholder="38" step="1" min="18" max="80"><em>歳</em></span>
+        </div>
+        <table class="itbl">
+          <thead><tr><th>子</th><th>年齢</th><th>進路（通学形態）</th><th>奨学金/月</th><th>教育貯蓄</th><th></th></tr></thead>
+          <tbody id="childList"></tbody>
+        </table>
+        <div class="tbl-actions">
+          <button class="btn btn-add" id="addChild">＋ お子さまを追加</button>
+          <button class="btn btn-add" id="applyFirst">子1をコピー（年齢除く）</button>
+        </div>
       </div>
-      <table class="itbl">
-        <thead><tr><th>子</th><th>年齢</th><th>進路（通学形態）</th><th>奨学金/月</th><th>教育貯蓄</th><th></th></tr></thead>
-        <tbody id="childList"></tbody>
-      </table>
-      <div class="tbl-actions">
-        <button class="btn btn-add" id="addChild">＋ お子さまを追加</button>
-        <button class="btn btn-add" id="applyFirst">子1をコピー（年齢除く）</button>
-      </div>
-    </div>
 
-    <div class="ipage">
-      <div class="grp gtight">準備の前提・開始遅延 他</div>
-      <div class="fieldwrap">
-        <div class="field ff"><label class="lab">利回り(年%)</label><input type="text" inputmode="decimal" id="rate" value="" placeholder="0.5" step="0.1"></div>
-        <div class="field ff"><label class="lab">在学中の月額(子1)</label><input type="text" inputmode="numeric" class="yen" id="zaigaku" value="" placeholder="0"></div>
-        <div class="field ff"><label class="lab">積立の完了時期</label><select id="finishTiming"><option value="1" selected>入学1年前まで</option><option value="0">入学時まで</option><option value="2">入学2年前まで</option></select></div>
-        <div class="field ff"><label class="lab">開始遅延の比較</label><select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
-        <div class="field ff"><label class="lab">奨学金利率(年%)</label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="0.5" step="0.1"></div>
-        <div class="field ff"><label class="lab">卒業後の返済/月</label><input type="text" inputmode="numeric" class="yen" id="repayMonthly" value="" placeholder="15,000"></div>
-        <div class="field ff"><label class="lab">仕送り 年額</label><input type="text" inputmode="numeric" class="yen" id="shiokuri" value="" placeholder="900,000"></div>
-        <div class="field ff"><label class="lab">下宿の初期費用</label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
+      <div class="icol icol-opts">
+        <div class="grp gtight">準備の前提・開始遅延 他</div>
+        <div class="fieldwrap">
+          <div class="field ff"><label class="lab">利回り(年%)</label><input type="text" inputmode="decimal" id="rate" value="" placeholder="0.5" step="0.1"></div>
+          <div class="field ff"><label class="lab">在学中の月額(子1)</label><input type="text" inputmode="numeric" class="yen" id="zaigaku" value="" placeholder="0"></div>
+          <div class="field ff"><label class="lab">完了時期</label><select id="finishTiming"><option value="1" selected>入学1年前まで</option><option value="0">入学時まで</option><option value="2">入学2年前まで</option></select></div>
+          <div class="field ff"><label class="lab">開始遅延の比較</label><select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
+          <div class="field ff"><label class="lab">奨学金利率(年%)</label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="0.5" step="0.1"></div>
+          <div class="field ff"><label class="lab">卒業後の返済/月</label><input type="text" inputmode="numeric" class="yen" id="repayMonthly" value="" placeholder="15,000"></div>
+          <div class="field ff"><label class="lab">仕送り 年額</label><input type="text" inputmode="numeric" class="yen" id="shiokuri" value="" placeholder="900,000"></div>
+          <div class="field ff"><label class="lab">下宿の初期費用</label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
+        </div>
+        <div class="grp gtight">NISA・暴落リスク（任意）</div>
+        <div class="fieldwrap">
+          <div class="field ff"><label class="lab">投資で準備する額</label><input type="text" inputmode="numeric" class="yen" id="nisaAmount" value="" placeholder="0"></div>
+          <div class="field ff"><label class="lab">想定する暴落</label><select id="nisaScenario"><option value="corona">コロナ級（−34%・回復1年）</option><option value="lehman" selected>リーマン級（−55%・回復5年）</option><option value="dotcom">ITバブル級（−49%・回復7年）</option><option value="nikkei">日経バブル級（−82%・回復34年）</option></select></div>
+          <div class="field ff" style="display:flex;align-items:flex-end;"><button class="btn btn-primary btn-calc" id="calcBtn" style="width:100%;">計算</button></div>
+        </div>
       </div>
-      <button class="btn btn-primary btn-calc" id="calcBtn">計算</button>
-    </div>
-
-    <div class="ipage">
-      <div class="grp gtight">NISA・投資で貯める場合の暴落リスク（任意）</div>
-      <div class="fieldwrap">
-        <div class="field ff"><label class="lab">投資で準備する教育資金</label><input type="text" inputmode="numeric" class="yen" id="nisaAmount" value="" placeholder="0"></div>
-        <div class="field ff"><label class="lab">想定する暴落（過去の実例）</label><select id="nisaScenario"><option value="corona">コロナ級（−34%・回復1年）</option><option value="lehman" selected>リーマン級（−55%・回復5年）</option><option value="dotcom">ITバブル級（−49%・回復7年）</option><option value="nikkei">日経バブル級（−82%・回復34年）</option></select></div>
-      </div>
-      <div class="hint">金額を入れると、結果デッキの最後のページに暴落リスクのグラフが出ます（0なら非表示）。</div>
     </div>
   </div>
 </section>
@@ -573,6 +585,9 @@ function buildDots(scrollId,dotsId){
   const sc=document.getElementById(scrollId), dc=document.getElementById(dotsId);
   if(!sc||!dc)return;
   const n=sc.children.length;
+  dc.style.display = n<2 ? 'none' : '';
+  const hint=dc.parentNode.querySelector('.deck-hint'); if(hint) hint.style.display = n<2 ? 'none' : '';
+  if(n<2){dc.innerHTML='';return;}
   if(dc.children.length!==n){
     dc.innerHTML='';
     for(let i=0;i<n;i++){const d=document.createElement('i');d.addEventListener('click',()=>sc.scrollTo({left:i*sc.clientWidth,behavior:'smooth'}));dc.appendChild(d);}
