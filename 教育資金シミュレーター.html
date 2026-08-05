@@ -45,6 +45,17 @@
   .icol-opts .fieldwrap .ff{flex:1 1 116px;min-width:106px;}
   .icol-opts .grp.gtight{margin:0 0 6px;}
   .icol-opts .grp.gtight:not(:first-child){margin-top:10px;}
+  /* 詳細入力（使用頻度が低い項目の折りたたみ） */
+  .advbox{margin:8px 0 2px;}
+  .advbox>summary{font-size:11.5px;font-weight:600;color:var(--brass-deep);cursor:pointer;list-style:none;padding:4px 0;}
+  .advbox>summary::-webkit-details-marker{display:none;}
+  .advbox>summary small{color:var(--ink-soft);font-weight:400;margin-left:6px;}
+  .advbox:not([open])>.fieldwrap{display:none;}
+  /* 入力エコー：入力中だけ結果画面に入力内容を表示 */
+  .deck-result{position:relative;}
+  .input-echo{position:absolute;top:6px;left:50%;transform:translateX(-50%) translateY(-6px);background:var(--ink);color:#fff;font-size:12px;font-weight:600;padding:5px 14px;border-radius:16px;box-shadow:0 6px 16px -6px rgba(27,42,74,.5);opacity:0;transition:opacity .18s,transform .18s;pointer-events:none;z-index:9;white-space:nowrap;max-width:90%;overflow:hidden;text-overflow:ellipsis;}
+  .input-echo.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .input-echo b{color:var(--brass);font-weight:700;margin-left:8px;}
   /* 結果ページ内で表を横並びにして詰める */
   .rgrid2{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:flex-start;}
   .rcol{flex:1 1 380px;min-width:0;}
@@ -215,6 +226,7 @@
 
 <!-- 結果デッキ（上・広め・横スワイプ） -->
 <section class="deck deck-result">
+  <div class="input-echo" id="inputEcho"></div>
   <div class="deck-head"><span class="no">02</span><b>結果</b><span class="deck-hint">◀ 横スワイプでページ切替 ▶</span><span class="deck-dots" id="rDots"></span></div>
   <div class="deck-scroll" id="outBody"><div class="rpage placeholder-page"><div class="placeholder"><span class="mark">✎</span>下の入力欄にお子さま・年齢などを入れると、ここに結果が出ます。</div></div></div>
 </section>
@@ -240,17 +252,22 @@
       </div>
 
       <div class="icol icol-opts">
-        <div class="grp gtight">準備の前提・開始遅延 他</div>
+        <div class="grp gtight">準備の前提</div>
         <div class="fieldwrap">
           <div class="field ff"><label class="lab">利回り(年%)</label><input type="text" inputmode="decimal" id="rate" value="" placeholder="0.5" step="0.1"></div>
           <div class="field ff"><label class="lab">在学中の月額(子1)</label><input type="text" inputmode="numeric" class="yen" id="zaigaku" value="" placeholder="0"></div>
           <div class="field ff"><label class="lab">完了時期</label><select id="finishTiming"><option value="1" selected>入学1年前まで</option><option value="0">入学時まで</option><option value="2">入学2年前まで</option></select></div>
-          <div class="field ff"><label class="lab">開始遅延の比較</label><select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
-          <div class="field ff"><label class="lab">奨学金利率(年%)</label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="0.5" step="0.1"></div>
-          <div class="field ff"><label class="lab">卒業後の返済/月</label><input type="text" inputmode="numeric" class="yen" id="repayMonthly" value="" placeholder="15,000"></div>
-          <div class="field ff"><label class="lab">仕送り 年額</label><input type="text" inputmode="numeric" class="yen" id="shiokuri" value="" placeholder="900,000"></div>
-          <div class="field ff"><label class="lab">下宿の初期費用</label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
         </div>
+        <details class="advbox">
+          <summary>＋ 詳細入力（開始遅延・奨学金・下宿）<small>※未入力なら既定値で計算</small></summary>
+          <div class="fieldwrap" style="margin-top:8px;">
+            <div class="field ff"><label class="lab">開始遅延の比較</label><select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
+            <div class="field ff"><label class="lab">奨学金利率(年%)</label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="0.5" step="0.1"></div>
+            <div class="field ff"><label class="lab">卒業後の返済/月</label><input type="text" inputmode="numeric" class="yen" id="repayMonthly" value="" placeholder="15,000"></div>
+            <div class="field ff"><label class="lab">仕送り 年額</label><input type="text" inputmode="numeric" class="yen" id="shiokuri" value="" placeholder="900,000"></div>
+            <div class="field ff"><label class="lab">下宿の初期費用</label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
+          </div>
+        </details>
         <div class="grp gtight">NISA・暴落リスク（任意）</div>
         <div class="fieldwrap">
           <div class="field ff"><label class="lab">投資で準備する額</label><input type="text" inputmode="numeric" class="yen" id="nisaAmount" value="" placeholder="0"></div>
@@ -618,6 +635,37 @@ function buildDots(scrollId,dotsId){
 }
 buildDots('inScroll','iDots');
 window.addEventListener('resize',()=>{buildDots('inScroll','iDots');buildDots('outBody','rDots');});
+
+// 入力エコー：入力・編集中だけ、その入力内容を結果画面に表示
+(function(){
+  const echo=document.getElementById('inputEcho'); if(!echo)return;
+  const sc=document.getElementById('inScroll'); if(!sc)return;
+  let t=null;
+  const map={fatherAge:'父の年齢',motherAge:'母の年齢',rate:'利回り',zaigaku:'在学中の月額',finishTiming:'完了時期',delay4:'開始遅延の比較',loanRate:'奨学金利率',repayMonthly:'卒業後の返済/月',shiokuri:'仕送り 年額',initCost:'下宿の初期費用',nisaAmount:'投資で準備する額',nisaScenario:'想定する暴落'};
+  function label(el){
+    const f=el.closest('.field'); if(f){const l=f.querySelector('.lab'); if(l)return l.textContent.trim();}
+    if(map[el.id])return map[el.id];
+    if(el.classList.contains('c-age'))return '子の年齢';
+    if(el.classList.contains('c-plan'))return '進路';
+    if(el.classList.contains('c-scholar'))return '奨学金/月';
+    if(el.classList.contains('c-saved'))return '教育貯蓄';
+    return '入力';
+  }
+  function val(el){
+    if(el.tagName==='SELECT'){const o=el.options[el.selectedIndex];return o?o.text:'';}
+    return (el.value!==''?el.value:el.placeholder)||'—';
+  }
+  function show(el){
+    if(!el||(el.tagName!=='INPUT'&&el.tagName!=='SELECT'))return;
+    echo.innerHTML=label(el)+'<b>'+val(el)+'</b>';
+    echo.classList.add('show');
+    if(t)clearTimeout(t); t=setTimeout(()=>echo.classList.remove('show'),2200);
+  }
+  sc.addEventListener('focusin',e=>show(e.target));
+  sc.addEventListener('input',e=>show(e.target));
+  sc.addEventListener('change',e=>show(e.target));
+  sc.addEventListener('focusout',()=>{if(t)clearTimeout(t);t=setTimeout(()=>echo.classList.remove('show'),400);});
+})();
 
 ready=true;
 simulate(); // 初期表示
