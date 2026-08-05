@@ -28,6 +28,7 @@
   .grid{display:block;}
   .grid>.panel{margin-bottom:22px;}
   .grid>.panel:last-child{margin-bottom:0;}
+  @media(min-width:761px){.grid>.panel-input{position:sticky;top:8px;z-index:6;max-height:42vh;display:flex;flex-direction:column;}.grid>.panel-input>.panel-body{flex:1 1 auto;min-height:0;overflow-y:auto;}}
   /* 入力＝上部に省スペース（対象者は表・条件は右に横並び）／結果＝下に広く（およそ3:7） */
   .panel-input .panel-head{padding:9px 18px;}
   .panel-input .panel-body{padding:13px 18px;}

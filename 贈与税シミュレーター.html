@@ -26,7 +26,10 @@
   .eyebrow{font-family:var(--mincho);font-size:12px;letter-spacing:.42em;color:var(--brass-deep);margin:0 0 8px;}
   h1{font-family:var(--mincho);font-weight:600;font-size:26px;letter-spacing:.03em;margin:0;color:var(--ink);}
   .sub{margin:9px 0 0;color:var(--ink-soft);font-size:13.5px;}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
+  .grid{display:block;}
+  .grid>.panel{margin-bottom:18px;}
+  .grid>.panel:last-child{margin-bottom:0;}
+  @media(min-width:761px){.grid>.panel:first-child{position:sticky;top:8px;z-index:5;max-height:42vh;display:flex;flex-direction:column;}.grid>.panel:first-child>.panel-body{flex:1 1 auto;min-height:0;overflow-y:auto;}}
   @media (max-width:860px){.grid{grid-template-columns:1fr;gap:20px;}}
   .panel{background:var(--surface);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:22px;}
   .panel-head{padding:14px 20px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:baseline;gap:10px;}

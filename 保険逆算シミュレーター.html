@@ -48,7 +48,9 @@ header{background:var(--ink);color:#fff;padding:26px 0 0}
 .tabs button[aria-selected="true"]{color:#fff;border-bottom-color:var(--rule)}
 
 /* ---------- layout ---------- */
-.cols{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:22px;margin-top:22px;align-items:start}
+.cols{display:block;margin-top:22px}
+  .cols>div{margin-bottom:16px}
+  @media(min-width:761px){.cols>div:first-child{position:sticky;top:8px;z-index:5;max-height:46vh;overflow:auto}}
 @media(max-width:900px){.cols{grid-template-columns:1fr}}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 18px 20px;margin-bottom:16px}
 .card > h2{
