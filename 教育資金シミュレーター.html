@@ -38,7 +38,9 @@
   .deck-dots i.on{background:var(--brass);}
   .deck-scroll{flex:1 1 auto;min-height:0;display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
   .deck-scroll>.rpage,.deck-scroll>.ipage{flex:0 0 100%;scroll-snap-align:start;min-width:0;height:100%;overflow-y:auto;padding:12px 16px;}
-  .deck-scroll>.rpage-full{padding:8px 14px;}
+  .deck-scroll>.rpage-full{padding:6px 14px;}
+  .deck-result .chartwrap{padding:2px 10px!important;}
+  .deck-result .legend{padding:2px 20px 8px;}
   .deck-result .summary-cards{padding:10px 14px 2px;}
   .deck-result .summary-cards .rc{padding:8px 12px;}
   .deck-scroll>.rpage>.sec-h:first-child{padding-top:0;margin-top:0;}
@@ -74,6 +76,11 @@
   /* 結果ページ内で表を横並びにして詰める */
   .rgrid2{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:flex-start;}
   .rcol{flex:1 1 380px;min-width:0;}
+  /* 左表を狭く・右表（子ごと内訳）を広く＝右表を横スワイプ無しで見せる */
+  .rg-tables>.rcol:first-child{flex:0 1 290px;}
+  .rg-tables>.rcol:last-child{flex:1 1 540px;}
+  .rg-tables>.rcol:last-child table.tbl{font-size:11px;}
+  .rg-tables>.rcol:last-child table.tbl th,.rg-tables>.rcol:last-child table.tbl td{padding:4px 5px;}
   .rcol .warn,.rcol .info{font-size:10px;padding:5px 8px;line-height:1.4;margin-top:4px;}
   /* サマリーページ（1ページ目）は3カード横1列・注記非表示で高さを最小化 */
   .deck-scroll>.rpage:first-child .result-cards{grid-template-columns:repeat(3,minmax(0,1fr));padding:12px 16px 2px;}
@@ -515,11 +522,11 @@ function render(R){
   html+=familyTimelineSVG(R);
   let leg='<div class="legend">';
   results.forEach((r,i)=>{ leg+=`<span><i style="background:${CHILD_COLORS[i%CHILD_COLORS.length]};"></i>子${i+1}（${r.co.name}${r.away?'/下宿':''}）</span>`; });
-  leg+='<span><i style="background:#1b2a4a;"></i>累計額（毎年積み上がる／破線）</span><span>棒＝その年の教育費・各行の数字＝年齢</span></div>';
+  leg+='<span><i style="background:#2f6b4f;"></i>貯まる金額（積立残高・線）</span><span>棒＝その年の教育費・各行の数字＝年齢</span></div>';
   html+=leg;
 
-  // 開始遅延 ＋ 子ごと内訳（2カラム）
-  html+=`<div class="rgrid2" style="margin-top:6px;"><div class="rcol">`;
+  // 開始遅延 ＋ 子ごと内訳（2カラム／左狭・右広）
+  html+=`<div class="rgrid2 rg-tables" style="margin-top:6px;"><div class="rcol">`;
   html+=`<div class="sec-h">③ 開始が遅れると毎月額はどれだけ増えるか</div>`;
   html+=`<div style="padding:6px 4px 4px;overflow-x:auto;"><table class="tbl"><thead><tr><th>積立の開始</th><th>毎月の必要積立額</th><th>今すぐとの差</th></tr></thead><tbody>`;
   const base=delayScan[0].sum;
@@ -574,16 +581,21 @@ function familyTimelineSVG(R){
   });
   const yearlyTotal=new Array(N+1).fill(0);
   for(let y=0;y<=N;y++){ results.forEach((r,ci)=>{yearlyTotal[y]+=perChild[ci][y];}); }
-  const cum=new Array(N+1).fill(0); let run=0; for(let y=0;y<=N;y++){run+=yearlyTotal[y];cum[y]=run;}
-  const grandTotal=run;
   const ymax=Math.max.apply(null,yearlyTotal.concat([1]));
-  const cmax=Math.max(grandTotal,1);
+  // 貯まる金額（積立残高）：就学前に三角形で積み上がり、在学中はその年の学費分だけ減る
+  const bal=new Array(N+1).fill(0);
+  { const delta=new Array(N+1).fill(0);
+    results.forEach((r)=>{ const target=r.presaveTarget||0; const enter=ENTER-r.age; const sy=Math.max(0,r.yearsToSave||0); const perSave=sy>0?target/sy:0; for(let y=0;y<sy&&y<=N;y++)delta[y]+=perSave; const ey=r.co.years, perDraw=ey>0?target/ey:0; for(let k=0;k<ey;k++){const y=enter+k; if(y>=0&&y<=N)delta[y]-=perDraw;} });
+    let run=0; for(let y=0;y<=N;y++){run+=delta[y]; bal[y]=Math.max(0,run);}
+  }
+  const balMax=Math.max.apply(null,bal.concat([1]));
+  let peakY=0; for(let y=0;y<=N;y++){ if(bal[y]>bal[peakY])peakY=y; }
   const man=v=>Math.round(v/10000);
   const col=i=>CHILD_COLORS[i%CHILD_COLORS.length];
 
   const persons=[{lab:'父',age0:fatherAge,type:'p'},{lab:'母',age0:motherAge,type:'p'}];
   results.forEach((r,i)=>persons.push({lab:'子'+(i+1),age0:r.age,type:'c',enter:ENTER-r.age,yrs:r.co.years,co:r.co,away:r.away,ci:i}));
-  const W=1000,padL=50,padR=62,bandH=100,rowH=25,axisH=20;
+  const W=1000,padL=50,padR=62,bandH=90,rowH=22,axisH=18;
   const H=bandH+persons.length*rowH+axisH+8;
   const X=y=>padL+(y/N)*(W-padL-padR);
   const bw=Math.min(44,(W-padL-padR)/(N+1)*0.72);
@@ -600,12 +612,11 @@ function familyTimelineSVG(R){
     results.forEach((r,ci)=>{ const v=perChild[ci][y]; if(v<=0)return; const h=(v/ymax)*plotH; yy-=h; g+=`<rect x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="${col(ci)}"/>`; });
     g+=`<text x="${cx.toFixed(1)}" y="${(yy-3).toFixed(1)}" font-size="8.5" fill="#444" text-anchor="middle" font-weight="600">${man(yearlyTotal[y])}万</text>`;
   }
-  // 累計線（毎年積み上がる金額）＋累計金額
+  // 貯まる金額（積立残高）の線：三角形で増え、在学中に取り崩す
   let d='';
-  for(let y=0;y<=N;y++){ const px=X(y), py=base-(cum[y]/cmax)*plotH; d+=(y===0?'M':'L')+px.toFixed(1)+' '+py.toFixed(1)+' '; }
-  g+=`<path d="${d}" fill="none" stroke="#1b2a4a" stroke-width="1.6" stroke-dasharray="4 3"/>`;
-  // 累計が増える年に節目の累計額を表示
-  for(let y=1;y<=N;y++){ if(yearlyTotal[y]>0 && (y===N || yearlyTotal[y+1]<=0)){ const px=X(y), py=base-(cum[y]/cmax)*plotH; g+=`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="2.5" fill="#1b2a4a"/>`; g+=`<text x="${(px+4).toFixed(1)}" y="${(py-2).toFixed(1)}" font-size="9" fill="#1b2a4a" font-weight="700">累計${man(cum[y])}万</text>`; } }
+  for(let y=0;y<=N;y++){ const px=X(y), py=base-(bal[y]/balMax)*plotH; d+=(y===0?'M':'L')+px.toFixed(1)+' '+py.toFixed(1)+' '; }
+  g+=`<path d="${d}" fill="none" stroke="#2f6b4f" stroke-width="1.9"/>`;
+  { const px=X(peakY), py=base-(bal[peakY]/balMax)*plotH; g+=`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="2.6" fill="#2f6b4f"/>`; g+=`<text x="${(px+4).toFixed(1)}" y="${(py-2).toFixed(1)}" font-size="9" fill="#2f6b4f" font-weight="700">貯蓄残高ピーク ${man(bal[peakY])}万</text>`; }
   g+=`<line x1="${padL}" y1="${(base+1).toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${(base+1).toFixed(1)}" stroke="#d8cfb8"/>`;
   // 各人の行（年齢＋子は在学バーを子色で）
   persons.forEach((p,idx)=>{
