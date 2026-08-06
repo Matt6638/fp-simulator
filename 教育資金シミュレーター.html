@@ -286,8 +286,8 @@
             <div class="field ff"><label class="lab">開始遅延の比較</label><select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
             <div class="field ff"><label class="lab">奨学金利率(年%)</label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="0.5" step="0.1"></div>
             <div class="field ff"><label class="lab">卒業後の返済/月</label><input type="text" inputmode="numeric" class="yen" id="repayMonthly" value="" placeholder="15,000"></div>
-            <div class="field ff"><label class="lab">仕送り 年額</label><input type="text" inputmode="numeric" class="yen" id="shiokuri" value="" placeholder="900,000"></div>
-            <div class="field ff"><label class="lab">下宿の初期費用</label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
+            <div class="field ff"><label class="lab">仕送り 年額<small style="font-weight:400;color:var(--ink-soft);">※空欄=標準</small></label><input type="text" inputmode="numeric" class="yen" id="shiokuri" value="" placeholder="900,000"></div>
+            <div class="field ff"><label class="lab">下宿の敷金・礼金等<small style="font-weight:400;color:var(--ink-soft);">※空欄=標準(初年度)</small></label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
           </div>
         </details>
         <div class="grp gtight">NISA・暴落リスク（任意）</div>
@@ -328,15 +328,16 @@ function attachAmount(el){
 }
 
 /* ===== 進路プリセット（親負担・入学金込み総額の目安） ===== */
+/* 令和7年度・文科省（私立大学初年度学生納付金平均額／省令標準額）。nyu=入学金（初年度のみ）, year=年間教育費 */
 const COURSES={
-  kokuritsu:{name:'国立大学',years:4,cost:2430000},
-  kouritsu:{name:'公立大学',years:4,cost:2540000},
-  shibun:{name:'私立 文系',years:4,cost:4000000},
-  shiri:{name:'私立 理系',years:4,cost:5400000},
-  igaku:{name:'私立 医・歯系(6年)',years:6,cost:23000000},
-  yaku:{name:'私立 薬学(6年)',years:6,cost:12000000},
-  tandai:{name:'短大(2年)',years:2,cost:2000000},
-  senmon:{name:'専門学校(2年)',years:2,cost:2300000}
+  kokuritsu:{name:'国立大学',years:4,nyu:282000,year:535800},
+  kouritsu:{name:'公立大学',years:4,nyu:282000,year:535800},
+  shibun:{name:'私立 文系',years:4,nyu:219951,year:992284},
+  shiri:{name:'私立 理系',years:4,nyu:245362,year:1356691},
+  igaku:{name:'私立 医・歯系(6年)',years:6,nyu:1088248,year:3690894},
+  yaku:{name:'私立 薬学(6年)',years:6,nyu:245362,year:1959000},
+  tandai:{name:'短大(2年)',years:2,nyu:200000,year:900000},
+  senmon:{name:'専門学校(2年)',years:2,nyu:180000,year:1060000}
 };
 const ENTER_AGE=18;
 const CHILD_COLORS=['#9a7b4f','#3f6b8c','#6b8c3f','#8c4f6b','#3f8c8c','#8c6b3f'];
@@ -445,7 +446,7 @@ function simulate(){
   const results=children.map(ch=>{
     const co=COURSES[ch.course];
     const away=ch.live==='away';
-    const gakuhi=co.cost, soufu=away?shiokuri*co.years:0, shoki=away?initCost:0;
+    const gakuhi=co.nyu+co.year*co.years, soufu=away?shiokuri*co.years:0, shoki=away?initCost:0;
     const totalCost=gakuhi+soufu+shoki;
     const scholarTotal=ch.scholar*12*co.years;
     const zaigakuTotal=zaigaku*12*co.years;               // 在学中に収入から出す分
@@ -474,7 +475,7 @@ function simulate(){
   const yearly=new Array(horizon+1).fill(0);
   results.forEach(r=>{
     const enterYear=ENTER_AGE-r.age;
-    for(let k=0;k<r.co.years;k++){const y=enterYear+k;if(y<0||y>horizon)continue;let cost=r.gakuhi/r.co.years+(r.away?r.soufu/r.co.years:0);if(k===0)cost+=r.shoki;yearly[y]+=cost;}
+    for(let k=0;k<r.co.years;k++){const y=enterYear+k;if(y<0||y>horizon)continue;let cost=r.co.year+(r.away?r.soufu/r.co.years:0);if(k===0)cost+=r.co.nyu+r.shoki;yearly[y]+=cost;}
   });
 
   // 開始遅延の比較（世帯の毎月積立）：今すぐ・1年後・3年後＋選択した年数
@@ -577,7 +578,7 @@ function familyTimelineSVG(R){
   const perChild=results.map(()=>new Array(N+1).fill(0));
   results.forEach((r,ci)=>{
     const enter=ENTER-r.age;
-    for(let k=0;k<r.co.years;k++){const y=enter+k; if(y<0||y>N)continue; let c=r.gakuhi/r.co.years+(r.away?r.soufu/r.co.years:0); if(k===0)c+=r.shoki; perChild[ci][y]+=c;}
+    for(let k=0;k<r.co.years;k++){const y=enter+k; if(y<0||y>N)continue; let c=r.co.year+(r.away?r.soufu/r.co.years:0); if(k===0)c+=r.co.nyu+r.shoki; perChild[ci][y]+=c;}
   });
   const yearlyTotal=new Array(N+1).fill(0);
   for(let y=0;y<=N;y++){ results.forEach((r,ci)=>{yearlyTotal[y]+=perChild[ci][y];}); }
@@ -819,7 +820,7 @@ function fpFmt(n){if(n===0)return '0';var r=Math.round(n*10000)/10000;return r.t
   function fpMarkLabels(){document.querySelectorAll('input.yen').forEach(function(i){var s=i.nextElementSibling;if(s&&/^\s*円\s*$/.test(s.textContent||'')&&!s.getAttribute('data-fpu'))s.setAttribute('data-fpu','1');});}
   function fpRefreshLabels(){document.querySelectorAll('[data-fpu]').forEach(function(e){e.textContent=(window.__fpU==='man'?'万円':'円');});}
   function injectCSS(){var s=document.createElement('style');s.textContent=
-    'input:not([data-fpt]):not([type=checkbox]):not([type=radio]):not([type=file]),select:not([data-fpt]){color:#b3ab98!important;}'
+    'input:not([data-fpt]):not([type=checkbox]):not([type=radio]):not([type=file]),select:not([data-fpt]){color:#c6c1b4!important;}'
      +'.fpbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 20px;}'
     +'.fpbtn{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-soft,#46506a);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);border-radius:7px;padding:8px 14px;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;line-height:1.4;}'
     +'.fpbtn:hover{border-color:var(--brass,#9a7b4f);color:var(--ink,#1b2a4a);}'
