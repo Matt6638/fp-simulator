@@ -497,86 +497,94 @@ function render(R){
   const peak=yearly.reduce((m,v,i)=>v>m.v?{v,i}:m,{v:0,i:0});
   const fatherEnd=fatherAge+eduEndYears, motherEnd=motherAge+eduEndYears;
 
-  let html='<div class="rpage">';
-  html+=`<div class="result-cards">
-    <div class="rc hero"><div class="k">今から必要な毎月の積立額（世帯合計）</div>
-      <div class="v">${yen(totalMonthly)}<small> 円／月</small></div>
-      <div class="note">お子さま${results.length}人分。${finishOffset>0?('<b>入学の'+finishOffset+'年前まで</b>に貯め終える前提。'):'入学時までに貯め終える前提。'}親負担の総額 約${yen(totalBurden)}円${zaigaku>0?('（うち在学中に収入から出す分を除いた積立分）'):''}。</div></div>
-    <div class="rc"><div class="k">教育費のピーク年</div><div class="v" style="font-size:18px;">${peak.v>0?('今から'+peak.i+'年後'):'—'}</div><div class="note">${peak.v>0?('その年の教育費 約'+yen(peak.v)+'円。在学が重なる山。'):'—'}</div></div>
-    <div class="rc"><div class="k">教育が終わる頃の親の年齢</div><div class="v" style="font-size:18px;${fatherEnd>=60?'color:var(--loss);':''}">父${fatherEnd}歳 / 母${motherEnd}歳</div><div class="note">末子卒業まで約${eduEndYears}年後。${fatherEnd>=60?'この年齢では教育ローンの返済が難しくなります。':'ここまでに準備を終えたい。'}</div></div>
-  </div>`;
-
-  // 開始遅延の比較（サマリーと同じページに横並びで載せる）
-  html+=`<div class="rgrid2"><div class="rcol">`;
-  html+=`<div class="sec-h">③ 積立の開始が遅れると毎月額はどれだけ増えるか（世帯合計）</div>`;
-  html+=`<div style="padding:8px 16px 6px;overflow-x:auto;"><table class="tbl"><thead><tr><th>積立の開始</th><th>毎月の必要積立額</th><th>今すぐとの差</th></tr></thead><tbody>`;
-  const base=delayScan[0].sum;
-  delayScan.forEach(d=>{
-    const label=d.D===0?'今すぐ開始':`${d.D}年 先送り`;
-    html+=`<tr class="${d.D===0?'now':''}"><td>${label}${d.needLoan?' ⚠':''}</td><td>${yen(d.sum)}円/月${d.needLoan?'＋ローン':''}</td><td>${d.D===0?'—':('＋'+yen(d.sum-base)+'円/月')}</td></tr>`;
-  });
-  html+=`</tbody></table></div>`;
-  html+=`<div style="padding:0 20px 4px;"><div class="warn"><b>先送りは高くつく：</b>開始が遅れるほど積立期間が短くなり、同じ目標でも毎月額が跳ね上がります（⚠は入学までに間に合わずローンが必要になるケース）。<b>親の年齢を考えると、教育ローンは末子卒業時に返済しづらい</b>——だからこそ今から始めるのが有利です。</div></div>`;
-
-  // 子ごとの表（同じページの2カラム目へ）
-  html+=`</div><div class="rcol">`;
-  html+=`<div class="sec-h">お子さまごとの内訳（総費用 − 奨学金 − 在学中払い ＝ 積立で用意）</div>`;
-  html+=`<div style="padding:8px 16px 18px;overflow-x:auto;"><table class="tbl"><thead><tr><th>お子さま</th><th>進路</th><th>総費用</th><th>−奨学金</th><th>−在学中払い</th><th>積立で用意</th><th>積立期間</th><th>毎月積立</th></tr></thead><tbody>`;
-  results.forEach((r,i)=>{
-    html+=`<tr><td>${i+1}（${r.age}歳）</td><td>${r.co.name}${r.away?'・下宿':'・自宅'}</td><td>${yen(r.totalCost)}</td><td>${r.scholarTotal?('-'+yen(r.scholarTotal)):'—'}</td><td>${r.zaigakuTotal?('-'+yen(r.zaigakuTotal)):'—'}</td><td>${yen(r.presaveTarget)}</td><td>${r.yearsToSave>0?(r.yearsToSave+'年'):'完了/終了'}</td><td><b>${r.monthly!=null?(yen(r.monthly)+'円'):'—'}</b></td></tr>`;
-  });
-  html+=`</tbody></table></div>`;
-
-  // 奨学金の返済シミュレーション（rcol/rgrid2/ページを閉じて新ページ）
-  html+=`</div></div></div><div class="rpage">`;
   const withLoan=results.filter(r=>r.borrowed>0);
-  if(withLoan.length){
-    html+=`<div class="sec-h">奨学金の返済シミュレーション（卒業後・本人が返済）</div>`;
-    html+=`<div style="padding:8px 16px 6px;overflow-x:auto;"><table class="tbl"><thead><tr><th>お子さま</th><th>借入総額</th><th>返済 月額</th><th>返済期間</th><th>完済年齢</th><th>総返済額</th></tr></thead><tbody>`;
-    results.forEach((r,i)=>{
-      if(r.borrowed<=0)return;
-      if(r.repayNever){
-        html+=`<tr><td>${i+1}</td><td>${yen(r.borrowed)}</td><td>${yen(repayMonthly)}</td><td colspan="3" style="color:var(--loss);text-align:left;">返済額が利息を下回り完済できません（月額を上げてください）</td></tr>`;
-      }else{
-        html+=`<tr><td>${i+1}</td><td>${yen(r.borrowed)}</td><td>${yen(repayMonthly)}</td><td>${(r.repayMonths/12).toFixed(1)}年（${r.repayMonths}回）</td><td><b>${r.finishAge}歳</b></td><td>${yen(r.totalRepay)}</td></tr>`;
-      }
-    });
-    html+=`</tbody></table></div>`;
-    html+=`<div style="padding:0 20px 4px;"><div class="info"><b>奨学金は「借金」：</b>貸与型はお子さま本人が卒業後に返済します。月${yen(repayMonthly)}円ずつ返す場合の完済年齢は上表のとおり。返済が長引くほど結婚・住宅購入など本人の人生設計に影響します。<b>親が積立で用意できれば、この返済負担そのものを軽減できます</b>（＝奨学金に頼らない準備＝学資保険・積立の提案根拠）。</div></div>`;
-  } else {
-    html+=`<div class="sec-h">奨学金の返済シミュレーション（卒業後・本人が返済）</div>`;
-    html+=`<div style="padding:8px 20px 16px;"><div class="hint" style="font-size:12.5px;line-height:1.7;">お子さま欄の<b>「奨学金 月額」</b>に金額を入れて計算すると、貸与型奨学金の<b>借入総額・返済期間・完済年齢・総返済額</b>がここに表示されます（現在は0円のため非表示）。返済条件（利率・卒業後の返済月額）は入力パネルの「奨学金の返済（貸与型の場合）」で設定できます。</div></div>`;
-  }
+  let html='<div class="rpage rpage-full">';
 
-  // タイムライン（チャート左・解説右の2カラムで1ページに）
-  html+=`</div><div class="rpage"><div class="rgrid2"><div class="rcol">`;
-  html+=chartSVG(R);
-  html+=`<div class="legend"><span><i style="background:#9a7b4f;"></i>その年の教育費</span><span><i style="background:#dfe8d8;"></i>積立に集中できる期間（教育費が始まる前）</span></div>`;
-  html+=`</div><div class="rcol">`;
-
-  html+=`<div style="padding:0 4px;">
-    <div class="info"><b>② 積立を抑えるアイデア：</b>「在学中に収入から出す月額」を使うと、その分は事前積立が不要になり毎月額が下がります。ほかに、児童手当を貯める・学資保険で18歳満期に合わせる・NISAで運用利回りを乗せる・進路の幅を現実的に見積もる、なども有効です。ただし在学中の支出は<b>家計の現役期</b>にかかるので、退職や収入減の時期と重ならないか確認を。</div>
-    <div class="info" style="margin-top:8px;"><b>④ 貯蓄時期の可視化：</b>グラフの薄い帯が「教育費が始まる前＝積立に集中できる期間」です。ここを逃すと、在学中は家計から教育費が出ていくため貯めにくくなります。<b>末子卒業時に父は${fatherEnd}歳</b>——ローンで先送りしても返済年齢が高くなるため、今の積立が最も効きます。</div>
+  // サマリー（横1列3カード）
+  html+=`<div class="result-cards summary-cards">
+    <div class="rc hero"><div class="k">今から必要な毎月の積立額（世帯合計）</div><div class="v">${yen(totalMonthly)}<small> 円／月</small></div><div class="note">お子さま${results.length}人分・親負担 約${yen(totalBurden)}円${finishOffset>0?('／入学'+finishOffset+'年前までに完了'):''}</div></div>
+    <div class="rc"><div class="k">教育費のピーク年</div><div class="v" style="font-size:18px;">${peak.v>0?('今から'+peak.i+'年後'):'—'}</div><div class="note">${peak.v>0?('約'+yen(peak.v)+'円/年'):'—'}</div></div>
+    <div class="rc"><div class="k">教育が終わる頃の親の年齢</div><div class="v" style="font-size:18px;${fatherEnd>=60?'color:var(--loss);':''}">父${fatherEnd}歳 / 母${motherEnd}歳</div><div class="note">末子卒業まで約${eduEndYears}年後</div></div>
   </div>`;
 
-  html+=`</div></div></div>`;   // rcol/rgrid2/最終ページを閉じる
+  // 家族の年齢＋教育費のかかる年度（タイムライン）
+  html+=`<div class="sec-h" style="padding-top:6px;">家族の年齢と、教育資金のかかる年度</div>`;
+  html+=familyTimelineSVG(R);
+  html+=`<div class="legend"><span><i style="background:#9a7b4f;"></i>その年の教育費</span><span><i style="background:#b5623a;"></i>大学の在学期間</span><span>各行の数字＝その年の年齢</span></div>`;
 
-  // NISA・暴落リスク（結果デッキの最後のページ）
+  // 開始遅延 ＋ 子ごと内訳（2カラム）
+  html+=`<div class="rgrid2" style="margin-top:6px;"><div class="rcol">`;
+  html+=`<div class="sec-h">③ 開始が遅れると毎月額はどれだけ増えるか</div>`;
+  html+=`<div style="padding:6px 4px 4px;overflow-x:auto;"><table class="tbl"><thead><tr><th>積立の開始</th><th>毎月の必要積立額</th><th>今すぐとの差</th></tr></thead><tbody>`;
+  const base=delayScan[0].sum;
+  delayScan.forEach(d=>{const label=d.D===0?'今すぐ開始':`${d.D}年 先送り`;html+=`<tr class="${d.D===0?'now':''}"><td>${label}${d.needLoan?' ⚠':''}</td><td>${yen(d.sum)}円/月${d.needLoan?'＋ローン':''}</td><td>${d.D===0?'—':('＋'+yen(d.sum-base)+'円/月')}</td></tr>`;});
+  html+=`</tbody></table></div>`;
+  html+=`</div><div class="rcol">`;
+  html+=`<div class="sec-h">お子さまごとの内訳（総費用−奨学金−在学中払い＝積立で用意）</div>`;
+  html+=`<div style="padding:6px 4px 4px;overflow-x:auto;"><table class="tbl"><thead><tr><th>子</th><th>進路</th><th>総費用</th><th>−奨学金</th><th>−在学中</th><th>積立で用意</th><th>期間</th><th>毎月</th></tr></thead><tbody>`;
+  results.forEach((r,i)=>{html+=`<tr><td>${i+1}（${r.age}歳）</td><td>${r.co.name}${r.away?'・下宿':'・自宅'}</td><td>${yen(r.totalCost)}</td><td>${r.scholarTotal?('-'+yen(r.scholarTotal)):'—'}</td><td>${r.zaigakuTotal?('-'+yen(r.zaigakuTotal)):'—'}</td><td>${yen(r.presaveTarget)}</td><td>${r.yearsToSave>0?(r.yearsToSave+'年'):'—'}</td><td><b>${r.monthly!=null?(yen(r.monthly)):'—'}</b></td></tr>`;});
+  html+=`</tbody></table></div>`;
+  html+=`</div></div>`;
+
+  // 奨学金の返済 ＋ ワンポイント（2カラム）
+  html+=`<div class="rgrid2" style="margin-top:4px;"><div class="rcol">`;
+  if(withLoan.length){
+    html+=`<div class="sec-h">奨学金の返済（卒業後・本人が返済）</div>`;
+    html+=`<div style="padding:6px 4px 4px;overflow-x:auto;"><table class="tbl"><thead><tr><th>子</th><th>借入</th><th>返済/月</th><th>期間</th><th>完済</th><th>総返済</th></tr></thead><tbody>`;
+    results.forEach((r,i)=>{if(r.borrowed<=0)return;if(r.repayNever){html+=`<tr><td>${i+1}</td><td>${yen(r.borrowed)}</td><td>${yen(repayMonthly)}</td><td colspan="3" style="color:var(--loss);text-align:left;">完済不可（月額を上げてください）</td></tr>`;}else{html+=`<tr><td>${i+1}</td><td>${yen(r.borrowed)}</td><td>${yen(repayMonthly)}</td><td>${(r.repayMonths/12).toFixed(1)}年</td><td><b>${r.finishAge}歳</b></td><td>${yen(r.totalRepay)}</td></tr>`;}});
+    html+=`</tbody></table></div>`;
+  } else {
+    html+=`<div class="sec-h">奨学金の返済（貸与型の場合）</div><div style="padding:4px 6px;"><div class="hint">お子さま欄の「奨学金 月額」を入れると、借入総額・完済年齢・総返済額がここに出ます（現在0円のため非表示）。</div></div>`;
+  }
+  html+=`</div><div class="rcol">`;
+  html+=`<div class="sec-h">ワンポイント</div>`;
+  html+=`<div style="padding:2px 4px;"><div class="info">「在学中に収入から出す月額」を入れると事前積立が不要になり毎月額が下がります。<b>末子卒業時に父は${fatherEnd}歳</b>——先送りは返済年齢が上がるため、<b>今の積立が最も効きます</b>。</div></div>`;
+  html+=`</div></div>`;
+
+  // NISA・暴落リスク（任意・入力時のみ）
   if(nisa){
     const s=nisa.scenario, A=nisa.amount, crashVal=Math.round(A*(1-s.drop));
-    let nh=`<div class="sec-h" style="padding-top:0;">暴落が入学時に起きた場合（${s.name}）</div>`;
-    nh+=`<div class="result-cards" style="padding:12px 0 0;">
-      <div class="rc"><div class="k">入学時に暴落すると評価額は</div><div class="v" style="font-size:18px;color:var(--loss);">${yen(A)} → ${yen(crashVal)}<small>円</small></div><div class="note">${(s.drop*100).toFixed(0)}%下落。含み損 ${yen(A-crashVal)}円。</div></div>
-      <div class="rc"><div class="k">元の水準に戻るまで</div><div class="v" style="font-size:18px;">約${s.recover}<small>年</small></div><div class="note">その間に取り崩すと安値で売り、損失が確定します。</div></div>
-    </div>`;
-    nh+=nisaChartSVG(nisa);
-    nh+=`<div style="padding:2px 0 8px;font-size:11.5px;color:var(--ink-soft);">茶＝投資の評価額（入学時＝0年で暴落→回復）、緑の破線＝必要額（元本）。回復まで必要額を下回り、この間は満額を使えません。</div>`;
-    nh+=`<div class="warn"><b>使う時期が決まったお金は投資に不向き：</b>教育資金は使う時期（入学）を動かせません。直前に暴落すると回復を待てず、安値で取り崩すことに。<b>入学の1〜2年前までに現金・預金へ移す（守りに切り替える）</b>のが鉄則です。増やすなら早い時期に、直前は取り崩しリスクを避ける設計を。</div>`;
-    html+=`<div class="rpage">${nh}</div>`;
+    html+=`<div class="sec-h" style="margin-top:4px;">NISA・投資で貯めた場合の暴落リスク（${s.name}）</div>`;
+    html+=`<div class="rgrid2"><div class="rcol">`+nisaChartSVG(nisa)+`</div><div class="rcol"><div style="padding:4px;"><div class="result-cards" style="padding:0;"><div class="rc"><div class="k">入学時に暴落すると</div><div class="v" style="font-size:16px;color:var(--loss);">${yen(A)} → ${yen(crashVal)}<small>円</small></div></div><div class="rc"><div class="k">回復まで</div><div class="v" style="font-size:16px;">約${s.recover}<small>年</small></div></div></div><div class="warn" style="margin-top:6px;"><b>使う時期が決まったお金は投資に不向き：</b>直前の暴落は回復を待てず安値売りに。入学1〜2年前までに現金へ移す設計を。</div></div></div></div>`;
   }
 
+  html+='</div>';
   document.getElementById('outBody').innerHTML=html;
   buildDots('outBody','rDots');
+}
+
+/* 家族の年齢＋教育費のかかる年度（ガント風タイムライン） */
+function familyTimelineSVG(R){
+  const {results,yearly,fatherAge,motherAge,eduEndYears}=R;
+  const ENTER=18;
+  let maxY=eduEndYears||0;
+  results.forEach(r=>{ maxY=Math.max(maxY,(ENTER-r.age)+r.co.years); });
+  const N=Math.max(maxY,12);
+  const persons=[{lab:'父',age0:fatherAge,type:'p'},{lab:'母',age0:motherAge,type:'p'}];
+  results.forEach((r,i)=>persons.push({lab:'子'+(i+1),age0:r.age,type:'c',enter:ENTER-r.age,yrs:r.co.years,co:r.co,away:r.away}));
+  const W=1000,padL=52,padR=14,costH=50,rowH=30,axisH=22;
+  const H=costH+persons.length*rowH+axisH+6;
+  const X=y=>padL+(y/N)*(W-padL-padR);
+  const ymax=Math.max.apply(null,yearly.concat([1]));
+  const bw=(W-padL-padR)/N;
+  let g=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">`;
+  for(let y=0;y<=N;y+=2){const x=X(y);g+=`<line x1="${x.toFixed(1)}" y1="6" x2="${x.toFixed(1)}" y2="${(H-axisH).toFixed(1)}" stroke="#f0ebde"/>`;g+=`<text x="${x.toFixed(1)}" y="${(H-axisH+15).toFixed(1)}" font-size="9.5" fill="#8a8470" text-anchor="middle">${y}年</text>`;}
+  g+=`<text x="2" y="13" font-size="9.5" fill="#8a4b2f" font-weight="700">教育費</text>`;
+  yearly.forEach((v,i)=>{ if(v<=0)return; const x=X(i); const bh=(v/ymax)*(costH-16); g+=`<rect x="${(x+1.5).toFixed(1)}" y="${(costH-4-bh).toFixed(1)}" width="${Math.max(2,bw-3).toFixed(1)}" height="${bh.toFixed(1)}" fill="#9a7b4f"/>`; });
+  g+=`<line x1="${padL}" y1="${(costH-3).toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${(costH-3).toFixed(1)}" stroke="#d8cfb8"/>`;
+  persons.forEach((p,idx)=>{
+    const yTop=costH+idx*rowH;
+    g+=`<text x="2" y="${(yTop+rowH*0.62+3).toFixed(1)}" font-size="11" fill="#2a2a2a" font-weight="600">${p.lab}</text>`;
+    for(let y=0;y<=N;y+=4){ g+=`<text x="${X(y).toFixed(1)}" y="${(yTop+11).toFixed(1)}" font-size="9" fill="#b3a58c" text-anchor="middle">${p.age0+y}</text>`; }
+    g+=`<line x1="${X(0)}" y1="${(yTop+rowH-8).toFixed(1)}" x2="${X(N)}" y2="${(yTop+rowH-8).toFixed(1)}" stroke="#e6ddc7"/>`;
+    if(p.type==='c'){
+      const x1=X(p.enter), x2=X(p.enter+p.yrs);
+      g+=`<rect x="${x1.toFixed(1)}" y="${(yTop+rowH-14).toFixed(1)}" width="${Math.max(4,x2-x1).toFixed(1)}" height="12" rx="3" fill="#b5623a"/>`;
+      g+=`<text x="${(x1+3).toFixed(1)}" y="${(yTop+rowH-5).toFixed(1)}" font-size="8.5" fill="#fff" font-weight="700">${p.co.name}${p.away?'/下宿':''}</text>`;
+    }
+  });
+  g+=`</svg>`;
+  return `<div class="chartwrap" style="padding:4px 10px;">${g}</div>`;
 }
 
 function chartSVG(R){
