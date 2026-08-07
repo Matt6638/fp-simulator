@@ -463,13 +463,23 @@ function investBalance(rate,monthly,yearly,contribEnd,N,crashYear,crashDrop){
 }
 
 let SIM_CRASH='lehman';   // 運用シミュレーションの暴落シナリオ（チャート横で切替）
-function setSimCrash(v){
-  SIM_CRASH=v;
-  const sc=document.querySelector('.main'); const st=sc?sc.scrollTop:0; // スクロール位置を保持（上へジャンプさせない）
+// 銘柄カタログ（チェックで表示ON/OFF）
+const FUNDS=[
+  {key:'cash',  name:'現金 0%',             rate:0,    color:'#8a8470'},
+  {key:'world', name:'全世界株（過去約8%）',  rate:0.08, color:'#6b8c3f'},
+  {key:'sp500', name:'S&P500（過去約10%）',   rate:0.10, color:'#3f6b8c'},
+  {key:'nasdaq',name:'NASDAQ100（過去約14%）',rate:0.14, color:'#8c4f6b'},
+];
+let SIM_FUNDS={cash:true,world:true,sp500:true,nasdaq:true,crash:true}; // 表示中の銘柄＋暴落線
+function rerenderKeepScroll(){ // 再描画してもスクロール位置を保持（上へジャンプさせない）
+  const sc=document.querySelector('.main'); const st=sc?sc.scrollTop:0;
   simulate();
   const sc2=document.querySelector('.main'); if(sc2)sc2.scrollTop=st;
 }
+function setSimCrash(v){ SIM_CRASH=v; rerenderKeepScroll(); }
+function toggleFund(k,on){ SIM_FUNDS[k]=!!on; rerenderKeepScroll(); }
 window.setSimCrash=setSimCrash;
+window.toggleFund=toggleFund;
 
 let LAST=null;
 function simulate(){
@@ -612,11 +622,16 @@ function render(R){
     const sim=investSimChart(R,crashKey);
     let crashOpts=''; for(const k in CRASH){ crashOpts+=`<option value="${k}"${k===crashKey?' selected':''}>${CRASH[k].name}（−${Math.round(CRASH[k].drop*100)}%）</option>`; }
     html+=`<div class="sec-h" style="margin-top:10px;border-top:2px solid var(--rule);padding-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">運用シミュレーション ─ 同じ積立額を利回りで運用すると<small style="font-weight:400;color:var(--ink-soft);">（過去実績イメージ・将来を保証しません）</small><span style="margin-left:auto;font-weight:400;font-size:11.5px;color:var(--ink);">暴落シナリオ：<select id="simCrash" onchange="setSimCrash(this.value)" style="font-size:11.5px;padding:3px 6px;border:1px solid var(--rule);border-radius:6px;">${crashOpts}</select></span></div>`;
+    // 表示する銘柄（チェックでON/OFF）
+    let fundChecks='<span style="color:var(--ink-soft);font-weight:600;margin-right:2px;">表示する銘柄：</span>';
+    FUNDS.forEach(f=>{ fundChecks+=`<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" ${SIM_FUNDS[f.key]?'checked':''} onchange="toggleFund('${f.key}',this.checked)" style="cursor:pointer;"><i style="width:14px;height:3px;background:${f.color};display:inline-block;border-radius:2px;"></i>${f.name}</label>`; });
+    fundChecks+=`<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" ${SIM_FUNDS.crash?'checked':''} onchange="toggleFund('crash',this.checked)" style="cursor:pointer;"><i style="width:14px;height:0;border-top:2px dashed #b5623a;display:inline-block;"></i>暴落線</label>`;
+    html+=`<div style="display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;padding:6px 8px 4px;font-size:11.5px;color:var(--ink);">${fundChecks}</div>`;
     html+=sim.svg;
-    if(sim.shortfall>0){ html+=`<div style="padding:3px 8px 0;"><div class="warn" style="font-size:12px;"><b>${sim.crashName}が入学初年に起きると、S&P500で運用していても教育資金が最大 約${yen(sim.shortfall)}円 不足します</b>（グラフ赤い部分＝取り崩しリスク）。使う時期が近いお金は入学1〜2年前までに現金・預金へ移す設計が鉄則です。</div></div>`; }
+    if(sim.showCrash && sim.shortfall>0){ html+=`<div style="padding:3px 8px 0;"><div class="warn" style="font-size:12px;"><b>${sim.crashName}が入学初年に起きると、S&P500で運用していても教育資金が最大 約${yen(sim.shortfall)}円 不足します</b>（グラフ赤い部分＝取り崩しリスク）。使う時期が近いお金は入学1〜2年前までに現金・預金へ移す設計が鉄則です。</div></div>`; }
     let leg2='<div class="legend">';
     sim.scen.forEach(sc=>{ leg2+=`<span><i style="background:${sc.color};${sc.dash?'height:0;border-top:2px dashed '+sc.color+';border-radius:0;':''}"></i>${sc.name}</span>`; });
-    leg2+='<span>棒＝その年の教育費／各線＝毎月同額を積立て運用した残高（教育費を差引後）・縦＝万円・右端＝終了時残高</span></div>';
+    leg2+='<span>棒＝その年の教育費（残高線と同じ金額目盛り）／各線＝毎月同額を積立て運用した残高（教育費を差引後）・縦＝万円・右端＝終了時残高</span></div>';
     html+=leg2;
     html+=`<div class="hint" style="padding:2px 6px 8px;">※利回りは代表的な指数の過去実績イメージ（円ベース・概算）で将来の成果を保証しません。破線は選んだ暴落が入学初年に起きた例。現金(0%)は運用しない場合＝教育費終了時にほぼ使い切り。運用は増える一方、入学直前の暴落は取り崩しリスクになります。</div>`;
   }
@@ -723,56 +738,55 @@ function familyTimelineSVG(R,opts){
   return `<div class="chartwrap" style="padding:4px 10px;">${g}</div>`;
 }
 
-/* 運用シミュレーション専用チャート：利回り別の残高（折れ線）＋教育費（下段バー）＋暴落時の不足額 */
+/* 運用シミュレーション専用チャート：利回り別の残高（折れ線）＋教育費（同一Y軸の積み上げバー）＋暴落時の不足額。銘柄はチェックで表示ON/OFF */
 function investSimChart(R,crashKey){
   const {results,yearly,eduEndYears,firstEnterYears,finishMode}=R;
   const ENTER=18; let maxY=eduEndYears||0; results.forEach(r=>maxY=Math.max(maxY,(ENTER-r.age)+r.co.years)); const N=Math.max(maxY,12);
   const totalM=results.reduce((s,r)=>s+(r.monthly||0),0);
   const contribEnd=(finishMode==='first')?firstEnterYears:eduEndYears;
   const cr=CRASH[crashKey]||CRASH.lehman;
-  const scen=[
-    {name:'現金 0%',rate:0,color:'#8a8470'},
-    {name:'全世界株 (過去約8%)',rate:0.08,color:'#6b8c3f'},
-    {name:'S&P500 (過去約10%)',rate:0.10,color:'#3f6b8c'},
-    {name:'NASDAQ100 (過去約14%)',rate:0.14,color:'#8c4f6b'},
-    {name:'S&P500＋'+cr.name+'が入学初年',rate:0.10,color:'#b5623a',crashY:firstEnterYears,crashDrop:cr.drop,dash:true}
-  ];
+  // チェックされた銘柄のみを線に。暴落線はS&P500ベース（別チェック）
+  const scen=[];
+  FUNDS.forEach(f=>{ if(SIM_FUNDS[f.key]) scen.push({name:f.name,rate:f.rate,color:f.color}); });
+  const showCrash=!!SIM_FUNDS.crash;
+  if(showCrash) scen.push({name:'S&P500＋'+cr.name+'が入学初年',rate:0.10,color:'#b5623a',crashY:firstEnterYears,crashDrop:cr.drop,dash:true});
   const series=scen.map(sc=>({name:sc.name,color:sc.color,dash:sc.dash,values:investBalance(sc.rate,totalM,yearly,contribEnd,N,sc.crashY,sc.crashDrop)}));
-  const crashS=series[series.length-1];
-  // 暴落時の不足額＝残高が最も落ち込む額（0未満＝教育費を賄えない）
-  let minBal=0; for(let y=0;y<=N;y++){ if(crashS.values[y]<minBal)minBal=crashS.values[y]; }
+  const crashS=showCrash?series[series.length-1]:null;
+  // 暴落時の不足額＝暴落線が最も落ち込む額（0未満＝教育費を賄えない）
+  let minBal=0; if(crashS){ for(let y=0;y<=N;y++){ if(crashS.values[y]<minBal)minBal=crashS.values[y]; } }
   const shortfall=Math.max(0,-minBal);
-  let vmax=1,vmin=0; series.forEach(s=>s.values.forEach(v=>{ if(v>vmax)vmax=v; if(v<vmin)vmin=v; }));
   const man=v=>Math.round(v/10000);
-  // 教育費（子ごと）バー
+  // 教育費（子ごと）バー ＝ 折れ線と同一のY軸（金額スケール）で描く
   const perChild=results.map(()=>new Array(N+1).fill(0));
   results.forEach((r,ci)=>{ const enter=ENTER-r.age; for(let k=0;k<r.co.years;k++){const y=enter+k; if(y<0||y>N)continue; let c=r.co.year+(r.away?r.soufu/r.co.years:0); if(k===0)c+=r.co.nyu+r.shoki; perChild[ci][y]+=c;} });
   const yTot=new Array(N+1).fill(0); for(let y=0;y<=N;y++){ results.forEach((r,ci)=>yTot[y]+=perChild[ci][y]); }
-  const ymaxBar=Math.max.apply(null,yTot.concat([1]));
+  // Y軸レンジ：残高線と教育費バーの両方が収まるように（同一スケール）
+  let vmax=1,vmin=0; series.forEach(s=>s.values.forEach(v=>{ if(v>vmax)vmax=v; if(v<vmin)vmin=v; })); yTot.forEach(v=>{ if(v>vmax)vmax=v; });
+  vmax*=1.06;
   const col=i=>CHILD_COLORS[i%CHILD_COLORS.length];
-  const W=1000,padL=54,padR=70,padT=12,plotH=166,costH=46,axisH=22;
-  const H=padT+plotH+costH+axisH;
+  const W=1000,padL=56,padR=72,padT=14,plotH=234,axisH=22;
+  const H=padT+plotH+axisH;
   const X=y=>padL+(y/N)*(W-padL-padR);
   const Y=v=>padT+plotH-((v-vmin)/(vmax-vmin))*plotH;
-  const bw=Math.min(30,(W-padL-padR)/(N+1)*0.6);
+  const bw=Math.min(26,(W-padL-padR)/(N+1)*0.62);
   let g=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">`;
-  for(let i=0;i<=4;i++){ const v=vmin+(vmax-vmin)*i/4, yy=Y(v); g+=`<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${yy.toFixed(1)}" stroke="#f0ebde"/>`; g+=`<text x="${(padL-5).toFixed(1)}" y="${(yy+3).toFixed(1)}" font-size="9" fill="#8a8470" text-anchor="end">${man(v)}万</text>`; }
+  for(let i=0;i<=5;i++){ const v=vmin+(vmax-vmin)*i/5, yy=Y(v); g+=`<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${yy.toFixed(1)}" stroke="#f0ebde"/>`; g+=`<text x="${(padL-5).toFixed(1)}" y="${(yy+3).toFixed(1)}" font-size="9" fill="#8a8470" text-anchor="end">${man(v)}万</text>`; }
   const y0=Y(0);
   // 不足領域（暴落線が0未満）を赤く塗る
   if(shortfall>0){ let da='M'+X(0).toFixed(1)+' '+y0.toFixed(1)+' '; for(let y=0;y<=N;y++){ da+='L'+X(y).toFixed(1)+' '+Y(Math.min(0,crashS.values[y])).toFixed(1)+' '; } da+='L'+X(N).toFixed(1)+' '+y0.toFixed(1)+' Z'; g+=`<path d="${da}" fill="#b5623a" opacity="0.13"/>`; }
-  g+=`<line x1="${padL}" y1="${y0.toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${y0.toFixed(1)}" stroke="#c9bfa6"/>`;
   // 子の入学マーカー
-  results.forEach((r,i)=>{ const ex=X(ENTER-r.age); g+=`<line x1="${ex.toFixed(1)}" y1="${padT}" x2="${ex.toFixed(1)}" y2="${(padT+plotH+costH).toFixed(1)}" stroke="#d8cfb8" stroke-dasharray="2 3"/>`; g+=`<text x="${(ex+2).toFixed(1)}" y="${(padT+9).toFixed(1)}" font-size="8" fill="#a08a6a">子${i+1}入学</text>`; });
-  // 折れ線
+  results.forEach((r,i)=>{ const ex=X(ENTER-r.age); g+=`<line x1="${ex.toFixed(1)}" y1="${padT}" x2="${ex.toFixed(1)}" y2="${(padT+plotH).toFixed(1)}" stroke="#d8cfb8" stroke-dasharray="2 3"/>`; g+=`<text x="${(ex+2).toFixed(1)}" y="${(padT+9).toFixed(1)}" font-size="8" fill="#a08a6a">子${i+1}入学</text>`; });
+  // 教育費バー（同一Y軸・0の線から上へ・子ごと積み上げ）——線の背面
+  for(let y=0;y<=N;y++){ if(yTot[y]<=0)continue; const cx=X(y),x=cx-bw/2; let yy=y0; results.forEach((r,ci)=>{const v=perChild[ci][y];if(v<=0)return;const h=(v/(vmax-vmin))*plotH;yy-=h;g+=`<rect x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="${col(ci)}" opacity="0.55"/>`;}); g+=`<text x="${cx.toFixed(1)}" y="${(yy-2).toFixed(1)}" font-size="7.5" fill="#8a4b2f" text-anchor="middle">${man(yTot[y])}万</text>`; }
+  // 0の線
+  g+=`<line x1="${padL}" y1="${y0.toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${y0.toFixed(1)}" stroke="#c9bfa6"/>`;
+  // 折れ線（バーの前面）
   series.forEach(s=>{ let d=''; for(let y=0;y<=N;y++){ d+=(y===0?'M':'L')+X(y).toFixed(1)+' '+Y(s.values[y]).toFixed(1)+' '; } g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.1"${s.dash?' stroke-dasharray="5 3"':''}/>`; g+=`<text x="${(W-padR+3).toFixed(1)}" y="${(Y(s.values[N])+3).toFixed(1)}" font-size="8.5" fill="${s.color}" font-weight="700">${man(s.values[N])}万</text>`; });
-  // 教育費（下段の子ごと積み上げバー）
-  const barBase=padT+plotH+costH-2;
-  g+=`<text x="2" y="${(padT+plotH+14).toFixed(1)}" font-size="9" fill="#8a4b2f" font-weight="700">教育費</text>`;
-  for(let y=0;y<=N;y++){ if(yTot[y]<=0)continue; const cx=X(y),x=cx-bw/2; let yy=barBase; results.forEach((r,ci)=>{const v=perChild[ci][y];if(v<=0)return;const h=(v/ymaxBar)*(costH-16);yy-=h;g+=`<rect x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="${col(ci)}" opacity="0.9"/>`;}); g+=`<text x="${cx.toFixed(1)}" y="${(yy-2).toFixed(1)}" font-size="7.5" fill="#777" text-anchor="middle">${man(yTot[y])}万</text>`; }
-  g+=`<line x1="${padL}" y1="${(barBase+1).toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${(barBase+1).toFixed(1)}" stroke="#d8cfb8"/>`;
+  // 教育費の凡例ラベル（バー用）
+  g+=`<text x="2" y="${(y0-3).toFixed(1)}" font-size="9" fill="#8a4b2f" font-weight="700">教育費▮</text>`;
   for(let y=0;y<=N;y+=2){ g+=`<text x="${X(y).toFixed(1)}" y="${(H-6).toFixed(1)}" font-size="9" fill="#8a8470" text-anchor="middle">${y}年</text>`; }
   g+=`</svg>`;
-  return {svg:`<div class="chartwrap" style="padding:2px 8px;">${g}</div>`, scen, shortfall, crashName:cr.name};
+  return {svg:`<div class="chartwrap" style="padding:2px 8px;">${g}</div>`, scen, shortfall, crashName:cr.name, showCrash};
 }
 
 function chartSVG(R){
