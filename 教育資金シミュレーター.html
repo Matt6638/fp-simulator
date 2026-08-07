@@ -450,12 +450,30 @@ function childMonthlyCalc(r,mode,delay,rate){
   return ok? sum : null;
 }
 /* 運用残高の推移：毎月一定額を利回りrで積立、教育費を取り崩す。crashYearに-crashDropの暴落 */
-function investBalance(rate,monthly,yearly,contribEnd,N,crashYear,crashDrop){
+/* 運用残高の推移：子ごとの積立スケジュールで入金し、積立で用意する分だけを取り崩す。
+   ・入金：子ごとに必要額(presaveTarget)を、その子の積立期間にわたって拠出（first=入学まで／each=各年度分をその年度まで=sinking fund）
+   ・取崩：各年度の教育費のうち「積立で用意する分」（costY×savRatio）だけ（在学中払い・奨学金分は対象外）
+   → 利回り0%なら入金＝取崩でちょうど0で終了。利回り>0なら成長分だけプラスで終了。 */
+function fundBalance(rate,results,finishMode,N,crashYear,crashDrop){
+  const contribY=new Array(N+1).fill(0), drawY=new Array(N+1).fill(0);
+  results.forEach(r=>{
+    const enter=r.yearsToEnter, sav=r.savRatio||0;
+    if(finishMode==='first'){
+      const yrs=r.yearsToEnter, m=yrs>0?r.presaveTarget/yrs:0;
+      if(yrs>0){ for(let y=0;y<yrs;y++) if(y>=0&&y<=N) contribY[y]+=m; }
+      else if(N>=0) contribY[0]+=r.presaveTarget;
+    } else {
+      (r.costY||[]).forEach((c,k)=>{ const s=c*sav, Yk=enter+k;
+        if(Yk>0){ const m=s/Yk; for(let y=0;y<Yk;y++) if(y>=0&&y<=N) contribY[y]+=m; }
+        else if(N>=0) contribY[0]+=s; });
+    }
+    (r.costY||[]).forEach((c,k)=>{ const y=enter+k; if(y>=0&&y<=N) drawY[y]+=c*sav; });
+  });
   const b=new Array(N+1).fill(0); let bal=0;
   for(let y=0;y<=N;y++){
     bal=bal*(1+rate);
-    if(y<contribEnd) bal+=monthly*12;
-    bal-=(yearly[y]||0);
+    bal+=contribY[y];
+    bal-=drawY[y];
     if(crashDrop && y===crashYear) bal=bal*(1-crashDrop);
     b[y]=bal;
   }
@@ -750,7 +768,7 @@ function investSimChart(R,crashKey){
   FUNDS.forEach(f=>{ if(SIM_FUNDS[f.key]) scen.push({name:f.name,rate:f.rate,color:f.color}); });
   const showCrash=!!SIM_FUNDS.crash;
   if(showCrash) scen.push({name:'S&P500＋'+cr.name+'が入学初年',rate:0.10,color:'#b5623a',crashY:firstEnterYears,crashDrop:cr.drop,dash:true});
-  const series=scen.map(sc=>({name:sc.name,color:sc.color,dash:sc.dash,values:investBalance(sc.rate,totalM,yearly,contribEnd,N,sc.crashY,sc.crashDrop)}));
+  const series=scen.map(sc=>({name:sc.name,color:sc.color,dash:sc.dash,values:fundBalance(sc.rate,results,finishMode,N,sc.crashY,sc.crashDrop)}));
   const crashS=showCrash?series[series.length-1]:null;
   // 暴落時の不足額＝暴落線が最も落ち込む額（0未満＝教育費を賄えない）
   let minBal=0; if(crashS){ for(let y=0;y<=N;y++){ if(crashS.values[y]<minBal)minBal=crashS.values[y]; } }
