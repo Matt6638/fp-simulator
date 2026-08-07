@@ -293,20 +293,27 @@
       <div class="icol icol-opts">
         <div class="grp gtight">準備の前提</div>
         <div class="fieldwrap">
-          <div class="field ff"><label class="lab">利回り(年%)</label><input type="text" inputmode="decimal" id="rate" value="" placeholder="0.5" step="0.1"></div>
           <div class="field ff"><label class="lab">教育期に家計から出せる月額<small style="font-weight:400;color:var(--ink-soft);">※世帯・固定（子が増えても一定）</small></label><input type="text" inputmode="numeric" class="yen" id="hhMonthly" value="" placeholder="0"></div>
           <div class="field ff"><label class="lab">積立の方式</label><select id="finishTiming"><option value="each" selected>各年度まで積立（都度）</option><option value="first">入学初年までに完了（理想）</option></select></div>
         </div>
-        <div class="grp gtight" style="margin-top:10px;">詳細入力（開始遅延・奨学金・下宿）</div>
-        <div class="fieldwrap" style="margin-top:6px;">
-          <div class="field ff"><label class="lab">開始遅延の比較</label><select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
-          <div class="field ff"><label class="lab">奨学金利率(年%)</label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="0.5" step="0.1"></div>
-          <div class="field ff"><label class="lab">卒業後の返済/月</label><input type="text" inputmode="numeric" class="yen" id="repayMonthly" value="" placeholder="15,000"></div>
-          <div class="field ff"><label class="lab">下宿の家賃(月)<small style="font-weight:400;color:var(--ink-soft);">※既定8万</small></label><input type="text" inputmode="numeric" class="yen" id="rentM" value="" placeholder="80,000"></div>
-          <div class="field ff"><label class="lab">下宿の生活費(月)<small style="font-weight:400;color:var(--ink-soft);">※既定8万</small></label><input type="text" inputmode="numeric" class="yen" id="livingM" value="" placeholder="80,000"></div>
-          <div class="field ff"><label class="lab">下宿の敷金・礼金等<small style="font-weight:400;color:var(--ink-soft);">※空欄=標準(初年度)</small></label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
-          <div class="field ff" style="display:flex;align-items:flex-end;"><button class="btn btn-primary btn-calc" id="calcBtn" style="width:100%;">計算</button></div>
+        <div class="grp gtight" id="lodgingGrp" style="margin-top:10px;">下宿の費用<small style="font-weight:400;color:var(--ink-soft);">※下宿のお子さまがいる場合のみ</small></div>
+        <div class="fieldwrap" id="lodgingWrap">
+          <div class="field ff"><label class="lab">家賃(月)<small style="font-weight:400;color:var(--ink-soft);">※既定8万</small></label><input type="text" inputmode="numeric" class="yen" id="rentM" value="" placeholder="80,000"></div>
+          <div class="field ff"><label class="lab">生活費(月)<small style="font-weight:400;color:var(--ink-soft);">※既定10万</small></label><input type="text" inputmode="numeric" class="yen" id="livingM" value="" placeholder="100,000"></div>
+          <div class="field ff"><label class="lab">敷金・礼金等<small style="font-weight:400;color:var(--ink-soft);">※既定40万(初年度)</small></label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
         </div>
+        <div class="grp gtight" style="margin-top:10px;">奨学金（貸与型）</div>
+        <div class="fieldwrap">
+          <div class="field ff"><label class="lab">卒業後の返済/月<small style="font-weight:400;color:var(--ink-soft);">※奨学金の入力で有効（既定1.5万）</small></label><input type="text" inputmode="numeric" class="yen" id="repayMonthly" value="" placeholder="15,000"></div>
+          <div class="field ff"><label class="lab">奨学金利率(年%)<small style="font-weight:400;color:var(--ink-soft);">※JASSO第二種 見直方式相当</small></label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="1.9" step="0.1"></div>
+        </div>
+        <details class="advbox" style="margin-top:8px;">
+          <summary>＋ 詳細（利回り・開始遅延の比較）</summary>
+          <div class="fieldwrap" style="margin-top:6px;">
+            <div class="field ff"><label class="lab">利回り(年%)<small style="font-weight:400;color:var(--ink-soft);">※未入力=0%</small></label><input type="text" inputmode="decimal" id="rate" value="" placeholder="0" step="0.1"></div>
+            <div class="field ff"><label class="lab">開始遅延の比較（5年目を変更）</label><select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
+          </div>
+        </details>
       </div>
     </div>
   </div>
@@ -504,7 +511,21 @@ function inputReady(){
   const anyKid=[].some.call(document.querySelectorAll('.c-age'),a=>String(a.value).trim()!=='');
   return parent && anyKid;
 }
+// 奨学金が入っていれば「卒業後の返済/月」を既定1.5万＋黒字（有効）に、なければ薄字（計算に反映されない＝奨学金0のため）
+function syncRepayField(){
+  const anyScholar=[].some.call(document.querySelectorAll('.c-scholar'),e=>num(e)>0);
+  const rp=document.getElementById('repayMonthly'); if(!rp)return;
+  if(anyScholar){ if(String(rp.value).trim()==='') rp.value='15,000'; rp.setAttribute('data-fpt','1'); }
+  else { rp.removeAttribute('data-fpt'); }
+}
+// 下宿の費用欄は「下宿のお子さまがいる場合のみ」表示（自宅のみなら非表示）
+function syncLodging(){
+  const anyAway=[].some.call(document.querySelectorAll('.c-plan'),s=>String(s.value).split('|')[1]==='away');
+  const g=document.getElementById('lodgingGrp'), w=document.getElementById('lodgingWrap');
+  const d=anyAway?'':'none'; if(g)g.style.display=d; if(w)w.style.display=d;
+}
 function simulate(){
+  syncLodging(); syncRepayField();
   if(!inputReady()){
     document.getElementById('outBody').innerHTML='<div class="rpage placeholder-page"><div class="placeholder"><span class="mark">✎</span>下の「✎ 入力」から、<b>両親の年齢</b>と<b>お子さまの年齢・進路</b>を入れると、ここに結果が表示されます。</div></div>';
     buildDots('outBody','rDots');
@@ -518,7 +539,7 @@ function simulate(){
   const initCost=num(document.getElementById('initCost'));
   const fatherAge=parseFloat(document.getElementById('fatherAge').value)||0;
   const motherAge=parseFloat(document.getElementById('motherAge').value)||0;
-  const loanRate=(parseFloat(document.getElementById('loanRate').value)||0)/100;
+  const loanRate=(parseFloat(_pv(document.getElementById('loanRate')))||0)/100; // 空欄=既定1.9%（JASSO第二種 見直方式相当）
   const repayMonthly=num(document.getElementById('repayMonthly'));
   const finishMode=document.getElementById('finishTiming').value||'each'; // 'each'=各年度まで／'first'=入学初年までに完了
   const children=readChildren();
@@ -655,7 +676,7 @@ function render(R){
     const sim=investSimChart(R,crashKey);
     let crashOpts=''; for(const k in CRASH){ crashOpts+=`<option value="${k}"${k===crashKey?' selected':''}>${CRASH[k].name}（−${Math.round(CRASH[k].drop*100)}%・回復${CRASH[k].recover}年）</option>`; }
     let crashFundOpts=''; FUNDS.filter(f=>f.key!=='cash').forEach(f=>{ crashFundOpts+=`<option value="${f.key}"${f.key===SIM_CRASH_FUND?' selected':''}>${f.name.replace(/（.*）/,'')}</option>`; });
-    html+=`<div class="sec-h" style="margin-top:10px;border-top:2px solid var(--rule);padding-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">運用シミュレーション ─ 同じ積立額を利回りで運用すると<small style="font-weight:400;color:var(--ink-soft);">（過去実績イメージ・将来を保証しません）</small><span style="margin-left:auto;font-weight:400;font-size:11.5px;color:var(--ink);">暴落する銘柄：<select id="crashFund" onchange="setCrashFund(this.value)" style="font-size:11.5px;padding:3px 6px;border:1px solid var(--rule);border-radius:6px;">${crashFundOpts}</select> ／ 暴落シナリオ：<select id="simCrash" onchange="setSimCrash(this.value)" style="font-size:11.5px;padding:3px 6px;border:1px solid var(--rule);border-radius:6px;">${crashOpts}</select></span></div>`;
+    html+=`<div class="sec-h" style="margin-top:10px;border-top:2px solid var(--rule);padding-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">運用シミュレーション ─ 同じ積立額を利回りで運用すると<small style="font-weight:400;color:var(--ink-soft);">（過去実績イメージ・将来を保証しません）</small><span style="margin-left:auto;font-weight:400;font-size:11.5px;color:var(--ink);">暴落する銘柄：<select id="crashFund" data-fpt="1" onchange="setCrashFund(this.value)" style="font-size:11.5px;padding:3px 6px;border:1px solid var(--rule);border-radius:6px;color:var(--ink);font-weight:600;">${crashFundOpts}</select> ／ 暴落シナリオ：<select id="simCrash" data-fpt="1" onchange="setSimCrash(this.value)" style="font-size:11.5px;padding:3px 6px;border:1px solid var(--rule);border-radius:6px;color:var(--ink);font-weight:600;">${crashOpts}</select></span></div>`;
     // 表示する銘柄（チェックでON/OFF）
     let fundChecks='<span style="color:var(--ink-soft);font-weight:600;margin-right:2px;">表示する銘柄：</span>';
     FUNDS.forEach(f=>{ fundChecks+=`<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" ${SIM_FUNDS[f.key]?'checked':''} onchange="toggleFund('${f.key}',this.checked)" style="cursor:pointer;"><i style="width:14px;height:3px;background:${f.color};display:inline-block;border-radius:2px;"></i>${f.name}</label>`; });
@@ -667,7 +688,7 @@ function render(R){
     else if(sim.showCrash){ html+=`<div style="padding:3px 8px 0;"><div class="info" style="font-size:11.5px;">選んだ暴落（${sim.crashName}）は<b>元の水準へ戻るまで過去に約${recYears}年</b>かかりました。取り崩し期（入学後）に暴落すると回復を待てないため、使う時期が近いお金は入学1〜2年前までに現金・預金へ移す設計が安全です。</div></div>`; }
     let leg2='<div class="legend">';
     sim.scen.forEach(sc=>{ leg2+=`<span><i style="background:${sc.color};${sc.dash?'height:0;border-top:2px dashed '+sc.color+';border-radius:0;':''}"></i>${sc.name}</span>`; });
-    leg2+='<span>棒＝その年の教育費（残高線と同じ金額目盛り）／各線＝毎月同額を積立て運用した残高（教育費を差引後）・縦＝万円・右端＝終了時残高</span></div>';
+    leg2+='<span>棒＝その年の教育費（残高線と同じ金額目盛り）／各線＝毎月同額を積立て運用した残高（教育費を差引後）・縦＝万円・右端＝終了時残高。<b>各線は在学中（取り崩し期）も同じ利回りで運用し続けた前提</b>です。濃い線＝選んだ「暴落する銘柄」（＋現金）、薄い線＝その他の銘柄</span></div>';
     html+=leg2;
     html+=`<div class="hint" style="padding:2px 6px 8px;">※利回りは代表的な指数の長期の過去実績をもとにした概算で、将来の成果を保証しません。S&P500=約10%・全世界株(MSCI ACWI)=約8%（いずれも現地通貨ベースの長期平均）、日本株式=約5%（東証株価指数TOPIX 配当込みの長期実績：過去20年 約4.7%／過去10年 約7.0%〈myINDEX 2026年6月末〉をもとに保守的に設定）。破線は選んだ暴落が入学初年に起きた例。現金(0%)は運用しない場合＝教育費終了時にほぼ使い切り。運用は増える一方、入学直前の暴落は取り崩しリスクになります。</div>`;
   }
@@ -698,6 +719,7 @@ function familyTimelineSVG(R,opts){
   const balRaw=fundBalance(0,(R.contribY||[]),(R.fromSav||[]),N);
   const bal=balRaw.map(v=>Math.max(0,v));
   const balMax=Math.max.apply(null,bal.concat([1]));
+  const vmax=Math.max(ymax,balMax,1); // 棒（教育費）と折れ線（残高）を同一の金額目盛りに
   // ピーク位置：first=最も早く入学する子の「貯め終わり年」／each=残高が最大の年
   let peakY;
   if(finishMode==='first'){ peakY=results.length?Math.round(Math.min.apply(null,results.map(r=>r.yearsToEnter||0))):0; }
@@ -722,7 +744,7 @@ function familyTimelineSVG(R,opts){
   for(let y=0;y<=N;y++){
     if(yearlyTotal[y]<=0)continue;
     const cx=X(y), x=cx-bw/2; let yy=base;
-    results.forEach((r,ci)=>{ const v=perChild[ci][y]; if(v<=0)return; const h=(v/ymax)*plotH; yy-=h; g+=`<rect x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="${col(ci)}"/>`; });
+    results.forEach((r,ci)=>{ const v=perChild[ci][y]; if(v<=0)return; const h=(v/vmax)*plotH; yy-=h; g+=`<rect x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="${col(ci)}"/>`; });
     g+=`<text x="${cx.toFixed(1)}" y="${(yy-3).toFixed(1)}" font-size="8.5" fill="#444" text-anchor="middle" font-weight="600">${man(yearlyTotal[y])}万</text>`;
   }
   if(extraLines){
@@ -771,10 +793,12 @@ function investSimChart(R,crashKey){
   const crashFundShort=crashFund.name.replace(/（.*）/,'');
   // チェックされた銘柄のみを線に。暴落線は「暴落する銘柄」で選んだ銘柄ベース（別チェック）
   const scen=[];
-  FUNDS.forEach(f=>{ if(SIM_FUNDS[f.key]) scen.push({name:f.name,rate:f.rate,color:f.color}); });
+  FUNDS.forEach(f=>{ if(SIM_FUNDS[f.key]) scen.push({key:f.key,name:f.name,rate:f.rate,color:f.color}); });
   const showCrash=!!SIM_FUNDS.crash;
-  if(showCrash) scen.push({name:crashFundShort+'＋'+cr.name+'が入学初年',rate:crashFund.rate,color:'#b5623a',crashY:firstEnterYears,crashDrop:cr.drop,dash:true});
-  const series=scen.map(sc=>({name:sc.name,color:sc.color,dash:sc.dash,values:fundBalance(sc.rate,contribY||[],fromSav||[],N,sc.crashY,sc.crashDrop)}));
+  if(showCrash) scen.push({key:'crash',name:crashFundShort+'＋'+cr.name+'が入学初年',rate:crashFund.rate,color:'#b5623a',crashY:firstEnterYears,crashDrop:cr.drop,dash:true});
+  // 選んだ銘柄（＝暴落する銘柄）とその暴落線・現金は濃く、それ以外は薄く表示
+  const isEmph=k=>(k===SIM_CRASH_FUND||k==='crash'||k==='cash');
+  const series=scen.map(sc=>({key:sc.key,name:sc.name,color:sc.color,dash:sc.dash,emph:isEmph(sc.key),values:fundBalance(sc.rate,contribY||[],fromSav||[],N,sc.crashY,sc.crashDrop)}));
   const crashS=showCrash?series[series.length-1]:null;
   // 暴落時の不足額＝暴落線が最も落ち込む額（0未満＝教育費を賄えない）
   let minBal=0; if(crashS){ for(let y=0;y<=N;y++){ if(crashS.values[y]<minBal)minBal=crashS.values[y]; } }
@@ -805,7 +829,8 @@ function investSimChart(R,crashKey){
   // 0の線
   g+=`<line x1="${padL}" y1="${y0.toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${y0.toFixed(1)}" stroke="#c9bfa6"/>`;
   // 折れ線（バーの前面）
-  series.forEach(s=>{ let d=''; for(let y=0;y<=N;y++){ d+=(y===0?'M':'L')+X(y).toFixed(1)+' '+Y(s.values[y]).toFixed(1)+' '; } g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.1"${s.dash?' stroke-dasharray="5 3"':''}/>`; g+=`<text x="${(W-padR+3).toFixed(1)}" y="${(Y(s.values[N])+3).toFixed(1)}" font-size="8.5" fill="${s.color}" font-weight="700">${man(s.values[N])}万</text>`; });
+  // 薄い（非選択）銘柄を先に描き、濃い（選択銘柄＋暴落線＋現金）を前面に
+  [].concat(series.filter(s=>!s.emph), series.filter(s=>s.emph)).forEach(s=>{ let d=''; for(let y=0;y<=N;y++){ d+=(y===0?'M':'L')+X(y).toFixed(1)+' '+Y(s.values[y]).toFixed(1)+' '; } const op=s.emph?1:0.3, wdt=s.emph?2.2:1.3; g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${wdt}" opacity="${op}"${s.dash?' stroke-dasharray="5 3"':''}/>`; g+=`<text x="${(W-padR+3).toFixed(1)}" y="${(Y(s.values[N])+3).toFixed(1)}" font-size="8.5" fill="${s.color}" font-weight="700" opacity="${s.emph?1:0.45}">${man(s.values[N])}万</text>`; });
   // 教育費の凡例ラベル（バー用）
   g+=`<text x="2" y="${(y0-3).toFixed(1)}" font-size="9" fill="#8a4b2f" font-weight="700">教育費▮</text>`;
   for(let y=0;y<=N;y+=2){ g+=`<text x="${X(y).toFixed(1)}" y="${(H-6).toFixed(1)}" font-size="9" fill="#8a8470" text-anchor="middle">${y}年</text>`; }
@@ -857,8 +882,6 @@ function nisaChartSVG(nisa){
   g+=`</svg>`;
   return `<div class="chartwrap">${g}</div>`;
 }
-
-document.getElementById('calcBtn').addEventListener('click',simulate);
 
 // リアルタイム反映：入力デッキ内の変更で自動再計算（ボタン不要）。※LAST定義後に実行
 const inputPanel=document.getElementById('inScroll');
