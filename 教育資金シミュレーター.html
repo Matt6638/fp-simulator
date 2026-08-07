@@ -275,7 +275,7 @@
       <div class="icol icol-people">
         <div class="ihead">
           <span class="grp ginline">対象者</span>
-          <span class="parent-ages">父<input type="text" inputmode="decimal" id="fatherAge" value="" placeholder="" step="1" min="18" max="80"><em>歳</em>母<input type="text" inputmode="decimal" id="motherAge" value="" placeholder="" step="1" min="18" max="80"><em>歳</em></span>
+          <span class="parent-ages">父<input type="text" inputmode="decimal" id="fatherAge" value="40" step="1" min="18" max="80"><em>歳</em>母<input type="text" inputmode="decimal" id="motherAge" value="38" step="1" min="18" max="80"><em>歳</em></span>
         </div>
         <table class="itbl">
           <thead><tr><th>子</th><th>年齢</th><th>進路（通学形態）</th><th>奨学金/月</th><th>教育貯蓄</th><th></th></tr></thead>
@@ -291,23 +291,17 @@
         <div class="grp gtight">準備の前提</div>
         <div class="fieldwrap">
           <div class="field ff"><label class="lab">利回り(年%)</label><input type="text" inputmode="decimal" id="rate" value="" placeholder="0.5" step="0.1"></div>
-          <div class="field ff"><label class="lab">在学中の月額(子1)</label><input type="text" inputmode="numeric" class="yen" id="zaigaku" value="" placeholder="0"></div>
+          <div class="field ff"><label class="lab">教育期に家計から出せる月額<small style="font-weight:400;color:var(--ink-soft);">※世帯・固定（子が増えても一定）</small></label><input type="text" inputmode="numeric" class="yen" id="hhMonthly" value="" placeholder="0"></div>
           <div class="field ff"><label class="lab">積立の方式</label><select id="finishTiming"><option value="each" selected>各年度まで積立（都度）</option><option value="first">入学初年までに完了（理想）</option></select></div>
         </div>
-        <details class="advbox">
-          <summary>＋ 詳細入力（開始遅延・奨学金・下宿）<small>※未入力なら既定値で計算</small></summary>
-          <div class="fieldwrap" style="margin-top:8px;">
-            <div class="field ff"><label class="lab">開始遅延の比較</label><select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
-            <div class="field ff"><label class="lab">奨学金利率(年%)</label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="0.5" step="0.1"></div>
-            <div class="field ff"><label class="lab">卒業後の返済/月</label><input type="text" inputmode="numeric" class="yen" id="repayMonthly" value="" placeholder="15,000"></div>
-            <div class="field ff"><label class="lab">仕送り 年額<small style="font-weight:400;color:var(--ink-soft);">※空欄=標準</small></label><input type="text" inputmode="numeric" class="yen" id="shiokuri" value="" placeholder="900,000"></div>
-            <div class="field ff"><label class="lab">下宿の敷金・礼金等<small style="font-weight:400;color:var(--ink-soft);">※空欄=標準(初年度)</small></label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
-          </div>
-        </details>
-        <div class="grp gtight">NISA・暴落リスク（任意）</div>
-        <div class="fieldwrap">
-          <div class="field ff"><label class="lab">投資で準備する額</label><input type="text" inputmode="numeric" class="yen" id="nisaAmount" value="" placeholder="0"></div>
-          <div class="field ff"><label class="lab">想定する暴落</label><select id="nisaScenario"><option value="corona">コロナ級（−34%・回復1年）</option><option value="lehman" selected>リーマン級（−55%・回復5年）</option><option value="dotcom">ITバブル級（−49%・回復7年）</option><option value="nikkei">日経バブル級（−82%・回復34年）</option></select></div>
+        <div class="grp gtight" style="margin-top:10px;">詳細入力（開始遅延・奨学金・下宿）</div>
+        <div class="fieldwrap" style="margin-top:6px;">
+          <div class="field ff"><label class="lab">開始遅延の比較</label><select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
+          <div class="field ff"><label class="lab">奨学金利率(年%)</label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="0.5" step="0.1"></div>
+          <div class="field ff"><label class="lab">卒業後の返済/月</label><input type="text" inputmode="numeric" class="yen" id="repayMonthly" value="" placeholder="15,000"></div>
+          <div class="field ff"><label class="lab">下宿の家賃(月)<small style="font-weight:400;color:var(--ink-soft);">※既定8万</small></label><input type="text" inputmode="numeric" class="yen" id="rentM" value="" placeholder="80,000"></div>
+          <div class="field ff"><label class="lab">下宿の生活費(月)<small style="font-weight:400;color:var(--ink-soft);">※既定8万</small></label><input type="text" inputmode="numeric" class="yen" id="livingM" value="" placeholder="80,000"></div>
+          <div class="field ff"><label class="lab">下宿の敷金・礼金等<small style="font-weight:400;color:var(--ink-soft);">※空欄=標準(初年度)</small></label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
           <div class="field ff" style="display:flex;align-items:flex-end;"><button class="btn btn-primary btn-calc" id="calcBtn" style="width:100%;">計算</button></div>
         </div>
       </div>
@@ -425,6 +419,7 @@ document.getElementById('applyFirst').addEventListener('click',applyFirstToAll);
 document.querySelectorAll('.field .yen').forEach(attachAmount);
 ['fatherAge','motherAge'].forEach(id=>attachClear(document.getElementById(id)));
 addChild({course:'shiri',live:'away'});
+addChild({course:'shiri',live:'away'});
 
 /* ===== 計算 ===== */
 function _pv(e){return (e&&String(e.value).trim()!=="")?e.value:((e&&e.placeholder)||"");}
@@ -461,30 +456,15 @@ function childMonthlyCalc(r,mode,delay,rate){
   return ok? sum : null;
 }
 /* 運用残高の推移：毎月一定額を利回りrで積立、教育費を取り崩す。crashYearに-crashDropの暴落 */
-/* 運用残高の推移：子ごとの積立スケジュールで入金し、積立で用意する分だけを取り崩す。
-   ・入金：子ごとに必要額(presaveTarget)を、その子の積立期間にわたって拠出（first=入学まで／each=各年度分をその年度まで=sinking fund）
-   ・取崩：各年度の教育費のうち「積立で用意する分」（costY×savRatio）だけ（在学中払い・奨学金分は対象外）
+/* 運用残高の推移：あらかじめ用意した年別の入金(contribY)と取り崩し(drawY)で残高を追う。
+   ・入金＝貯蓄の積立（世帯）／取崩＝各年度に貯蓄から出す分（家計の固定負担で賄えない不足分）
    → 利回り0%なら入金＝取崩でちょうど0で終了。利回り>0なら成長分だけプラスで終了。 */
-function fundBalance(rate,results,finishMode,N,crashYear,crashDrop){
-  const contribY=new Array(N+1).fill(0), drawY=new Array(N+1).fill(0);
-  results.forEach(r=>{
-    const enter=r.yearsToEnter, sav=r.savRatio||0;
-    if(finishMode==='first'){
-      const yrs=r.yearsToEnter, m=yrs>0?r.presaveTarget/yrs:0;
-      if(yrs>0){ for(let y=0;y<yrs;y++) if(y>=0&&y<=N) contribY[y]+=m; }
-      else if(N>=0) contribY[0]+=r.presaveTarget;
-    } else {
-      (r.costY||[]).forEach((c,k)=>{ const s=c*sav, Yk=enter+k;
-        if(Yk>0){ const m=s/Yk; for(let y=0;y<Yk;y++) if(y>=0&&y<=N) contribY[y]+=m; }
-        else if(N>=0) contribY[0]+=s; });
-    }
-    (r.costY||[]).forEach((c,k)=>{ const y=enter+k; if(y>=0&&y<=N) drawY[y]+=c*sav; });
-  });
+function fundBalance(rate,contribY,drawY,N,crashYear,crashDrop){
   const b=new Array(N+1).fill(0); let bal=0;
   for(let y=0;y<=N;y++){
     bal=bal*(1+rate);
-    bal+=contribY[y];
-    bal-=drawY[y];
+    bal+=(contribY[y]||0);
+    bal-=(drawY[y]||0);
     if(crashDrop && y===crashYear) bal=bal*(1-crashDrop);
     b[y]=bal;
   }
@@ -505,9 +485,12 @@ function rerenderKeepScroll(){ // 再描画してもスクロール位置を保�
   simulate();
   const sc2=document.querySelector('.main'); if(sc2)sc2.scrollTop=st;
 }
+let SIM_CRASH_FUND='sp500'; // 暴落線のベース銘柄（日本株/世界株/S&P500から選択）
 function setSimCrash(v){ SIM_CRASH=v; rerenderKeepScroll(); }
+function setCrashFund(v){ SIM_CRASH_FUND=v; rerenderKeepScroll(); }
 function toggleFund(k,on){ SIM_FUNDS[k]=!!on; rerenderKeepScroll(); }
 window.setSimCrash=setSimCrash;
+window.setCrashFund=setCrashFund;
 window.toggleFund=toggleFund;
 
 let LAST=null;
@@ -525,8 +508,10 @@ function simulate(){
     return;
   }
   const rate=(parseFloat(document.getElementById('rate').value)||0)/100;
-  const zaigaku=num(document.getElementById('zaigaku'));
-  const shiokuri=num(document.getElementById('shiokuri'));
+  const hhMonthly=num(document.getElementById('hhMonthly'));   // 教育期に家計から出せる月額（世帯・固定。子が増えても一定）
+  const rentM=num(document.getElementById('rentM'));           // 下宿の家賃（月・既定8万）
+  const livingM=num(document.getElementById('livingM'));       // 下宿の生活費（月・既定8万）
+  const shiokuri=(rentM+livingM)*12;                           // 下宿の年間生活費（家賃＋生活費）
   const initCost=num(document.getElementById('initCost'));
   const fatherAge=parseFloat(document.getElementById('fatherAge').value)||0;
   const motherAge=parseFloat(document.getElementById('motherAge').value)||0;
@@ -541,19 +526,16 @@ function simulate(){
     const gakuhi=co.nyu+co.year*co.years, soufu=away?shiokuri*co.years:0, shoki=away?initCost:0;
     const totalCost=gakuhi+soufu+shoki;
     const scholarTotal=ch.scholar*12*co.years;
-    const zaigakuTotal=zaigaku*12*co.years;               // 在学中に収入から出す分
-    const parentBurden=Math.max(0,totalCost-scholarTotal);
-    const presaveTarget=Math.max(0,parentBurden-zaigakuTotal); // 入学までに積み立てる分
+    const parentBurden=Math.max(0,totalCost-scholarTotal);  // 親が負担する分（家計＋貯蓄。奨学金は本人が卒業後返済）
     const yearsToEnter=Math.max(0,ENTER_AGE-ch.age);
-    const yearsToSave=yearsToEnter;                        // 表示・ピーク用（入学まで）
-    // 年度別の費用（L字：入学金＋敷金は初年度）
-    const costY=[]; for(let k=0;k<co.years;k++){ let c=co.year+(away?shiokuri:0); if(k===0)c+=co.nyu+shoki; costY.push(c); }
-    const savRatio=totalCost>0?presaveTarget/totalCost:0;
-    const gradYears=(ENTER_AGE-ch.age)+co.years;          // 卒業までの相対年数
-    const monthly=childMonthlyCalc({presaveTarget,saved:ch.saved,yearsToEnter,costY,savRatio},finishMode,0,rate);
+    const yearsToSave=yearsToEnter;                          // 表示・ピーク用（入学まで）
+    // 年度別の費用（L字：入学金＋敷金は初年度）と、奨学金差引後の親負担（年度別）
+    const costY=[], parentCostY=[];
+    for(let k=0;k<co.years;k++){ let c=co.year+(away?shiokuri:0); if(k===0)c+=co.nyu+shoki; costY.push(c); parentCostY.push(Math.max(0,c-ch.scholar*12)); }
+    const gradYears=(ENTER_AGE-ch.age)+co.years;            // 卒業までの相対年数
     // 奨学金（貸与）の卒業後返済
     const borrowed=scholarTotal;
-    const gradAge=ENTER_AGE+co.years;                     // 卒業時の年齢（22/24/20）
+    const gradAge=ENTER_AGE+co.years;                       // 卒業時の年齢（22/24/20）
     let repayMonths=null,repayNever=false,totalRepay=0,finishAge=null;
     if(borrowed>0 && repayMonthly>0){
       const rm=loanRate/12;
@@ -562,34 +544,45 @@ function simulate(){
       else{repayMonths=Math.ceil(-Math.log(1-borrowed*rm/repayMonthly)/Math.log(1+rm));}
       if(!repayNever){totalRepay=repayMonthly*repayMonths;finishAge=gradAge+Math.ceil(repayMonths/12);}
     }
-    return {...ch,co,away,gakuhi,soufu,shoki,totalCost,scholarTotal,zaigakuTotal,parentBurden,presaveTarget,yearsToEnter,yearsToSave,costY,savRatio,gradYears,monthly,borrowed,gradAge,repayMonths,repayNever,totalRepay,finishAge};
-  });
-
-  // 年ごとの教育費（今後26年）
-  const horizon=26;
-  const yearly=new Array(horizon+1).fill(0);
-  results.forEach(r=>{
-    const enterYear=ENTER_AGE-r.age;
-    for(let k=0;k<r.co.years;k++){const y=enterYear+k;if(y<0||y>horizon)continue;let cost=r.co.year+(r.away?r.soufu/r.co.years:0);if(k===0)cost+=r.co.nyu+r.shoki;yearly[y]+=cost;}
-  });
-
-  // 開始遅延の比較（世帯の毎月積立）：今すぐ・1年後・3年後＋選択した年数
-  const delay4=parseInt(document.getElementById('delay4').value,10)||5;
-  const delayScan=[0,1,3,delay4].map(D=>{
-    let sum=0, needLoan=false;
-    results.forEach(r=>{const m=childMonthlyCalc(r,finishMode,D,rate);if(m==null)needLoan=true;else sum+=m;});
-    return {D,sum,needLoan};
+    return {...ch,co,away,gakuhi,soufu,shoki,totalCost,scholarTotal,parentBurden,yearsToEnter,yearsToSave,costY,parentCostY,gradYears,borrowed,gradAge,repayMonths,repayNever,totalRepay,finishAge};
   });
 
   const firstEnterYears=results.length?Math.min(...results.map(r=>r.yearsToEnter)):0;
   const eduEndYears=results.length?Math.max(...results.map(r=>r.gradYears)):0;
+  const N=Math.max(eduEndYears,12);
 
-  // NISA・投資の暴落リスク
-  const nisaAmount=num(document.getElementById('nisaAmount'));
-  const nisaKey=document.getElementById('nisaScenario').value;
-  const nisa=nisaAmount>0?{amount:nisaAmount,scenario:CRASH[nisaKey]}:null;
+  // 年ごとの教育費（世帯合計・満額＝棒グラフ用）と、奨学金差引後の親の年間負担
+  const yearlyFull=new Array(N+1).fill(0), yearlyParent=new Array(N+1).fill(0);
+  results.forEach(r=>{ const e=r.yearsToEnter; r.costY.forEach((c,k)=>{ const y=e+k; if(y<0||y>N)return; yearlyFull[y]+=c; yearlyParent[y]+=r.parentCostY[k]; }); });
 
-  LAST={rate,zaigaku,fatherAge,motherAge,finishMode,results,yearly,delayScan,firstEnterYears,eduEndYears,repayMonthly,nisa};
+  // 家計の固定負担（教育期・子が増えても一定）＋不足分は貯蓄から取り崩し
+  const hhYear=hhMonthly*12;
+  const householdCoverY=new Array(N+1).fill(0), fromSav=new Array(N+1).fill(0);
+  for(let y=0;y<=N;y++){ const need=yearlyParent[y]; const cov=Math.min(need,hhYear); householdCoverY[y]=cov; fromSav[y]=Math.max(0,need-cov); }
+  const savTarget=fromSav.reduce((a,b)=>a+b,0);          // 貯蓄で用意する総額（不足分の合計）
+  const householdTotal=householdCoverY.reduce((a,b)=>a+b,0);
+  const parentTotal=results.reduce((s,r)=>s+r.parentBurden,0);
+
+  // 貯蓄の積立スケジュール（世帯）：first=第1子入学まで／each=各年度分をその年度まで（sinking fund）
+  function buildContrib(delay){
+    const c=new Array(N+1).fill(0); let needLoan=false;
+    if(finishMode==='first'){
+      const yrs=firstEnterYears-delay;
+      if(savTarget>0 && yrs<=0){ needLoan=true; c[Math.max(0,Math.min(delay,N))]+=savTarget; }
+      else if(yrs>0){ const m=savTarget/yrs; for(let y=delay;y<firstEnterYears&&y<=N;y++)c[y]+=m; }
+    } else {
+      fromSav.forEach((s,y)=>{ if(s<=0)return; const yrs=y-delay; if(yrs<=0){ needLoan=true; c[Math.max(0,Math.min(delay,N))]+=s; } else { const m=s/yrs; for(let k=delay;k<y&&k<=N;k++)c[k]+=m; } });
+    }
+    return {c,needLoan};
+  }
+  const cm=buildContrib(0); const contribY=cm.c;
+  const householdMonthly=(contribY[0]||0)/12;             // 今から必要な毎月積立（世帯）
+
+  // 開始遅延の比較
+  const delay4=parseInt(document.getElementById('delay4').value,10)||5;
+  const delayScan=[0,1,3,delay4].map(D=>{ const r=buildContrib(D); return {D,sum:(r.c[D]||0)/12,needLoan:r.needLoan}; });
+
+  LAST={rate,hhMonthly,hhYear,fatherAge,motherAge,finishMode,results,yearlyFull,yearlyParent,fromSav,householdCoverY,householdTotal,savTarget,parentTotal,contribY,householdMonthly,delayScan,firstEnterYears,eduEndYears,N,repayMonthly};
   render(LAST);
 }
 
@@ -597,10 +590,8 @@ function simulate(){
 function yen(v){return Math.round(v).toLocaleString('ja-JP');}
 function man(v){return (v/10000).toFixed(0);}
 function render(R){
-  const {results,yearly,delayScan,firstEnterYears,eduEndYears,fatherAge,motherAge,zaigaku,repayMonthly,nisa,finishMode}=R;
-  const totalMonthly=results.reduce((s,r)=>s+(r.monthly||0),0);
-  const totalBurden=results.reduce((s,r)=>s+r.parentBurden,0);
-  const peak=yearly.reduce((m,v,i)=>v>m.v?{v,i}:m,{v:0,i:0});
+  const {results,yearlyFull,delayScan,firstEnterYears,eduEndYears,fatherAge,motherAge,repayMonthly,finishMode,householdMonthly,hhMonthly,householdTotal,savTarget,parentTotal}=R;
+  const peak=yearlyFull.reduce((m,v,i)=>v>m.v?{v,i}:m,{v:0,i:0});
   const fatherEnd=fatherAge+eduEndYears, motherEnd=motherAge+eduEndYears;
 
   const withLoan=results.filter(r=>r.borrowed>0);
@@ -608,7 +599,7 @@ function render(R){
 
   // サマリー（横1列3カード）
   html+=`<div class="result-cards summary-cards">
-    <div class="rc hero"><div class="k">今から必要な毎月の積立額（世帯合計）<small style="font-family:var(--gothic);font-size:10px;color:var(--brass-deep);">${finishMode==='first'?'入学初年までに完了（理想）':'各年度まで積立（都度）'}</small></div><div class="v">${yen(totalMonthly)}<small> 円／月</small></div><div class="note">お子さま${results.length}人分・親負担 約${yen(totalBurden)}円${finishMode==='each'?'／各年度の費用をその年度までに積立（在学中も積立継続）':'／教育開始までに全額完了'}</div></div>
+    <div class="rc hero"><div class="k">今から必要な毎月の積立額（世帯・貯蓄分）<small style="font-family:var(--gothic);font-size:10px;color:var(--brass-deep);">${finishMode==='first'?'入学初年までに完了（理想）':'各年度まで積立（都度）'}</small></div><div class="v">${yen(householdMonthly)}<small> 円／月</small></div><div class="note">教育期の親負担 約${yen(parentTotal)}円 ＝ 家計から約${yen(householdTotal)}円＋貯蓄から約${yen(savTarget)}円${hhMonthly>0?('／家計は月'+yen(hhMonthly)+'円（子が増えても一定）'):'／家計負担 未入力＝全額を貯蓄で準備'}</div></div>
     <div class="rc"><div class="k">教育費のピーク年</div><div class="v" style="font-size:18px;">${peak.v>0?('今から'+peak.i+'年後'):'—'}</div><div class="note">${peak.v>0?('約'+yen(peak.v)+'円/年'):'—'}</div></div>
     <div class="rc"><div class="k">教育が終わる頃の親の年齢</div><div class="v" style="font-size:18px;${fatherEnd>=60?'color:var(--loss);':''}">父${fatherEnd}歳 / 母${motherEnd}歳</div><div class="note">末子卒業まで約${eduEndYears}年後</div></div>
   </div>`;
@@ -629,14 +620,16 @@ function render(R){
   delayScan.forEach(d=>{const label=d.D===0?'今すぐ開始':`${d.D}年 先送り`;html+=`<tr class="${d.D===0?'now':''}"><td>${label}${d.needLoan?' ⚠':''}</td><td>${yen(d.sum)}円/月${d.needLoan?'＋ローン':''}</td><td>${d.D===0?'—':('＋'+yen(d.sum-base)+'円/月')}</td></tr>`;});
   html+=`</tbody></table></div>`;
   html+=`</div><div class="rcol">`;
-  html+=`<div class="sec-h">お子さまごとの内訳（総費用−奨学金−在学中払い＝積立で用意）</div>`;
-  html+=`<div style="padding:6px 4px 4px;overflow-x:auto;"><table class="tbl"><thead><tr><th>子</th><th>進路</th><th>総費用</th><th>−奨学金</th><th>−在学中</th><th>積立で用意</th><th>期間</th><th>毎月</th></tr></thead><tbody>`;
-  results.forEach((r,i)=>{html+=`<tr><td>${i+1}（${r.age>=0?(r.age+'歳'):((-r.age)+'年後 誕生予定')}）</td><td>${r.co.name}${r.away?'・下宿':'・自宅'}</td><td>${yen(r.totalCost)}</td><td>${r.scholarTotal?('-'+yen(r.scholarTotal)):'—'}</td><td>${r.zaigakuTotal?('-'+yen(r.zaigakuTotal)):'—'}</td><td>${yen(r.presaveTarget)}</td><td>${r.yearsToSave>0?(r.yearsToSave+'年'):'—'}</td><td><b>${r.monthly!=null?(yen(r.monthly)):'—'}</b></td></tr>`;});
+  html+=`<div class="sec-h">お子さまごとの内訳（総費用−奨学金＝親の負担）</div>`;
+  html+=`<div style="padding:6px 4px 4px;overflow-x:auto;"><table class="tbl"><thead><tr><th>子</th><th>進路</th><th>総費用</th><th>−奨学金</th><th>親の負担</th><th>入学まで</th></tr></thead><tbody>`;
+  results.forEach((r,i)=>{html+=`<tr><td>${i+1}（${r.age>=0?(r.age+'歳'):((-r.age)+'年後')}）</td><td>${r.co.name}${r.away?'・下宿':'・自宅'}</td><td>${yen(r.totalCost)}</td><td>${r.scholarTotal?('-'+yen(r.scholarTotal)):'—'}</td><td>${yen(r.parentBurden)}</td><td>${r.yearsToSave>0?(r.yearsToSave+'年'):'—'}</td></tr>`;});
   // 合計欄
-  const tTotal=results.reduce((s,r)=>s+r.totalCost,0), tSch=results.reduce((s,r)=>s+r.scholarTotal,0), tZai=results.reduce((s,r)=>s+r.zaigakuTotal,0), tPre=results.reduce((s,r)=>s+r.presaveTarget,0), tMon=results.reduce((s,r)=>s+(r.monthly||0),0);
-  html+=`<tr class="ttl-row" style="border-top:2px solid var(--rule);font-weight:700;background:var(--paper);"><td>合計</td><td>お子さま${results.length}人</td><td>${yen(tTotal)}</td><td>${tSch?('-'+yen(tSch)):'—'}</td><td>${tZai?('-'+yen(tZai)):'—'}</td><td>${yen(tPre)}</td><td>—</td><td><b>${yen(tMon)}</b></td></tr>`;
+  const tTotal=results.reduce((s,r)=>s+r.totalCost,0), tSch=results.reduce((s,r)=>s+r.scholarTotal,0);
+  html+=`<tr class="ttl-row" style="border-top:2px solid var(--rule);font-weight:700;background:var(--paper);"><td>合計</td><td>お子さま${results.length}人</td><td>${yen(tTotal)}</td><td>${tSch?('-'+yen(tSch)):'—'}</td><td>${yen(parentTotal)}</td><td>—</td></tr>`;
   html+=`</tbody></table></div>`;
   html+=`</div></div>`;
+  // 家計と貯蓄の内訳（教育期の親負担をどう賄うか）
+  html+=`<div style="padding:0 6px 2px;"><div class="info" style="font-size:11.5px;">教育期の<b>親の負担 約${yen(parentTotal)}円</b>を、<b>家計から 約${yen(householdTotal)}円</b>（${hhMonthly>0?('月'+yen(hhMonthly)+'円×教育期・子が増えても一定'):'家計負担 未入力'}）＋<b>貯蓄から 約${yen(savTarget)}円</b>で用意。貯蓄分は<b>今から月 ${yen(householdMonthly)}円</b>の積立で準備します（不足分は貯めた貯蓄から取り崩し）。</div></div>`;
 
   // 奨学金の返済 ＋ ワンポイント（2カラム）
   html+=`<div class="rgrid2" style="margin-top:4px;"><div class="rcol">`;
@@ -650,29 +643,23 @@ function render(R){
   }
   html+=`</div><div class="rcol">`;
   html+=`<div class="sec-h">ワンポイント</div>`;
-  html+=`<div style="padding:2px 4px;"><div class="info">「在学中に収入から出す月額」を入れると事前積立が不要になり毎月額が下がります。<b>末子卒業時に父は${fatherEnd}歳</b>——先送りは返済年齢が上がるため、<b>今の積立が最も効きます</b>。</div></div>`;
+  html+=`<div style="padding:2px 4px;"><div class="info">「教育期に家計から出せる月額」を上げると貯蓄で用意する額が減り、毎月の積立額が下がります。<b>末子卒業時に父は${fatherEnd}歳</b>——先送りは返済年齢が上がるため、<b>今の積立が最も効きます</b>。</div></div>`;
   html+=`</div></div>`;
-
-  // NISA・暴落リスク（任意・入力時のみ）
-  if(nisa){
-    const s=nisa.scenario, A=nisa.amount, crashVal=Math.round(A*(1-s.drop));
-    html+=`<div class="sec-h" style="margin-top:4px;">NISA・投資で貯めた場合の暴落リスク（${s.name}）</div>`;
-    html+=`<div class="rgrid2"><div class="rcol">`+nisaChartSVG(nisa)+`</div><div class="rcol"><div style="padding:4px;"><div class="result-cards" style="padding:0;"><div class="rc"><div class="k">入学時に暴落すると</div><div class="v" style="font-size:16px;color:var(--loss);">${yen(A)} → ${yen(crashVal)}<small>円</small></div></div><div class="rc"><div class="k">回復まで</div><div class="v" style="font-size:16px;">約${s.recover}<small>年</small></div></div></div><div class="warn" style="margin-top:6px;"><b>使う時期が決まったお金は投資に不向き：</b>直前の暴落は回復を待てず安値売りに。入学1〜2年前までに現金へ移す設計を。</div></div></div></div>`;
-  }
 
   // 運用シミュレーション（結果の下・スクロール）：利回り別の残高を縦に高い折れ線で／暴落シナリオはチャート横で切替
   {
     const crashKey=SIM_CRASH||'lehman';
     const sim=investSimChart(R,crashKey);
     let crashOpts=''; for(const k in CRASH){ crashOpts+=`<option value="${k}"${k===crashKey?' selected':''}>${CRASH[k].name}（−${Math.round(CRASH[k].drop*100)}%）</option>`; }
-    html+=`<div class="sec-h" style="margin-top:10px;border-top:2px solid var(--rule);padding-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">運用シミュレーション ─ 同じ積立額を利回りで運用すると<small style="font-weight:400;color:var(--ink-soft);">（過去実績イメージ・将来を保証しません）</small><span style="margin-left:auto;font-weight:400;font-size:11.5px;color:var(--ink);">暴落シナリオ：<select id="simCrash" onchange="setSimCrash(this.value)" style="font-size:11.5px;padding:3px 6px;border:1px solid var(--rule);border-radius:6px;">${crashOpts}</select></span></div>`;
+    let crashFundOpts=''; FUNDS.filter(f=>f.key!=='cash').forEach(f=>{ crashFundOpts+=`<option value="${f.key}"${f.key===SIM_CRASH_FUND?' selected':''}>${f.name.replace(/（.*）/,'')}</option>`; });
+    html+=`<div class="sec-h" style="margin-top:10px;border-top:2px solid var(--rule);padding-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">運用シミュレーション ─ 同じ積立額を利回りで運用すると<small style="font-weight:400;color:var(--ink-soft);">（過去実績イメージ・将来を保証しません）</small><span style="margin-left:auto;font-weight:400;font-size:11.5px;color:var(--ink);">暴落する銘柄：<select id="crashFund" onchange="setCrashFund(this.value)" style="font-size:11.5px;padding:3px 6px;border:1px solid var(--rule);border-radius:6px;">${crashFundOpts}</select> ／ 暴落シナリオ：<select id="simCrash" onchange="setSimCrash(this.value)" style="font-size:11.5px;padding:3px 6px;border:1px solid var(--rule);border-radius:6px;">${crashOpts}</select></span></div>`;
     // 表示する銘柄（チェックでON/OFF）
     let fundChecks='<span style="color:var(--ink-soft);font-weight:600;margin-right:2px;">表示する銘柄：</span>';
     FUNDS.forEach(f=>{ fundChecks+=`<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" ${SIM_FUNDS[f.key]?'checked':''} onchange="toggleFund('${f.key}',this.checked)" style="cursor:pointer;"><i style="width:14px;height:3px;background:${f.color};display:inline-block;border-radius:2px;"></i>${f.name}</label>`; });
     fundChecks+=`<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" ${SIM_FUNDS.crash?'checked':''} onchange="toggleFund('crash',this.checked)" style="cursor:pointer;"><i style="width:14px;height:0;border-top:2px dashed #b5623a;display:inline-block;"></i>暴落線</label>`;
     html+=`<div style="display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;padding:6px 8px 4px;font-size:11.5px;color:var(--ink);">${fundChecks}</div>`;
     html+=sim.svg;
-    if(sim.showCrash && sim.shortfall>0){ html+=`<div style="padding:3px 8px 0;"><div class="warn" style="font-size:12px;"><b>${sim.crashName}が入学初年に起きると、S&P500で運用していても教育資金が最大 約${yen(sim.shortfall)}円 不足します</b>（グラフ赤い部分＝取り崩しリスク）。使う時期が近いお金は入学1〜2年前までに現金・預金へ移す設計が鉄則です。</div></div>`; }
+    if(sim.showCrash && sim.shortfall>0){ html+=`<div style="padding:3px 8px 0;"><div class="warn" style="font-size:12px;"><b>${sim.crashName}が入学初年に起きると、${sim.crashFundShort}で運用していても教育資金が最大 約${yen(sim.shortfall)}円 不足します</b>（グラフ赤い部分＝取り崩しリスク）。使う時期が近いお金は入学1〜2年前までに現金・預金へ移す設計が鉄則です。</div></div>`; }
     let leg2='<div class="legend">';
     sim.scen.forEach(sc=>{ leg2+=`<span><i style="background:${sc.color};${sc.dash?'height:0;border-top:2px dashed '+sc.color+';border-radius:0;':''}"></i>${sc.name}</span>`; });
     leg2+='<span>棒＝その年の教育費（残高線と同じ金額目盛り）／各線＝毎月同額を積立て運用した残高（教育費を差引後）・縦＝万円・右端＝終了時残高</span></div>';
@@ -703,7 +690,7 @@ function familyTimelineSVG(R,opts){
   for(let y=0;y<=N;y++){ results.forEach((r,ci)=>{yearlyTotal[y]+=perChild[ci][y];}); }
   const ymax=Math.max.apply(null,yearlyTotal.concat([1]));
   // 貯まる金額（積立残高＝現金0%）：運用シミュレーションの現金線と同一計算にそろえる（2つのグラフで一致させる）
-  const balRaw=fundBalance(0,results,finishMode,N);
+  const balRaw=fundBalance(0,(R.contribY||[]),(R.fromSav||[]),N);
   const bal=balRaw.map(v=>Math.max(0,v));
   const balMax=Math.max.apply(null,bal.concat([1]));
   // ピーク位置：first=最も早く入学する子の「貯め終わり年」／each=残高が最大の年
@@ -772,17 +759,17 @@ function familyTimelineSVG(R,opts){
 
 /* 運用シミュレーション専用チャート：利回り別の残高（折れ線）＋教育費（同一Y軸の積み上げバー）＋暴落時の不足額。銘柄はチェックで表示ON/OFF */
 function investSimChart(R,crashKey){
-  const {results,yearly,eduEndYears,firstEnterYears,finishMode}=R;
-  const ENTER=18; let maxY=eduEndYears||0; results.forEach(r=>maxY=Math.max(maxY,(ENTER-r.age)+r.co.years)); const N=Math.max(maxY,12);
-  const totalM=results.reduce((s,r)=>s+(r.monthly||0),0);
-  const contribEnd=(finishMode==='first')?firstEnterYears:eduEndYears;
+  const {results,firstEnterYears,finishMode,contribY,fromSav}=R;
+  const ENTER=18; const N=R.N||Math.max(R.eduEndYears||0,12);
   const cr=CRASH[crashKey]||CRASH.lehman;
-  // チェックされた銘柄のみを線に。暴落線はS&P500ベース（別チェック）
+  const crashFund=FUNDS.find(f=>f.key===SIM_CRASH_FUND)||FUNDS.find(f=>f.key==='sp500')||FUNDS[FUNDS.length-1];
+  const crashFundShort=crashFund.name.replace(/（.*）/,'');
+  // チェックされた銘柄のみを線に。暴落線は「暴落する銘柄」で選んだ銘柄ベース（別チェック）
   const scen=[];
   FUNDS.forEach(f=>{ if(SIM_FUNDS[f.key]) scen.push({name:f.name,rate:f.rate,color:f.color}); });
   const showCrash=!!SIM_FUNDS.crash;
-  if(showCrash) scen.push({name:'S&P500＋'+cr.name+'が入学初年',rate:0.10,color:'#b5623a',crashY:firstEnterYears,crashDrop:cr.drop,dash:true});
-  const series=scen.map(sc=>({name:sc.name,color:sc.color,dash:sc.dash,values:fundBalance(sc.rate,results,finishMode,N,sc.crashY,sc.crashDrop)}));
+  if(showCrash) scen.push({name:crashFundShort+'＋'+cr.name+'が入学初年',rate:crashFund.rate,color:'#b5623a',crashY:firstEnterYears,crashDrop:cr.drop,dash:true});
+  const series=scen.map(sc=>({name:sc.name,color:sc.color,dash:sc.dash,values:fundBalance(sc.rate,contribY||[],fromSav||[],N,sc.crashY,sc.crashDrop)}));
   const crashS=showCrash?series[series.length-1]:null;
   // 暴落時の不足額＝暴落線が最も落ち込む額（0未満＝教育費を賄えない）
   let minBal=0; if(crashS){ for(let y=0;y<=N;y++){ if(crashS.values[y]<minBal)minBal=crashS.values[y]; } }
@@ -818,7 +805,7 @@ function investSimChart(R,crashKey){
   g+=`<text x="2" y="${(y0-3).toFixed(1)}" font-size="9" fill="#8a4b2f" font-weight="700">教育費▮</text>`;
   for(let y=0;y<=N;y+=2){ g+=`<text x="${X(y).toFixed(1)}" y="${(H-6).toFixed(1)}" font-size="9" fill="#8a8470" text-anchor="middle">${y}年</text>`; }
   g+=`</svg>`;
-  return {svg:`<div class="chartwrap" style="padding:2px 8px;">${g}</div>`, scen, shortfall, crashName:cr.name, showCrash};
+  return {svg:`<div class="chartwrap" style="padding:2px 8px;">${g}</div>`, scen, shortfall, crashName:cr.name, crashFundShort, showCrash};
 }
 
 function chartSVG(R){
@@ -917,11 +904,10 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeInput()
     });
     // 前提
     const conds=['利回り'+(pv(g('rate'))||'—')+'%'];
-    const z=pv(g('zaigaku')); if(z&&z!=='0')conds.push('在学中'+z);
+    const z=pv(g('hhMonthly')); if(z&&z!=='0')conds.push('家計から月'+z);
     conds.push('完了:'+selText(g('finishTiming')));
     conds.push('開始遅延'+selText(g('delay4')));
     const lr=pv(g('loanRate')), rp=pv(g('repayMonthly'));
-    if((pv(g('nisaAmount'))&&pv(g('nisaAmount'))!=='0')) conds.push('NISA'+pv(g('nisaAmount'))+'('+selText(g('nisaScenario'))+')');
     const sep='<span class="sep">｜</span>';
     let html='<div class="ie-h">入力中の前提</div>';
     html+='<div class="ie-line">'+people.join(sep)+'</div>';
@@ -944,7 +930,7 @@ simulate(); // 初期表示
 /* ===== FPコア v2（全ツール共通：トップ/設定(単位・自動保存・提案者名)/自動保存/JSON/PDF・A4印刷/全角） ===== */
 window.FP=(function(){
   var KEY='',RECALC=null,DEFAULTS={},obs=null,converting=false,SKEY='fp:settings';
-  function els(){return Array.prototype.slice.call(document.querySelectorAll('input[id],select[id],textarea[id]')).filter(function(e){return e.id!=='fpLoadInput'&&e.id!=='fpPresenter';});}
+  function els(){return Array.prototype.slice.call(document.querySelectorAll('input[id],select[id],textarea[id]')).filter(function(e){return e.id!=='fpLoadInput'&&e.id!=='fpPresenter'&&e.id!=='fatherAge'&&e.id!=='motherAge';});}
   function ser(){var o={};els().forEach(function(e){if(e.type==='checkbox'){o[e.id]=e.checked;}else if(e.classList&&e.classList.contains('yen')){var d=String(e.value).replace(/[^\d.\-]/g,'');o[e.id]=(d===''?'':String(Math.round(parseFloat(d)*(window.__fpU==='man'?10000:1))));}else{o[e.id]=e.value;}});return o;}
   function resx(o){els().forEach(function(e){if(Object.prototype.hasOwnProperty.call(o,e.id)){if(e.type==='checkbox'){e.checked=!!o[e.id];}else if(e.classList&&e.classList.contains('yen')){var raw=String(o[e.id]).replace(/,/g,'');if(raw===''||raw==='null'||isNaN(Number(raw))){e.value='';}else{e.value=fpFmt(Number(raw)/(window.__fpU==='man'?10000:1));}}else{e.value=o[e.id];}}});}
   function getS(){try{return JSON.parse(localStorage.getItem(SKEY))||{};}catch(e){return {};}}
