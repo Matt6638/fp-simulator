@@ -444,6 +444,18 @@ function childMonthlyCalc(r,mode,delay,rate){
   });
   return ok? sum : null;
 }
+/* 運用残高の推移：毎月一定額を利回りrで積立、教育費を取り崩す。crashYearに-crashDropの暴落 */
+function investBalance(rate,monthly,yearly,contribEnd,N,crashYear,crashDrop){
+  const b=new Array(N+1).fill(0); let bal=0;
+  for(let y=0;y<=N;y++){
+    bal=bal*(1+rate);
+    if(y<contribEnd) bal+=monthly*12;
+    bal-=(yearly[y]||0);
+    if(crashDrop && y===crashYear) bal=bal*(1-crashDrop);
+    b[y]=bal;
+  }
+  return b;
+}
 
 let LAST=null;
 function simulate(){
@@ -580,14 +592,37 @@ function render(R){
     html+=`<div class="rgrid2"><div class="rcol">`+nisaChartSVG(nisa)+`</div><div class="rcol"><div style="padding:4px;"><div class="result-cards" style="padding:0;"><div class="rc"><div class="k">入学時に暴落すると</div><div class="v" style="font-size:16px;color:var(--loss);">${yen(A)} → ${yen(crashVal)}<small>円</small></div></div><div class="rc"><div class="k">回復まで</div><div class="v" style="font-size:16px;">約${s.recover}<small>年</small></div></div></div><div class="warn" style="margin-top:6px;"><b>使う時期が決まったお金は投資に不向き：</b>直前の暴落は回復を待てず安値売りに。入学1〜2年前までに現金へ移す設計を。</div></div></div></div>`;
   }
 
+  // 運用シミュレーション（結果の下・スクロール）：同じ積立額を利回り別に運用した残高＋S&P500暴落
+  {
+    const totalM=results.reduce((s,r)=>s+(r.monthly||0),0);
+    const contribEnd=(finishMode==='first')?firstEnterYears:eduEndYears;
+    const ENTER2=18; let maxY=eduEndYears||0; results.forEach(r=>maxY=Math.max(maxY,(ENTER2-r.age)+r.co.years)); const Nsim=Math.max(maxY,12);
+    const scen=[
+      {name:'現金 0%',rate:0,color:'#8a8470'},
+      {name:'全世界株 (過去約8%)',rate:0.08,color:'#6b8c3f'},
+      {name:'S&P500 (過去約10%)',rate:0.10,color:'#3f6b8c'},
+      {name:'NASDAQ100 (過去約14%)',rate:0.14,color:'#8c4f6b'},
+      {name:'S&P500＋入学初年に暴落',rate:0.10,color:'#b5623a',crashY:firstEnterYears,crashDrop:0.55,dash:true}
+    ];
+    const lines=scen.map(sc=>({color:sc.color,dash:sc.dash,name:sc.name,values:investBalance(sc.rate,totalM,yearly,contribEnd,Nsim,sc.crashY,sc.crashDrop)}));
+    html+=`<div class="sec-h" style="margin-top:10px;border-top:2px solid var(--rule);padding-top:12px;">運用シミュレーション ─ 同じ積立額を利回りで運用すると（過去実績イメージ・将来を保証しません）</div>`;
+    html+=familyTimelineSVG(R,{lines});
+    let leg2='<div class="legend">';
+    scen.forEach(sc=>{ leg2+=`<span><i style="background:${sc.color};${sc.dash?'height:0;border-top:2px dashed '+sc.color+';border-radius:0;':''}"></i>${sc.name}</span>`; });
+    leg2+='<span>各線＝毎月同額を積立て運用した残高（教育費を差引後）。右端＝終了時残高</span></div>';
+    html+=leg2;
+    html+=`<div class="hint" style="padding:2px 6px 8px;">※利回りは代表的な指数の過去実績イメージ（円ベース・概算）で将来の成果を保証しません。暴落線はS&P500級の下落（−55%）が入学初年に起きた例。現金(0%)は運用しない場合で、教育費終了時にほぼ使い切ります。運用は増える一方、入学直前の暴落は取り崩しリスクになります。</div>`;
+  }
+
   html+='</div>';
   document.getElementById('outBody').innerHTML=html;
   buildDots('outBody','rDots');
 }
 
 /* 家族の年齢＋教育費のかかる年度（ガント風タイムライン。子ごと色分け・積み上げ・金額・累計線） */
-function familyTimelineSVG(R){
+function familyTimelineSVG(R,opts){
   const {results,fatherAge,motherAge,eduEndYears,finishMode}=R;
+  const extraLines=opts&&opts.lines;   // 運用シミュレーション用：複数の残高線
   const ENTER=18;
   let maxY=eduEndYears||0;
   results.forEach(r=>{ maxY=Math.max(maxY,(ENTER-r.age)+r.co.years); });
@@ -644,14 +679,25 @@ function familyTimelineSVG(R){
     results.forEach((r,ci)=>{ const v=perChild[ci][y]; if(v<=0)return; const h=(v/ymax)*plotH; yy-=h; g+=`<rect x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="${col(ci)}"/>`; });
     g+=`<text x="${cx.toFixed(1)}" y="${(yy-3).toFixed(1)}" font-size="8.5" fill="#444" text-anchor="middle" font-weight="600">${man(yearlyTotal[y])}万</text>`;
   }
-  // 貯まる金額（積立残高）の線：三角形で増え、在学中に取り崩す
-  let d='';
-  for(let y=0;y<=N;y++){ const px=X(y), py=base-(bal[y]/balMax)*plotH; d+=(y===0?'M':'L')+px.toFixed(1)+' '+py.toFixed(1)+' '; }
-  g+=`<path d="${d}" fill="none" stroke="#2f6b4f" stroke-width="1.9"/>`;
-  { const px=X(peakY), py=base-(bal[peakY]/balMax)*plotH;
+  if(extraLines){
+    // 運用シミュレーション：複数の利回り残高線（共通スケール）
+    let lmax=1; extraLines.forEach(L=>{ for(let y=0;y<=N;y++){ if(L.values[y]>lmax)lmax=L.values[y]; } });
+    g+=`<line x1="${padL}" y1="${base.toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${base.toFixed(1)}" stroke="#e0d8c4"/>`; // 残高0基準
+    extraLines.forEach(L=>{
+      let dd=''; for(let y=0;y<=N;y++){ const px=X(y), py=base-(Math.max(0,L.values[y])/lmax)*plotH; dd+=(y===0?'M':'L')+px.toFixed(1)+' '+py.toFixed(1)+' '; }
+      g+=`<path d="${dd}" fill="none" stroke="${L.color}" stroke-width="1.8"${L.dash?' stroke-dasharray="4 3"':''}/>`;
+      const ey=L.values[N]; g+=`<text x="${(W-padR+2).toFixed(1)}" y="${(base-(Math.max(0,ey)/lmax)*plotH+3).toFixed(1)}" font-size="8" fill="${L.color}" font-weight="700">${man(ey)}万</text>`;
+    });
+  } else {
+    // 貯まる金額（積立残高）の線：三角形で増え、在学中に取り崩す
+    let d='';
+    for(let y=0;y<=N;y++){ const px=X(y), py=base-(bal[y]/balMax)*plotH; d+=(y===0?'M':'L')+px.toFixed(1)+' '+py.toFixed(1)+' '; }
+    g+=`<path d="${d}" fill="none" stroke="#2f6b4f" stroke-width="1.9"/>`;
+    const px=X(peakY), py=base-(bal[peakY]/balMax)*plotH;
     g+=`<line x1="${px.toFixed(1)}" y1="6" x2="${px.toFixed(1)}" y2="${(H-axisH).toFixed(1)}" stroke="#2f6b4f" stroke-width="1.1" stroke-dasharray="3 3" opacity="0.6"/>`;
     g+=`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="3" fill="#2f6b4f"/>`;
-    g+=`<text x="${(px+5).toFixed(1)}" y="${(py-2).toFixed(1)}" font-size="9" fill="#2f6b4f" font-weight="700">${finishMode==='first'?'貯め終わり':'残高ピーク'} ${man(bal[peakY])}万</text>`; }
+    g+=`<text x="${(px+5).toFixed(1)}" y="${(py-2).toFixed(1)}" font-size="9" fill="#2f6b4f" font-weight="700">${finishMode==='first'?'貯め終わり':'残高ピーク'} ${man(bal[peakY])}万</text>`;
+  }
   g+=`<line x1="${padL}" y1="${(base+1).toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${(base+1).toFixed(1)}" stroke="#d8cfb8"/>`;
   // 各人の行（年齢＋子は在学バーを子色で）
   persons.forEach((p,idx)=>{
