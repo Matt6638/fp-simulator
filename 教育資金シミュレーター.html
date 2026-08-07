@@ -467,8 +467,8 @@ function childMonthlyCalc(r,mode,delay,rate){
 /* 運用残高の推移：あらかじめ用意した年別の入金(contribY)と取り崩し(drawY)で残高を追う。
    ・入金＝貯蓄の積立（世帯）／取崩＝各年度に貯蓄から出す分（家計の固定負担で賄えない不足分）
    → 利回り0%なら入金＝取崩でちょうど0で終了。利回り>0なら成長分だけプラスで終了。 */
-function fundBalance(rate,contribY,drawY,N,crashYear,crashDrop){
-  const b=new Array(N+1).fill(0); let bal=0;
+function fundBalance(rate,contribY,drawY,N,crashYear,crashDrop,initBal){
+  const b=new Array(N+1).fill(0); let bal=initBal||0;  // initBal＝すでに貯めている教育資金（開始残高）
   for(let y=0;y<=N;y++){
     bal=bal*(1+rate);
     bal+=(contribY[y]||0);
@@ -588,27 +588,30 @@ function simulate(){
   const savTarget=fromSav.reduce((a,b)=>a+b,0);          // 貯蓄で用意する総額（不足分の合計）
   const householdTotal=householdCoverY.reduce((a,b)=>a+b,0);
   const parentTotal=results.reduce((s,r)=>s+r.parentBurden,0);
+  const savedTotal=results.reduce((s,r)=>s+(r.saved||0),0);   // すでに貯めている教育資金（初期残高＝折れ線の開始点）
+  const contribTarget=Math.max(0,savTarget-savedTotal);        // これから積み立てる必要額（既存貯蓄を差引）
+  const eachScale=savTarget>0?contribTarget/savTarget:0;       // each方式：各年度積立をこの比率で縮小
 
-  // 貯蓄の積立スケジュール（世帯）：first=第1子入学まで／each=各年度分をその年度まで（sinking fund）
+  // 貯蓄の積立スケジュール（世帯）：first=第1子入学まで／each=各年度分をその年度まで（sinking fund）。既存貯蓄(savedTotal)分だけ積立を減らす
   function buildContrib(delay){
     const c=new Array(N+1).fill(0); let needLoan=false;
     if(finishMode==='first'){
       const yrs=firstEnterYears-delay;
-      if(savTarget>0 && yrs<=0){ needLoan=true; c[Math.max(0,Math.min(delay,N))]+=savTarget; }
-      else if(yrs>0){ const m=savTarget/yrs; for(let y=delay;y<firstEnterYears&&y<=N;y++)c[y]+=m; }
+      if(contribTarget>0 && yrs<=0){ needLoan=true; c[Math.max(0,Math.min(delay,N))]+=contribTarget; }
+      else if(yrs>0){ const m=contribTarget/yrs; for(let y=delay;y<firstEnterYears&&y<=N;y++)c[y]+=m; }
     } else {
-      fromSav.forEach((s,y)=>{ if(s<=0)return; const yrs=y-delay; if(yrs<=0){ needLoan=true; c[Math.max(0,Math.min(delay,N))]+=s; } else { const m=s/yrs; for(let k=delay;k<y&&k<=N;k++)c[k]+=m; } });
+      fromSav.forEach((s,y)=>{ if(s<=0)return; const ss=s*eachScale; if(ss<=0)return; const yrs=y-delay; if(yrs<=0){ needLoan=true; c[Math.max(0,Math.min(delay,N))]+=ss; } else { const m=ss/yrs; for(let k=delay;k<y&&k<=N;k++)c[k]+=m; } });
     }
     return {c,needLoan};
   }
   const cm=buildContrib(0); const contribY=cm.c;
-  const householdMonthly=(contribY[0]||0)/12;             // 今から必要な毎月積立（世帯）
+  const householdMonthly=(contribY[0]||0)/12;             // 今から必要な毎月積立（世帯・既存貯蓄を差引後）
 
   // 開始遅延の比較
   const delay4=parseInt(document.getElementById('delay4').value,10)||5;
   const delayScan=[0,1,3,delay4].map(D=>{ const r=buildContrib(D); return {D,sum:(r.c[D]||0)/12,needLoan:r.needLoan}; });
 
-  LAST={rate,hhMonthly,hhYear,fatherAge,motherAge,finishMode,results,yearlyFull,yearlyParent,fromSav,householdCoverY,householdTotal,savTarget,parentTotal,contribY,householdMonthly,delayScan,firstEnterYears,eduEndYears,N,repayMonthly};
+  LAST={rate,hhMonthly,hhYear,fatherAge,motherAge,finishMode,results,yearlyFull,yearlyParent,fromSav,householdCoverY,householdTotal,savTarget,savedTotal,contribTarget,parentTotal,contribY,householdMonthly,delayScan,firstEnterYears,eduEndYears,N,repayMonthly};
   render(LAST);
 }
 
@@ -616,7 +619,7 @@ function simulate(){
 function yen(v){return Math.round(v).toLocaleString('ja-JP');}
 function man(v){return (v/10000).toFixed(0);}
 function render(R){
-  const {results,yearlyFull,delayScan,firstEnterYears,eduEndYears,fatherAge,motherAge,repayMonthly,finishMode,householdMonthly,hhMonthly,householdTotal,savTarget,parentTotal}=R;
+  const {results,yearlyFull,delayScan,firstEnterYears,eduEndYears,fatherAge,motherAge,repayMonthly,finishMode,householdMonthly,hhMonthly,householdTotal,savTarget,savedTotal,contribTarget,parentTotal}=R;
   const peak=yearlyFull.reduce((m,v,i)=>v>m.v?{v,i}:m,{v:0,i:0});
   const fatherEnd=fatherAge+eduEndYears, motherEnd=motherAge+eduEndYears;
 
@@ -625,7 +628,7 @@ function render(R){
 
   // サマリー（横1列3カード）
   html+=`<div class="result-cards summary-cards">
-    <div class="rc hero"><div class="k">今から必要な毎月の積立額（世帯・貯蓄分）<small style="font-family:var(--gothic);font-size:10px;color:var(--brass-deep);">${finishMode==='first'?'入学初年までに完了（理想）':'各年度まで積立（都度）'}</small></div><div class="v">${yen(householdMonthly)}<small> 円／月</small></div><div class="note">教育期の親負担 約${yen(parentTotal)}円 ＝ 家計から約${yen(householdTotal)}円＋貯蓄から約${yen(savTarget)}円${hhMonthly>0?('／家計は月'+yen(hhMonthly)+'円（子が増えても一定）'):'／家計負担 未入力＝全額を貯蓄で準備'}</div></div>
+    <div class="rc hero"><div class="k">今から必要な毎月の積立額（世帯・貯蓄分）<small style="font-family:var(--gothic);font-size:10px;color:var(--brass-deep);">${finishMode==='first'?'入学初年までに完了（理想）':'各年度まで積立（都度）'}</small></div><div class="v">${yen(householdMonthly)}<small> 円／月</small></div><div class="note">貯蓄で用意 約${yen(savTarget)}円${savedTotal>0?('（うち既に約'+yen(savedTotal)+'円 準備済／残り約'+yen(contribTarget)+'円）'):''}・家計から約${yen(householdTotal)}円${hhMonthly>0?('（月'+yen(hhMonthly)+'円）'):''}／親負担 計約${yen(parentTotal)}円</div></div>
     <div class="rc"><div class="k">教育費のピーク年</div><div class="v" style="font-size:18px;">${peak.v>0?('今から'+peak.i+'年後'):'—'}</div><div class="note">${peak.v>0?('約'+yen(peak.v)+'円/年'):'—'}</div></div>
     <div class="rc"><div class="k">教育が終わる頃の親の年齢</div><div class="v" style="font-size:18px;${fatherEnd>=60?'color:var(--loss);':''}">父${fatherEnd}歳 / 母${motherEnd}歳</div><div class="note">末子卒業まで約${eduEndYears}年後</div></div>
   </div>`;
@@ -655,7 +658,7 @@ function render(R){
   html+=`</tbody></table></div>`;
   html+=`</div></div>`;
   // 家計と貯蓄の内訳（教育期の親負担をどう賄うか）
-  html+=`<div style="padding:0 6px 2px;"><div class="info" style="font-size:11.5px;">教育期の<b>親の負担 約${yen(parentTotal)}円</b>を、<b>家計から 約${yen(householdTotal)}円</b>（${hhMonthly>0?('月'+yen(hhMonthly)+'円×教育期・子が増えても一定'):'家計負担 未入力'}）＋<b>貯蓄から 約${yen(savTarget)}円</b>で用意。貯蓄分は<b>今から月 ${yen(householdMonthly)}円</b>の積立で準備します（不足分は貯めた貯蓄から取り崩し）。</div></div>`;
+  html+=`<div style="padding:0 6px 2px;"><div class="info" style="font-size:11.5px;">教育期の<b>親の負担 約${yen(parentTotal)}円</b>を、<b>家計から 約${yen(householdTotal)}円</b>（${hhMonthly>0?('月'+yen(hhMonthly)+'円×教育期・子が増えても一定'):'家計負担 未入力'}）＋<b>貯蓄から 約${yen(savTarget)}円</b>で用意。貯蓄のうち<b>すでに約${yen(savedTotal)}円 準備済み</b>、<b>残り約${yen(contribTarget)}円</b>を<b>今から月 ${yen(householdMonthly)}円</b>の積立で準備します（不足分は貯めた貯蓄から取り崩し）。</div></div>`;
 
   // 奨学金の返済 ＋ ワンポイント（2カラム）
   html+=`<div class="rgrid2" style="margin-top:4px;"><div class="rcol">`;
@@ -718,7 +721,7 @@ function familyTimelineSVG(R,opts){
   for(let y=0;y<=N;y++){ results.forEach((r,ci)=>{yearlyTotal[y]+=perChild[ci][y];}); }
   const ymax=Math.max.apply(null,yearlyTotal.concat([1]));
   // 貯まる金額（積立残高＝現金0%）：運用シミュレーションの現金線と同一計算にそろえる（2つのグラフで一致させる）
-  const balRaw=fundBalance(0,(R.contribY||[]),(R.fromSav||[]),N);
+  const balRaw=fundBalance(0,(R.contribY||[]),(R.fromSav||[]),N,null,null,(R.savedTotal||0));
   const bal=balRaw.map(v=>Math.max(0,v));
   const balMax=Math.max.apply(null,bal.concat([1]));
   const vmax=Math.max(ymax,balMax,1); // 棒（教育費）と折れ線（残高）を同一の金額目盛りに
@@ -800,7 +803,7 @@ function investSimChart(R,crashKey){
   if(showCrash) scen.push({key:'crash',name:crashFundShort+'＋'+cr.name+'が入学初年',rate:crashFund.rate,color:'#b5623a',crashY:firstEnterYears,crashDrop:cr.drop,dash:true});
   // 選んだ銘柄（＝暴落する銘柄）とその暴落線・現金は濃く、それ以外は薄く表示
   const isEmph=k=>(k===SIM_CRASH_FUND||k==='crash'||k==='cash');
-  const series=scen.map(sc=>({key:sc.key,name:sc.name,color:sc.color,dash:sc.dash,emph:isEmph(sc.key),values:fundBalance(sc.rate,contribY||[],fromSav||[],N,sc.crashY,sc.crashDrop)}));
+  const series=scen.map(sc=>({key:sc.key,name:sc.name,color:sc.color,dash:sc.dash,emph:isEmph(sc.key),values:fundBalance(sc.rate,contribY||[],fromSav||[],N,sc.crashY,sc.crashDrop,(R.savedTotal||0))}));
   const crashS=showCrash?series[series.length-1]:null;
   // 暴落時の不足額＝暴落線が最も落ち込む額（0未満＝教育費を賄えない）
   let minBal=0; if(crashS){ for(let y=0;y<=N;y++){ if(crashS.values[y]<minBal)minBal=crashS.values[y]; } }
