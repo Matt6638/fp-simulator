@@ -681,19 +681,18 @@ function render(R){
     const sim=investSimChart(R,crashKey);
     let crashOpts=''; for(const k in CRASH){ crashOpts+=`<option value="${k}"${k===crashKey?' selected':''}>${CRASH[k].name}（−${Math.round(CRASH[k].drop*100)}%・回復${CRASH[k].recover}年）</option>`; }
     let crashFundOpts=''; FUNDS.filter(f=>f.key!=='cash').forEach(f=>{ crashFundOpts+=`<option value="${f.key}"${f.key===SIM_CRASH_FUND?' selected':''}>${f.name.replace(/（.*）/,'')}</option>`; });
-    html+=`<div class="sec-h" style="margin-top:10px;border-top:2px solid var(--rule);padding-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">運用シミュレーション ─ 同じ積立額を利回りで運用すると<small style="font-weight:400;color:var(--ink-soft);">（過去実績イメージ・将来を保証しません）</small><span style="margin-left:auto;font-weight:400;font-size:11.5px;color:var(--ink);">暴落する銘柄：<select id="crashFund" data-fpt="1" onchange="setCrashFund(this.value)" style="font-size:11.5px;padding:3px 6px;border:1px solid var(--rule);border-radius:6px;color:var(--ink);font-weight:600;">${crashFundOpts}</select> ／ 暴落シナリオ：<select id="simCrash" data-fpt="1" onchange="setSimCrash(this.value)" style="font-size:11.5px;padding:3px 6px;border:1px solid var(--rule);border-radius:6px;color:var(--ink);font-weight:600;">${crashOpts}</select></span></div>`;
-    // 表示する銘柄（チェックでON/OFF）
-    let fundChecks='<span style="color:var(--ink-soft);font-weight:600;margin-right:2px;">表示する銘柄：</span>';
-    FUNDS.forEach(f=>{ fundChecks+=`<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" ${SIM_FUNDS[f.key]?'checked':''} onchange="toggleFund('${f.key}',this.checked)" style="cursor:pointer;"><i style="width:14px;height:3px;background:${f.color};display:inline-block;border-radius:2px;"></i>${f.name}</label>`; });
-    fundChecks+=`<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" ${SIM_FUNDS.crash?'checked':''} onchange="toggleFund('crash',this.checked)" style="cursor:pointer;"><i style="width:14px;height:0;border-top:2px dashed #b5623a;display:inline-block;"></i>暴落線</label>`;
-    html+=`<div style="display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;padding:6px 8px 4px;font-size:11.5px;color:var(--ink);">${fundChecks}</div>`;
+    const emphFund=FUNDS.find(f=>f.key===SIM_CRASH_FUND)||{name:'',color:'#3f6b8c'};
+    const emphName=emphFund.name.replace(/（.*）/,'');
+    html+=`<div class="sec-h" style="margin-top:10px;border-top:2px solid var(--rule);padding-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">運用シミュレーション ─ 現金と、選んだ1銘柄で運用を比較<small style="font-weight:400;color:var(--ink-soft);">（過去実績イメージ・将来を保証しません）</small><span style="margin-left:auto;font-weight:400;font-size:11.5px;color:var(--ink);">比較する銘柄（現金＋）：<select id="crashFund" data-fpt="1" onchange="setCrashFund(this.value)" style="font-size:11.5px;padding:3px 6px;border:1px solid var(--rule);border-radius:6px;color:var(--ink);font-weight:600;">${crashFundOpts}</select> ／ 暴落シナリオ：<select id="simCrash" data-fpt="1" onchange="setSimCrash(this.value)" style="font-size:11.5px;padding:3px 6px;border:1px solid var(--rule);border-radius:6px;color:var(--ink);font-weight:600;">${crashOpts}</select></span></div>`;
+    // 銘柄は「現金＋選んだ1つ」を濃く、他は薄く常時表示。暴落線のみ表示ON/OFF
+    html+=`<div style="display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;padding:6px 8px 4px;font-size:11.5px;color:var(--ink-soft);"><span>濃い線＝<b style="color:var(--ink);"><i style="width:14px;height:3px;background:#8a8470;display:inline-block;border-radius:2px;vertical-align:middle;margin-right:3px;"></i>現金＋<i style="width:14px;height:3px;background:${emphFund.color};display:inline-block;border-radius:2px;vertical-align:middle;margin:0 3px;"></i>${emphName}</b>／薄い線＝その他の銘柄</span><label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;color:var(--ink);"><input type="checkbox" ${SIM_FUNDS.crash?'checked':''} onchange="toggleFund('crash',this.checked)" style="cursor:pointer;"><i style="width:14px;height:0;border-top:2px dashed #b5623a;display:inline-block;"></i>暴落線を表示</label></div>`;
     html+=sim.svg;
     const recYears=(CRASH[crashKey]||{}).recover;
     if(sim.showCrash && sim.shortfall>0){ html+=`<div style="padding:3px 8px 0;"><div class="warn" style="font-size:12px;"><b>${sim.crashName}が入学初年に起きると、${sim.crashFundShort}で運用していても教育資金が最大 約${yen(sim.shortfall)}円 不足します</b>（グラフ赤い部分＝取り崩しリスク）。この暴落は<b>元の水準へ戻るまで過去に約${recYears}年</b>かかっており、入学時期には回復を待てません。使う時期が近いお金は入学1〜2年前までに現金・預金へ移す設計が鉄則です。</div></div>`; }
     else if(sim.showCrash){ html+=`<div style="padding:3px 8px 0;"><div class="info" style="font-size:11.5px;">選んだ暴落（${sim.crashName}）は<b>元の水準へ戻るまで過去に約${recYears}年</b>かかりました。取り崩し期（入学後）に暴落すると回復を待てないため、使う時期が近いお金は入学1〜2年前までに現金・預金へ移す設計が安全です。</div></div>`; }
     let leg2='<div class="legend">';
     sim.scen.forEach(sc=>{ leg2+=`<span><i style="background:${sc.color};${sc.dash?'height:0;border-top:2px dashed '+sc.color+';border-radius:0;':''}"></i>${sc.name}</span>`; });
-    leg2+='<span>棒＝その年の教育費（残高線と同じ金額目盛り）／各線＝毎月同額を積立て運用した残高（教育費を差引後）・縦＝万円・右端＝終了時残高。<b>各線は在学中（取り崩し期）も同じ利回りで運用し続けた前提</b>です。濃い線＝選んだ「暴落する銘柄」（＋現金）、薄い線＝その他の銘柄</span></div>';
+    leg2+='<span>棒＝その年の教育費（残高線と同じ金額目盛り）／各線＝毎月同額を積立て運用した残高（教育費を差引後）・縦＝万円・右端＝終了時残高。<b>在学中（取り崩し期）も残額は同じ利回りで運用し続けた前提</b>です（毎年 残高×(1+利回り) の後に学費を差引）。濃い線＝<b>現金＋選んだ1銘柄</b>、薄い線＝その他の銘柄</span></div>';
     html+=leg2;
     html+=`<div class="hint" style="padding:2px 6px 8px;">※利回りは代表的な指数の長期の過去実績をもとにした概算で、将来の成果を保証しません。S&P500=約10%・全世界株(MSCI ACWI)=約8%（いずれも現地通貨ベースの長期平均）、日本株式=約5%（東証株価指数TOPIX 配当込みの長期実績：過去20年 約4.7%／過去10年 約7.0%〈myINDEX 2026年6月末〉をもとに保守的に設定）。破線は選んだ暴落が入学初年に起きた例。現金(0%)は運用しない場合＝教育費終了時にほぼ使い切り。運用は増える一方、入学直前の暴落は取り崩しリスクになります。</div>`;
   }
@@ -798,7 +797,7 @@ function investSimChart(R,crashKey){
   const crashFundShort=crashFund.name.replace(/（.*）/,'');
   // チェックされた銘柄のみを線に。暴落線は「暴落する銘柄」で選んだ銘柄ベース（別チェック）
   const scen=[];
-  FUNDS.forEach(f=>{ if(SIM_FUNDS[f.key]) scen.push({key:f.key,name:f.name,rate:f.rate,color:f.color}); });
+  FUNDS.forEach(f=>{ scen.push({key:f.key,name:f.name,rate:f.rate,color:f.color}); });  // 全銘柄を常時表示（現金＋選んだ1つを濃く、他は薄く）
   const showCrash=!!SIM_FUNDS.crash;
   if(showCrash) scen.push({key:'crash',name:crashFundShort+'＋'+cr.name+'が入学初年',rate:crashFund.rate,color:'#b5623a',crashY:firstEnterYears,crashDrop:cr.drop,dash:true});
   // 選んだ銘柄（＝暴落する銘柄）とその暴落線・現金は濃く、それ以外は薄く表示
