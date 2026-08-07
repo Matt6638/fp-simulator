@@ -29,6 +29,15 @@
   .deck-close:hover{background:var(--brass-deep);}
   .fpbtn-input{background:var(--brass)!important;color:#fff!important;border-color:var(--brass-deep)!important;font-weight:700;}
   .fpbtn-input.on{background:var(--brass-deep)!important;}
+  /* 入力FAB（右下の＋ボタン＝買い物リスト風）。印刷では非表示 */
+  #btnInput{display:none;}  /* サイドバーの入力ボタンはFABに集約 */
+  .fab-input{position:fixed;right:22px;bottom:22px;width:60px;height:60px;border-radius:50%;background:var(--brass);color:#fff;border:1px solid var(--brass-deep);cursor:pointer;box-shadow:0 10px 26px -8px rgba(0,0,0,.55);z-index:45;display:flex;align-items:center;justify-content:center;padding:0;transition:transform .22s ease,background .2s;}
+  .fab-input .fab-plus{font-size:32px;line-height:1;font-weight:400;transition:transform .22s ease;}
+  .fab-input::after{content:"入力";position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--brass-deep);font-weight:700;letter-spacing:.04em;}
+  .fab-input:hover{background:var(--brass-deep);}
+  .fab-input.on{background:var(--brass-deep);}
+  .fab-input.on .fab-plus{transform:rotate(45deg);}  /* 開いている間は×に */
+  @media print{.fab-input{display:none!important;}}
   .deck-head{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:5px 12px;border-bottom:1px solid var(--rule-soft);}
   .deck-head .no{font-family:var(--mono);font-size:11px;color:var(--brass);}
   .deck-head b{font-family:var(--mincho);font-size:14px;font-weight:600;letter-spacing:.03em;}
@@ -266,7 +275,7 @@
       <div class="icol icol-people">
         <div class="ihead">
           <span class="grp ginline">対象者</span>
-          <span class="parent-ages">父<input type="text" inputmode="decimal" id="fatherAge" value="" placeholder="40" step="1" min="18" max="80"><em>歳</em>母<input type="text" inputmode="decimal" id="motherAge" value="" placeholder="38" step="1" min="18" max="80"><em>歳</em></span>
+          <span class="parent-ages">父<input type="text" inputmode="decimal" id="fatherAge" value="" placeholder="" step="1" min="18" max="80"><em>歳</em>母<input type="text" inputmode="decimal" id="motherAge" value="" placeholder="" step="1" min="18" max="80"><em>歳</em></span>
         </div>
         <table class="itbl">
           <thead><tr><th>子</th><th>年齢</th><th>進路（通学形態）</th><th>奨学金/月</th><th>教育貯蓄</th><th></th></tr></thead>
@@ -305,6 +314,9 @@
     </div>
   </div>
 </section>
+
+<!-- 入力FAB（右下・買い物リスト風の＋。印刷時は非表示） -->
+<button type="button" class="fab-input" id="fabInput" onclick="toggleInput()" aria-label="入力を開く" title="入力"><span class="fab-plus">＋</span></button>
 
 </main>
 </div>
@@ -377,7 +389,7 @@ function addChild(data){
   }
   tr.innerHTML=`
     <td class="tobj"><b>子</b></td>
-    <td><input type="text" inputmode="text" class="c-age" value="${data.age!=null?data.age:''}" placeholder="10" step="1" min="-3" max="30" title="未出生の子はマイナス（例 -1＝来年出産予定）"></td>
+    <td><input type="text" inputmode="text" class="c-age" value="${data.age!=null?data.age:''}" placeholder="" step="1" min="-15" max="30" title="未出生の子はマイナス（例 -2＝2年後に出産予定→積立期間は18+2=20年）"></td>
     <td><select class="c-plan">${opts}</select></td>
     <td><input type="text" inputmode="numeric" class="yen c-scholar" value="" placeholder="0"></td>
     <td><input type="text" inputmode="numeric" class="yen c-saved" value="" placeholder="0"></td>
@@ -483,12 +495,11 @@ let SIM_CRASH='lehman';   // 運用シミュレーションの暴落シナリオ
 // 銘柄カタログ（チェックで表示ON/OFF）
 const FUNDS=[
   {key:'cash',  name:'現金 0%',             rate:0,    color:'#8a8470'},
-  {key:'jp',    name:'日本株式（過去約6%）',  rate:0.06, color:'#2f8c8c'},
+  {key:'jp',    name:'日本株式（過去約5%）',  rate:0.05, color:'#2f8c8c'},
   {key:'world', name:'全世界株（過去約8%）',  rate:0.08, color:'#6b8c3f'},
   {key:'sp500', name:'S&P500（過去約10%）',   rate:0.10, color:'#3f6b8c'},
-  {key:'nasdaq',name:'NASDAQ100（過去約14%）',rate:0.14, color:'#8c4f6b'},
 ];
-let SIM_FUNDS={cash:true,jp:true,world:true,sp500:true,nasdaq:true,crash:true}; // 表示中の銘柄＋暴落線
+let SIM_FUNDS={cash:true,jp:true,world:true,sp500:true,crash:true}; // 表示中の銘柄＋暴落線
 function rerenderKeepScroll(){ // 再描画してもスクロール位置を保持（上へジャンプさせない）
   const sc=document.querySelector('.main'); const st=sc?sc.scrollTop:0;
   simulate();
@@ -620,7 +631,7 @@ function render(R){
   html+=`</div><div class="rcol">`;
   html+=`<div class="sec-h">お子さまごとの内訳（総費用−奨学金−在学中払い＝積立で用意）</div>`;
   html+=`<div style="padding:6px 4px 4px;overflow-x:auto;"><table class="tbl"><thead><tr><th>子</th><th>進路</th><th>総費用</th><th>−奨学金</th><th>−在学中</th><th>積立で用意</th><th>期間</th><th>毎月</th></tr></thead><tbody>`;
-  results.forEach((r,i)=>{html+=`<tr><td>${i+1}（${r.age}歳）</td><td>${r.co.name}${r.away?'・下宿':'・自宅'}</td><td>${yen(r.totalCost)}</td><td>${r.scholarTotal?('-'+yen(r.scholarTotal)):'—'}</td><td>${r.zaigakuTotal?('-'+yen(r.zaigakuTotal)):'—'}</td><td>${yen(r.presaveTarget)}</td><td>${r.yearsToSave>0?(r.yearsToSave+'年'):'—'}</td><td><b>${r.monthly!=null?(yen(r.monthly)):'—'}</b></td></tr>`;});
+  results.forEach((r,i)=>{html+=`<tr><td>${i+1}（${r.age>=0?(r.age+'歳'):((-r.age)+'年後 誕生予定')}）</td><td>${r.co.name}${r.away?'・下宿':'・自宅'}</td><td>${yen(r.totalCost)}</td><td>${r.scholarTotal?('-'+yen(r.scholarTotal)):'—'}</td><td>${r.zaigakuTotal?('-'+yen(r.zaigakuTotal)):'—'}</td><td>${yen(r.presaveTarget)}</td><td>${r.yearsToSave>0?(r.yearsToSave+'年'):'—'}</td><td><b>${r.monthly!=null?(yen(r.monthly)):'—'}</b></td></tr>`;});
   // 合計欄
   const tTotal=results.reduce((s,r)=>s+r.totalCost,0), tSch=results.reduce((s,r)=>s+r.scholarTotal,0), tZai=results.reduce((s,r)=>s+r.zaigakuTotal,0), tPre=results.reduce((s,r)=>s+r.presaveTarget,0), tMon=results.reduce((s,r)=>s+(r.monthly||0),0);
   html+=`<tr class="ttl-row" style="border-top:2px solid var(--rule);font-weight:700;background:var(--paper);"><td>合計</td><td>お子さま${results.length}人</td><td>${yen(tTotal)}</td><td>${tSch?('-'+yen(tSch)):'—'}</td><td>${tZai?('-'+yen(tZai)):'—'}</td><td>${yen(tPre)}</td><td>—</td><td><b>${yen(tMon)}</b></td></tr>`;
@@ -666,7 +677,7 @@ function render(R){
     sim.scen.forEach(sc=>{ leg2+=`<span><i style="background:${sc.color};${sc.dash?'height:0;border-top:2px dashed '+sc.color+';border-radius:0;':''}"></i>${sc.name}</span>`; });
     leg2+='<span>棒＝その年の教育費（残高線と同じ金額目盛り）／各線＝毎月同額を積立て運用した残高（教育費を差引後）・縦＝万円・右端＝終了時残高</span></div>';
     html+=leg2;
-    html+=`<div class="hint" style="padding:2px 6px 8px;">※利回りは代表的な指数の過去実績イメージ（円ベース・概算）で将来の成果を保証しません。破線は選んだ暴落が入学初年に起きた例。現金(0%)は運用しない場合＝教育費終了時にほぼ使い切り。運用は増える一方、入学直前の暴落は取り崩しリスクになります。</div>`;
+    html+=`<div class="hint" style="padding:2px 6px 8px;">※利回りは代表的な指数の長期の過去実績をもとにした概算で、将来の成果を保証しません。S&P500=約10%・全世界株(MSCI ACWI)=約8%（いずれも現地通貨ベースの長期平均）、日本株式=約5%（東証株価指数TOPIX 配当込みの長期実績：過去20年 約4.7%／過去10年 約7.0%〈myINDEX 2026年6月末〉をもとに保守的に設定）。破線は選んだ暴落が入学初年に起きた例。現金(0%)は運用しない場合＝教育費終了時にほぼ使い切り。運用は増える一方、入学直前の暴落は取り崩しリスクになります。</div>`;
   }
 
   html+='</div>';
@@ -881,8 +892,8 @@ buildDots('inScroll','iDots');
 window.addEventListener('resize',()=>{buildDots('inScroll','iDots');buildDots('outBody','rDots');});
 
 // 入力ドロワー：普段は非表示。「入力」ボタンで表示、「完了」で閉じる
-function openInput(){var d=document.querySelector('.deck-input');if(d)d.classList.add('open');var b=document.getElementById('btnInput');if(b)b.classList.add('on');}
-function closeInput(){var d=document.querySelector('.deck-input');if(d)d.classList.remove('open');var b=document.getElementById('btnInput');if(b)b.classList.remove('on');if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}
+function openInput(){var d=document.querySelector('.deck-input');if(d)d.classList.add('open');['btnInput','fabInput'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.add('on');});}
+function closeInput(){var d=document.querySelector('.deck-input');if(d)d.classList.remove('open');['btnInput','fabInput'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.remove('on');});if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}
 function toggleInput(){var d=document.querySelector('.deck-input');if(d&&d.classList.contains('open'))closeInput();else openInput();}
 window.openInput=openInput;window.closeInput=closeInput;window.toggleInput=toggleInput;
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeInput();});
