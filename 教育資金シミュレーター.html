@@ -457,6 +457,10 @@ function investBalance(rate,monthly,yearly,contribEnd,N,crashYear,crashDrop){
   return b;
 }
 
+let SIM_CRASH='lehman';   // 運用シミュレーションの暴落シナリオ（チャート横で切替）
+function setSimCrash(v){ SIM_CRASH=v; simulate(); }
+window.setSimCrash=setSimCrash;
+
 let LAST=null;
 function simulate(){
   const rate=(parseFloat(document.getElementById('rate').value)||0)/100;
@@ -592,26 +596,18 @@ function render(R){
     html+=`<div class="rgrid2"><div class="rcol">`+nisaChartSVG(nisa)+`</div><div class="rcol"><div style="padding:4px;"><div class="result-cards" style="padding:0;"><div class="rc"><div class="k">入学時に暴落すると</div><div class="v" style="font-size:16px;color:var(--loss);">${yen(A)} → ${yen(crashVal)}<small>円</small></div></div><div class="rc"><div class="k">回復まで</div><div class="v" style="font-size:16px;">約${s.recover}<small>年</small></div></div></div><div class="warn" style="margin-top:6px;"><b>使う時期が決まったお金は投資に不向き：</b>直前の暴落は回復を待てず安値売りに。入学1〜2年前までに現金へ移す設計を。</div></div></div></div>`;
   }
 
-  // 運用シミュレーション（結果の下・スクロール）：同じ積立額を利回り別に運用した残高＋S&P500暴落
+  // 運用シミュレーション（結果の下・スクロール）：利回り別の残高を縦に高い折れ線で／暴落シナリオはチャート横で切替
   {
-    const totalM=results.reduce((s,r)=>s+(r.monthly||0),0);
-    const contribEnd=(finishMode==='first')?firstEnterYears:eduEndYears;
-    const ENTER2=18; let maxY=eduEndYears||0; results.forEach(r=>maxY=Math.max(maxY,(ENTER2-r.age)+r.co.years)); const Nsim=Math.max(maxY,12);
-    const scen=[
-      {name:'現金 0%',rate:0,color:'#8a8470'},
-      {name:'全世界株 (過去約8%)',rate:0.08,color:'#6b8c3f'},
-      {name:'S&P500 (過去約10%)',rate:0.10,color:'#3f6b8c'},
-      {name:'NASDAQ100 (過去約14%)',rate:0.14,color:'#8c4f6b'},
-      {name:'S&P500＋入学初年に暴落',rate:0.10,color:'#b5623a',crashY:firstEnterYears,crashDrop:0.55,dash:true}
-    ];
-    const lines=scen.map(sc=>({color:sc.color,dash:sc.dash,name:sc.name,values:investBalance(sc.rate,totalM,yearly,contribEnd,Nsim,sc.crashY,sc.crashDrop)}));
-    html+=`<div class="sec-h" style="margin-top:10px;border-top:2px solid var(--rule);padding-top:12px;">運用シミュレーション ─ 同じ積立額を利回りで運用すると（過去実績イメージ・将来を保証しません）</div>`;
-    html+=familyTimelineSVG(R,{lines});
+    const crashKey=SIM_CRASH||'lehman';
+    const sim=investSimChart(R,crashKey);
+    let crashOpts=''; for(const k in CRASH){ crashOpts+=`<option value="${k}"${k===crashKey?' selected':''}>${CRASH[k].name}（−${Math.round(CRASH[k].drop*100)}%）</option>`; }
+    html+=`<div class="sec-h" style="margin-top:10px;border-top:2px solid var(--rule);padding-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">運用シミュレーション ─ 同じ積立額を利回りで運用すると<small style="font-weight:400;color:var(--ink-soft);">（過去実績イメージ・将来を保証しません）</small><span style="margin-left:auto;font-weight:400;font-size:11.5px;color:var(--ink);">暴落シナリオ：<select id="simCrash" onchange="setSimCrash(this.value)" style="font-size:11.5px;padding:3px 6px;border:1px solid var(--rule);border-radius:6px;">${crashOpts}</select></span></div>`;
+    html+=sim.svg;
     let leg2='<div class="legend">';
-    scen.forEach(sc=>{ leg2+=`<span><i style="background:${sc.color};${sc.dash?'height:0;border-top:2px dashed '+sc.color+';border-radius:0;':''}"></i>${sc.name}</span>`; });
-    leg2+='<span>各線＝毎月同額を積立て運用した残高（教育費を差引後）。右端＝終了時残高</span></div>';
+    sim.scen.forEach(sc=>{ leg2+=`<span><i style="background:${sc.color};${sc.dash?'height:0;border-top:2px dashed '+sc.color+';border-radius:0;':''}"></i>${sc.name}</span>`; });
+    leg2+='<span>各線＝毎月同額を積立て運用した残高（教育費を差引後）。縦＝金額(万円)・右端＝終了時残高</span></div>';
     html+=leg2;
-    html+=`<div class="hint" style="padding:2px 6px 8px;">※利回りは代表的な指数の過去実績イメージ（円ベース・概算）で将来の成果を保証しません。暴落線はS&P500級の下落（−55%）が入学初年に起きた例。現金(0%)は運用しない場合で、教育費終了時にほぼ使い切ります。運用は増える一方、入学直前の暴落は取り崩しリスクになります。</div>`;
+    html+=`<div class="hint" style="padding:2px 6px 8px;">※利回りは代表的な指数の過去実績イメージ（円ベース・概算）で将来の成果を保証しません。破線は選んだ暴落が入学初年に起きた例。現金(0%)は運用しない場合＝教育費終了時にほぼ使い切り。運用は増える一方、入学直前の暴落は取り崩しリスクになります。</div>`;
   }
 
   html+='</div>';
@@ -713,6 +709,37 @@ function familyTimelineSVG(R,opts){
   });
   g+=`</svg>`;
   return `<div class="chartwrap" style="padding:4px 10px;">${g}</div>`;
+}
+
+/* 運用シミュレーション専用チャート：縦に高い折れ線で利回り別の残高を表示（Y軸=万円、子の入学マーカー付き） */
+function investSimChart(R,crashKey){
+  const {results,yearly,eduEndYears,firstEnterYears,finishMode}=R;
+  const ENTER=18; let maxY=eduEndYears||0; results.forEach(r=>maxY=Math.max(maxY,(ENTER-r.age)+r.co.years)); const N=Math.max(maxY,12);
+  const totalM=results.reduce((s,r)=>s+(r.monthly||0),0);
+  const contribEnd=(finishMode==='first')?firstEnterYears:eduEndYears;
+  const cr=CRASH[crashKey]||CRASH.lehman;
+  const scen=[
+    {name:'現金 0%',rate:0,color:'#8a8470'},
+    {name:'全世界株 (過去約8%)',rate:0.08,color:'#6b8c3f'},
+    {name:'S&P500 (過去約10%)',rate:0.10,color:'#3f6b8c'},
+    {name:'NASDAQ100 (過去約14%)',rate:0.14,color:'#8c4f6b'},
+    {name:'S&P500＋'+cr.name+'が入学初年',rate:0.10,color:'#b5623a',crashY:firstEnterYears,crashDrop:cr.drop,dash:true}
+  ];
+  const series=scen.map(sc=>({name:sc.name,color:sc.color,dash:sc.dash,values:investBalance(sc.rate,totalM,yearly,contribEnd,N,sc.crashY,sc.crashDrop)}));
+  let vmax=1,vmin=0; series.forEach(s=>s.values.forEach(v=>{ if(v>vmax)vmax=v; if(v<vmin)vmin=v; }));
+  const man=v=>Math.round(v/10000);
+  const W=1000,padL=54,padR=70,padT=12,plotH=210,axisH=26;
+  const H=padT+plotH+axisH;
+  const X=y=>padL+(y/N)*(W-padL-padR);
+  const Y=v=>padT+plotH-((v-vmin)/(vmax-vmin))*plotH;
+  let g=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">`;
+  for(let i=0;i<=4;i++){ const v=vmin+(vmax-vmin)*i/4, yy=Y(v); g+=`<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${yy.toFixed(1)}" stroke="#f0ebde"/>`; g+=`<text x="${(padL-5).toFixed(1)}" y="${(yy+3).toFixed(1)}" font-size="9" fill="#8a8470" text-anchor="end">${man(v)}万</text>`; }
+  const y0=Y(0); g+=`<line x1="${padL}" y1="${y0.toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${y0.toFixed(1)}" stroke="#c9bfa6"/>`;
+  for(let y=0;y<=N;y+=2){ g+=`<text x="${X(y).toFixed(1)}" y="${(H-8).toFixed(1)}" font-size="9" fill="#8a8470" text-anchor="middle">${y}年</text>`; }
+  results.forEach((r,i)=>{ const ex=X(ENTER-r.age); g+=`<line x1="${ex.toFixed(1)}" y1="${padT}" x2="${ex.toFixed(1)}" y2="${(padT+plotH).toFixed(1)}" stroke="#d8cfb8" stroke-dasharray="2 3"/>`; g+=`<text x="${(ex+2).toFixed(1)}" y="${(padT+9).toFixed(1)}" font-size="8" fill="#a08a6a">子${i+1}入学</text>`; });
+  series.forEach(s=>{ let d=''; for(let y=0;y<=N;y++){ d+=(y===0?'M':'L')+X(y).toFixed(1)+' '+Y(s.values[y]).toFixed(1)+' '; } g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.1"${s.dash?' stroke-dasharray="5 3"':''}/>`; g+=`<text x="${(W-padR+3).toFixed(1)}" y="${(Y(s.values[N])+3).toFixed(1)}" font-size="8.5" fill="${s.color}" font-weight="700">${man(s.values[N])}万</text>`; });
+  g+=`</svg>`;
+  return {svg:`<div class="chartwrap" style="padding:2px 8px;">${g}</div>`, scen};
 }
 
 function chartSVG(R){
