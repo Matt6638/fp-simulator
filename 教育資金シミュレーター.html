@@ -302,14 +302,11 @@
           <div class="field ff"><label class="lab">生活費(月)<small style="font-weight:400;color:var(--ink-soft);">※既定10万</small></label><input type="text" inputmode="numeric" class="yen" id="livingM" value="" placeholder="100,000"></div>
           <div class="field ff"><label class="lab">敷金・礼金等<small style="font-weight:400;color:var(--ink-soft);">※既定40万(初年度)</small></label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
         </div>
-        <div class="grp gtight" style="margin-top:10px;">奨学金（貸与型）</div>
-        <div class="fieldwrap">
-          <div class="field ff"><label class="lab">卒業後の返済/月<small style="font-weight:400;color:var(--ink-soft);">※奨学金の入力で有効（既定1.5万）</small></label><input type="text" inputmode="numeric" class="yen" id="repayMonthly" value="" placeholder="15,000"></div>
-          <div class="field ff"><label class="lab">奨学金利率(年%)<small style="font-weight:400;color:var(--ink-soft);">※JASSO第二種 見直方式相当</small></label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="1.9" step="0.1"></div>
-        </div>
-        <details class="advbox" style="margin-top:8px;">
-          <summary>＋ 詳細（利回り・開始遅延の比較）</summary>
+        <details class="advbox" style="margin-top:10px;">
+          <summary>＋ 詳細（奨学金の返済・利率／利回り・開始遅延）</summary>
           <div class="fieldwrap" style="margin-top:6px;">
+            <div class="field ff"><label class="lab">奨学金の返済/月<small style="font-weight:400;color:var(--ink-soft);">※奨学金の入力で有効（既定1.5万）</small></label><input type="text" inputmode="numeric" class="yen" id="repayMonthly" value="" placeholder="15,000"></div>
+            <div class="field ff"><label class="lab">奨学金利率(年%)<small style="font-weight:400;color:var(--ink-soft);">※奨学金入力で有効・JASSO第二種見直方式相当</small></label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="1.9" step="0.1"></div>
             <div class="field ff"><label class="lab">利回り(年%)<small style="font-weight:400;color:var(--ink-soft);">※未入力=0%</small></label><input type="text" inputmode="decimal" id="rate" value="" placeholder="0" step="0.1"></div>
             <div class="field ff"><label class="lab">開始遅延の比較（5年目を変更）</label><select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
           </div>
@@ -339,6 +336,7 @@ function formatYen(el){
   try{el.setSelectionRange(pos,pos);}catch(e){}
 }
 function attachAmount(el){
+  if(!el||el.dataset.amt)return; el.dataset.amt='1';   // 二重付与を防止
   let composing=false;
   el.addEventListener('compositionstart',()=>{composing=true;});
   el.addEventListener('compositionend',()=>{composing=false;formatYen(el);}); // 全角(IME)確定時に半角化＋整形
@@ -426,7 +424,7 @@ function applyFirstToAll(){
   setTimeout(()=>{btn.style.background='';btn.style.color='';btn.style.borderStyle='';btn.style.borderColor='';btn.textContent='お子さま1の内容を以降にコピー（年齢は除く）';},2000);
 }
 document.getElementById('applyFirst').addEventListener('click',applyFirstToAll);
-document.querySelectorAll('.field .yen').forEach(attachAmount);
+document.querySelectorAll('input.yen').forEach(attachAmount);
 ['fatherAge','motherAge'].forEach(id=>attachClear(document.getElementById(id)));
 addChild({course:'shiri',live:'away'});
 addChild({course:'shiri',live:'away'});
@@ -511,18 +509,22 @@ function inputReady(){
   const anyKid=[].some.call(document.querySelectorAll('.c-age'),a=>String(a.value).trim()!=='');
   return parent && anyKid;
 }
-// 奨学金が入っていれば「卒業後の返済/月」を既定1.5万＋黒字（有効）に、なければ薄字（計算に反映されない＝奨学金0のため）
+// 奨学金が入っていれば「返済/月・利率」を既定(1.5万/1.9%)＋黒字（有効）に、なければ薄字（計算に反映されない＝奨学金0のため）
 function syncRepayField(){
   const anyScholar=[].some.call(document.querySelectorAll('.c-scholar'),e=>num(e)>0);
-  const rp=document.getElementById('repayMonthly'); if(!rp)return;
-  if(anyScholar){ if(String(rp.value).trim()==='') rp.value='15,000'; rp.setAttribute('data-fpt','1'); }
-  else { rp.removeAttribute('data-fpt'); }
+  const rp=document.getElementById('repayMonthly'), lr=document.getElementById('loanRate');
+  if(anyScholar){ if(rp){ if(String(rp.value).trim()==='') rp.value='15,000'; rp.setAttribute('data-fpt','1'); } if(lr){ if(String(lr.value).trim()==='') lr.value='1.9'; lr.setAttribute('data-fpt','1'); } }
+  else { if(rp)rp.removeAttribute('data-fpt'); if(lr)lr.removeAttribute('data-fpt'); }
 }
-// 下宿の費用欄は「下宿のお子さまがいる場合のみ」表示（自宅のみなら非表示）
+// 下宿の費用欄は「下宿のお子さまがいる場合のみ」表示（自宅のみなら非表示）。下宿なら既定値を黒字（有効）で表示
 function syncLodging(){
   const anyAway=[].some.call(document.querySelectorAll('.c-plan'),s=>String(s.value).split('|')[1]==='away');
   const g=document.getElementById('lodgingGrp'), w=document.getElementById('lodgingWrap');
   const d=anyAway?'':'none'; if(g)g.style.display=d; if(w)w.style.display=d;
+  ['rentM','livingM','initCost'].forEach(id=>{ const e=document.getElementById(id); if(!e)return;
+    if(anyAway){ if(String(e.value).trim()==='') e.value=e.placeholder; e.setAttribute('data-fpt','1'); }
+    else { e.removeAttribute('data-fpt'); }
+  });
 }
 function simulate(){
   syncLodging(); syncRepayField();
