@@ -38,6 +38,8 @@
   .fab-input.on{background:var(--brass-deep);}
   .fab-input.on .fab-plus{transform:rotate(45deg);}  /* 開いている間は×に */
   @media print{.fab-input{display:none!important;}}
+  .build-stamp{margin-top:auto;padding-top:8px;font-size:8.5px;line-height:1.35;color:var(--brass-deep);opacity:.6;text-align:center;white-space:pre-line;}
+  @media print{.build-stamp{display:none!important;}}
   .deck-head{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:5px 12px;border-bottom:1px solid var(--rule-soft);}
   .deck-head .no{font-family:var(--mono);font-size:11px;color:var(--brass);}
   .deck-head b{font-family:var(--mincho);font-size:14px;font-weight:600;letter-spacing:.03em;}
@@ -255,6 +257,7 @@
   <button type="button" class="fpbtn fpbtn-pdf" onclick="FP.printPDF()">PDF・共有</button>
   <input type="file" id="fpLoadInput" accept=".json,application/json" style="display:none;">
 </div>
+<div class="build-stamp" id="buildStamp" title="表示中のファイルの更新時刻。ハードリロード後にこの時刻が新しくなっていれば最新版です。"></div>
 </aside>
 
 <main class="main">
@@ -923,6 +926,8 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeInput()
   sc.addEventListener('focusout',()=>{ setTimeout(()=>{ if(!sc.contains(document.activeElement)) scheduleHide(); },0); });
 })();
 
+// 更新時刻スタンプ（表示中ファイルのLast-Modified＝キャッシュ確認用）
+(function(){var b=document.getElementById('buildStamp');if(!b)return;var lm=document.lastModified||'';var m=lm.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})[ ,]+(\d{1,2}):(\d{2})/);b.textContent=m?('更新\n'+m[1]+'/'+m[2]+' '+m[4]+':'+m[5]):('更新\n'+lm);})();
 ready=true;
 simulate(); // 初期表示
 </script>
