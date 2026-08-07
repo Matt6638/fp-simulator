@@ -590,7 +590,9 @@ function familyTimelineSVG(R){
     let run=0; for(let y=0;y<=N;y++){run+=delta[y]; bal[y]=Math.max(0,run);}
   }
   const balMax=Math.max.apply(null,bal.concat([1]));
-  let peakY=0; for(let y=0;y<=N;y++){ if(bal[y]>bal[peakY])peakY=y; }
+  // 貯め終わりドット＝最も早く入学する子の「貯め終わり年（入学の◯年前）」＝ min(yearsToSave)
+  let peakY=results.length?Math.round(Math.min.apply(null,results.map(r=>r.yearsToSave||0))):0;
+  peakY=Math.max(0,Math.min(peakY,N));
   const man=v=>Math.round(v/10000);
   const col=i=>CHILD_COLORS[i%CHILD_COLORS.length];
 
@@ -620,7 +622,7 @@ function familyTimelineSVG(R){
   { const px=X(peakY), py=base-(bal[peakY]/balMax)*plotH;
     g+=`<line x1="${px.toFixed(1)}" y1="6" x2="${px.toFixed(1)}" y2="${(H-axisH).toFixed(1)}" stroke="#2f6b4f" stroke-width="1.1" stroke-dasharray="3 3" opacity="0.6"/>`;
     g+=`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="3" fill="#2f6b4f"/>`;
-    g+=`<text x="${(px+5).toFixed(1)}" y="${(py-2).toFixed(1)}" font-size="9" fill="#2f6b4f" font-weight="700">貯め終わり（残高ピーク）${man(bal[peakY])}万</text>`; }
+    g+=`<text x="${(px+5).toFixed(1)}" y="${(py-2).toFixed(1)}" font-size="9" fill="#2f6b4f" font-weight="700">貯め終わり ${man(bal[peakY])}万</text>`; }
   g+=`<line x1="${padL}" y1="${(base+1).toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${(base+1).toFixed(1)}" stroke="#d8cfb8"/>`;
   // 各人の行（年齢＋子は在学バーを子色で）
   persons.forEach((p,idx)=>{
