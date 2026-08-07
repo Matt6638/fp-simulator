@@ -154,8 +154,9 @@
   .itbl tbody tr:last-child td{border-bottom:none;}
   .itbl .tobj{font-size:11.5px;font-weight:600;color:var(--ink-soft);white-space:nowrap;padding-right:8px;}
   .itbl input.c-age,.itbl input#fatherAge,.itbl input#motherAge{width:56px;text-align:right;font-family:var(--mono);}
-  .itbl input.yen{width:82px;}
+  .itbl input.yen{width:104px;}
   .itbl select.c-plan{width:100%;min-width:132px;}
+  .itbl select.c-scholar{width:auto;min-width:118px;max-width:180px;}
   .itbl .dash{color:#cfc9b6;text-align:center;font-family:var(--mono);}
   .itbl .delcell{width:1%;white-space:nowrap;text-align:center;}
   .itbl .del{font-size:12px;color:var(--loss);background:none;border:1px solid #e0c3c3;border-radius:5px;padding:2px 7px;cursor:pointer;line-height:1;}
@@ -343,7 +344,7 @@ function attachAmount(el){
   el.addEventListener('input',e=>{if(composing||e.isComposing)return;formatYen(el);}); // 変換中は整形しない
   // カーソルを合わせると既存の金額をクリア（前の値はプレースホルダに退避）。何も入力せず離れたら元に戻す。
   el.addEventListener('focus',function(){this.dataset.prev=this.value;if(this.value)this.placeholder=this.value;this.value='';});
-  el.addEventListener('blur',function(){if(this.value===''&&this.dataset.prev)this.value=this.dataset.prev;});
+  el.addEventListener('blur',function(){ if(this.value===''&&this.dataset.prev){this.value=this.dataset.prev;} else if(String(this.value).trim()!==''){formatYen(this);} }); // 離れる時も必ずコンマ整形（保険）
 }
 
 /* ===== 進路プリセット（親負担・入学金込み総額の目安） ===== */
@@ -376,6 +377,20 @@ function attachClear(el){
   el.addEventListener('blur',function(){if(this.value===''&&this.dataset.prev)this.value=this.dataset.prev;});
 }
 
+/* 奨学金（貸与）月額の選択肢＝日本学生支援機構(JASSO)の貸与月額の目安 */
+const SCHOLAR_MENU=[
+  {v:0,     t:'なし'},
+  {v:20000, t:'2万円'},
+  {v:30000, t:'3万円'},
+  {v:40000, t:'4万円'},
+  {v:50000, t:'5万円'},
+  {v:64000, t:'6.4万円（私立・第一種上限）'},
+  {v:80000, t:'8万円'},
+  {v:100000,t:'10万円'},
+  {v:120000,t:'12万円（第二種上限）'}
+];
+const SCHOLAR_OPTS=SCHOLAR_MENU.map(o=>`<option value="${o.v}"${o.v===0?' selected':''}>${o.t}</option>`).join('');
+
 /* ===== 子リスト管理 ===== */
 function addChild(data){
   data=data||{};
@@ -393,7 +408,7 @@ function addChild(data){
     <td class="tobj"><b>子</b></td>
     <td><input type="text" inputmode="text" class="c-age" value="${data.age!=null?data.age:''}" placeholder="" step="1" min="-15" max="30" title="未出生の子はマイナス（例 -2＝2年後に出産予定→積立期間は18+2=20年）"></td>
     <td><select class="c-plan">${opts}</select></td>
-    <td><input type="text" inputmode="numeric" class="yen c-scholar" value="" placeholder="0"></td>
+    <td><select class="c-scholar" title="日本学生支援機構(JASSO)の貸与月額の目安から選択">${SCHOLAR_OPTS}</select></td>
     <td><input type="text" inputmode="numeric" class="yen c-saved" value="" placeholder="0"></td>
     <td class="delcell"><button class="del" type="button" title="削除">✕</button></td>
   `;
