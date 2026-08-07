@@ -278,7 +278,7 @@
         <div class="fieldwrap">
           <div class="field ff"><label class="lab">利回り(年%)</label><input type="text" inputmode="decimal" id="rate" value="" placeholder="0.5" step="0.1"></div>
           <div class="field ff"><label class="lab">在学中の月額(子1)</label><input type="text" inputmode="numeric" class="yen" id="zaigaku" value="" placeholder="0"></div>
-          <div class="field ff"><label class="lab">完了時期</label><select id="finishTiming"><option value="1" selected>入学1年前まで</option><option value="0">入学時まで</option><option value="2">入学2年前まで</option></select></div>
+          <div class="field ff"><label class="lab">積立の方式</label><select id="finishTiming"><option value="each" selected>各年度まで積立（都度）</option><option value="first">入学初年までに完了（理想）</option></select></div>
         </div>
         <details class="advbox">
           <summary>＋ 詳細入力（開始遅延・奨学金・下宿）<small>※未入力なら既定値で計算</small></summary>
@@ -372,7 +372,7 @@ function addChild(data){
   }
   tr.innerHTML=`
     <td class="tobj"><b>子</b></td>
-    <td><input type="text" inputmode="decimal" class="c-age" value="${data.age!=null?data.age:''}" placeholder="10" step="1" min="0" max="30"></td>
+    <td><input type="text" inputmode="text" class="c-age" value="${data.age!=null?data.age:''}" placeholder="10" step="1" min="-3" max="30" title="未出生の子はマイナス（例 -1＝来年出産予定）"></td>
     <td><select class="c-plan">${opts}</select></td>
     <td><input type="text" inputmode="numeric" class="yen c-scholar" value="" placeholder="0"></td>
     <td><input type="text" inputmode="numeric" class="yen c-saved" value="" placeholder="0"></td>
@@ -429,6 +429,21 @@ function monthlySaving(target,saved,years,rate){
   const rm=rate/12;
   return need*rm/(Math.pow(1+rm,months)-1);
 }
+/* 積立方式に応じた「子1人の毎月積立額」。mode:'first'=入学初年までに完了／'each'=各年度分をその年度まで積立 */
+function childMonthlyCalc(r,mode,delay,rate){
+  const enter=r.yearsToEnter;
+  if(mode==='first'){ return monthlySaving(r.presaveTarget,r.saved,enter-delay,rate); }
+  // each：各年度の費用（L字）を、その年度までの年数で積み立てる（sinking fund の合計）
+  let sum=0,ok=true;
+  (r.costY||[]).forEach((c,k)=>{
+    const s=c*(r.savRatio||0);                 // その年度の費用のうち積立で用意する分
+    const Yk=(enter+k)-delay;                  // その費用までの積立年数
+    const sv=r.presaveTarget>0? r.saved*(s/r.presaveTarget):0;
+    const m=monthlySaving(s,sv,Yk,rate);
+    if(m==null)ok=false; else sum+=m;
+  });
+  return ok? sum : null;
+}
 
 let LAST=null;
 function simulate(){
@@ -440,7 +455,7 @@ function simulate(){
   const motherAge=parseFloat(document.getElementById('motherAge').value)||0;
   const loanRate=(parseFloat(document.getElementById('loanRate').value)||0)/100;
   const repayMonthly=num(document.getElementById('repayMonthly'));
-  const finishOffset=parseInt(document.getElementById('finishTiming').value,10)||0; // 入学の何年前に貯め終えるか
+  const finishMode=document.getElementById('finishTiming').value||'each'; // 'each'=各年度まで／'first'=入学初年までに完了
   const children=readChildren();
 
   const results=children.map(ch=>{
@@ -453,9 +468,12 @@ function simulate(){
     const parentBurden=Math.max(0,totalCost-scholarTotal);
     const presaveTarget=Math.max(0,parentBurden-zaigakuTotal); // 入学までに積み立てる分
     const yearsToEnter=Math.max(0,ENTER_AGE-ch.age);
-    const yearsToSave=Math.max(0,yearsToEnter-finishOffset); // 積立完了時期（入学の◯年前）まで
+    const yearsToSave=yearsToEnter;                        // 表示・ピーク用（入学まで）
+    // 年度別の費用（L字：入学金＋敷金は初年度）
+    const costY=[]; for(let k=0;k<co.years;k++){ let c=co.year+(away?shiokuri:0); if(k===0)c+=co.nyu+shoki; costY.push(c); }
+    const savRatio=totalCost>0?presaveTarget/totalCost:0;
     const gradYears=(ENTER_AGE-ch.age)+co.years;          // 卒業までの相対年数
-    const monthly=monthlySaving(presaveTarget,ch.saved,yearsToSave,rate);
+    const monthly=childMonthlyCalc({presaveTarget,saved:ch.saved,yearsToEnter,costY,savRatio},finishMode,0,rate);
     // 奨学金（貸与）の卒業後返済
     const borrowed=scholarTotal;
     const gradAge=ENTER_AGE+co.years;                     // 卒業時の年齢（22/24/20）
@@ -467,7 +485,7 @@ function simulate(){
       else{repayMonths=Math.ceil(-Math.log(1-borrowed*rm/repayMonthly)/Math.log(1+rm));}
       if(!repayNever){totalRepay=repayMonthly*repayMonths;finishAge=gradAge+Math.ceil(repayMonths/12);}
     }
-    return {...ch,co,away,gakuhi,soufu,shoki,totalCost,scholarTotal,zaigakuTotal,parentBurden,presaveTarget,yearsToEnter,yearsToSave,gradYears,monthly,borrowed,gradAge,repayMonths,repayNever,totalRepay,finishAge};
+    return {...ch,co,away,gakuhi,soufu,shoki,totalCost,scholarTotal,zaigakuTotal,parentBurden,presaveTarget,yearsToEnter,yearsToSave,costY,savRatio,gradYears,monthly,borrowed,gradAge,repayMonths,repayNever,totalRepay,finishAge};
   });
 
   // 年ごとの教育費（今後26年）
@@ -482,7 +500,7 @@ function simulate(){
   const delay4=parseInt(document.getElementById('delay4').value,10)||5;
   const delayScan=[0,1,3,delay4].map(D=>{
     let sum=0, needLoan=false;
-    results.forEach(r=>{const m=monthlySaving(r.presaveTarget,r.saved,r.yearsToSave-D,rate);if(m==null)needLoan=true;else sum+=m;});
+    results.forEach(r=>{const m=childMonthlyCalc(r,finishMode,D,rate);if(m==null)needLoan=true;else sum+=m;});
     return {D,sum,needLoan};
   });
 
@@ -494,7 +512,7 @@ function simulate(){
   const nisaKey=document.getElementById('nisaScenario').value;
   const nisa=nisaAmount>0?{amount:nisaAmount,scenario:CRASH[nisaKey]}:null;
 
-  LAST={rate,zaigaku,fatherAge,motherAge,finishOffset,results,yearly,delayScan,firstEnterYears,eduEndYears,repayMonthly,nisa};
+  LAST={rate,zaigaku,fatherAge,motherAge,finishMode,results,yearly,delayScan,firstEnterYears,eduEndYears,repayMonthly,nisa};
   render(LAST);
 }
 
@@ -502,7 +520,7 @@ function simulate(){
 function yen(v){return Math.round(v).toLocaleString('ja-JP');}
 function man(v){return (v/10000).toFixed(0);}
 function render(R){
-  const {results,yearly,delayScan,firstEnterYears,eduEndYears,fatherAge,motherAge,zaigaku,repayMonthly,nisa,finishOffset}=R;
+  const {results,yearly,delayScan,firstEnterYears,eduEndYears,fatherAge,motherAge,zaigaku,repayMonthly,nisa,finishMode}=R;
   const totalMonthly=results.reduce((s,r)=>s+(r.monthly||0),0);
   const totalBurden=results.reduce((s,r)=>s+r.parentBurden,0);
   const peak=yearly.reduce((m,v,i)=>v>m.v?{v,i}:m,{v:0,i:0});
@@ -513,7 +531,7 @@ function render(R){
 
   // サマリー（横1列3カード）
   html+=`<div class="result-cards summary-cards">
-    <div class="rc hero"><div class="k">今から必要な毎月の積立額（世帯合計）</div><div class="v">${yen(totalMonthly)}<small> 円／月</small></div><div class="note">お子さま${results.length}人分・親負担 約${yen(totalBurden)}円${finishOffset>0?('／入学'+finishOffset+'年前までに完了'):''}</div></div>
+    <div class="rc hero"><div class="k">今から必要な毎月の積立額（世帯合計）<small style="font-family:var(--gothic);font-size:10px;color:var(--brass-deep);">${finishMode==='first'?'入学初年までに完了（理想）':'各年度まで積立（都度）'}</small></div><div class="v">${yen(totalMonthly)}<small> 円／月</small></div><div class="note">お子さま${results.length}人分・親負担 約${yen(totalBurden)}円${finishMode==='each'?'／各年度の費用をその年度までに積立（在学中も積立継続）':'／教育開始までに全額完了'}</div></div>
     <div class="rc"><div class="k">教育費のピーク年</div><div class="v" style="font-size:18px;">${peak.v>0?('今から'+peak.i+'年後'):'—'}</div><div class="note">${peak.v>0?('約'+yen(peak.v)+'円/年'):'—'}</div></div>
     <div class="rc"><div class="k">教育が終わる頃の親の年齢</div><div class="v" style="font-size:18px;${fatherEnd>=60?'color:var(--loss);':''}">父${fatherEnd}歳 / 母${motherEnd}歳</div><div class="note">末子卒業まで約${eduEndYears}年後</div></div>
   </div>`;
@@ -569,7 +587,7 @@ function render(R){
 
 /* 家族の年齢＋教育費のかかる年度（ガント風タイムライン。子ごと色分け・積み上げ・金額・累計線） */
 function familyTimelineSVG(R){
-  const {results,fatherAge,motherAge,eduEndYears}=R;
+  const {results,fatherAge,motherAge,eduEndYears,finishMode}=R;
   const ENTER=18;
   let maxY=eduEndYears||0;
   results.forEach(r=>{ maxY=Math.max(maxY,(ENTER-r.age)+r.co.years); });
@@ -586,12 +604,23 @@ function familyTimelineSVG(R){
   // 貯まる金額（積立残高）：就学前に三角形で積み上がり、在学中はその年の学費分だけ減る
   const bal=new Array(N+1).fill(0);
   { const delta=new Array(N+1).fill(0);
-    results.forEach((r)=>{ const target=r.presaveTarget||0; const enter=ENTER-r.age; const sy=Math.max(0,r.yearsToSave||0); const perSave=sy>0?target/sy:0; for(let y=0;y<sy&&y<=N;y++)delta[y]+=perSave; const ey=r.co.years, perDraw=ey>0?target/ey:0; for(let k=0;k<ey;k++){const y=enter+k; if(y>=0&&y<=N)delta[y]-=perDraw;} });
+    results.forEach((r)=>{ const enter=ENTER-r.age;
+      if(finishMode==='first'){ // 入学初年までに完了：三角で貯めてから在学中に取り崩す
+        const target=r.presaveTarget||0; const sy=Math.max(0,r.yearsToEnter||0); const perSave=sy>0?target/sy:0;
+        for(let y=0;y<sy&&y<=N;y++)delta[y]+=perSave;
+        const ey=r.co.years, perDraw=ey>0?target/ey:0;
+        for(let k=0;k<ey;k++){const y=enter+k; if(y>=0&&y<=N)delta[y]-=perDraw;}
+      } else { // 各年度まで：年度ごとに貯めてその年に使う（残高は低めののこぎり波）
+        (r.costY||[]).forEach((c,k)=>{ const s=c*(r.savRatio||0); const Yk=enter+k; const ps=Yk>0?s/Yk:0; for(let y=0;y<Yk&&y<=N;y++)delta[y]+=ps; if(Yk>=0&&Yk<=N)delta[Yk]-=s; });
+      }
+    });
     let run=0; for(let y=0;y<=N;y++){run+=delta[y]; bal[y]=Math.max(0,run);}
   }
   const balMax=Math.max.apply(null,bal.concat([1]));
-  // 貯め終わりドット＝最も早く入学する子の「貯め終わり年（入学の◯年前）」＝ min(yearsToSave)
-  let peakY=results.length?Math.round(Math.min.apply(null,results.map(r=>r.yearsToSave||0))):0;
+  // ピーク位置：first=最も早く入学する子の「貯め終わり年」／each=残高が最大の年
+  let peakY;
+  if(finishMode==='first'){ peakY=results.length?Math.round(Math.min.apply(null,results.map(r=>r.yearsToEnter||0))):0; }
+  else { peakY=0; for(let y=0;y<=N;y++){ if(bal[y]>bal[peakY])peakY=y; } }
   peakY=Math.max(0,Math.min(peakY,N));
   const man=v=>Math.round(v/10000);
   const col=i=>CHILD_COLORS[i%CHILD_COLORS.length];
@@ -622,13 +651,13 @@ function familyTimelineSVG(R){
   { const px=X(peakY), py=base-(bal[peakY]/balMax)*plotH;
     g+=`<line x1="${px.toFixed(1)}" y1="6" x2="${px.toFixed(1)}" y2="${(H-axisH).toFixed(1)}" stroke="#2f6b4f" stroke-width="1.1" stroke-dasharray="3 3" opacity="0.6"/>`;
     g+=`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="3" fill="#2f6b4f"/>`;
-    g+=`<text x="${(px+5).toFixed(1)}" y="${(py-2).toFixed(1)}" font-size="9" fill="#2f6b4f" font-weight="700">貯め終わり ${man(bal[peakY])}万</text>`; }
+    g+=`<text x="${(px+5).toFixed(1)}" y="${(py-2).toFixed(1)}" font-size="9" fill="#2f6b4f" font-weight="700">${finishMode==='first'?'貯め終わり':'残高ピーク'} ${man(bal[peakY])}万</text>`; }
   g+=`<line x1="${padL}" y1="${(base+1).toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${(base+1).toFixed(1)}" stroke="#d8cfb8"/>`;
   // 各人の行（年齢＋子は在学バーを子色で）
   persons.forEach((p,idx)=>{
     const yTop=bandH+idx*rowH;
     g+=`<text x="2" y="${(yTop+rowH*0.62+3).toFixed(1)}" font-size="11" fill="#2a2a2a" font-weight="600">${p.lab}</text>`;
-    for(let y=0;y<=N;y+=4){ g+=`<text x="${X(y).toFixed(1)}" y="${(yTop+11).toFixed(1)}" font-size="9" fill="#b3a58c" text-anchor="middle">${p.age0+y}</text>`; }
+    for(let y=0;y<=N;y+=4){ const ageHere=p.age0+y; g+=`<text x="${X(y).toFixed(1)}" y="${(yTop+11).toFixed(1)}" font-size="9" fill="#b3a58c" text-anchor="middle">${ageHere<0?'未':ageHere}</text>`; }
     g+=`<line x1="${X(0)}" y1="${(yTop+rowH-8).toFixed(1)}" x2="${X(N)}" y2="${(yTop+rowH-8).toFixed(1)}" stroke="#e6ddc7"/>`;
     if(p.type==='c'){
       const x1=X(p.enter), x2=X(p.enter+p.yrs);
