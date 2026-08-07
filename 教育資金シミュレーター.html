@@ -407,9 +407,9 @@ function applyFirstToAll(){
   const f=kids[0];
   const plan=f.querySelector('.c-plan').value, scholar=f.querySelector('.c-scholar').value, saved=f.querySelector('.c-saved').value;
   kids.forEach((c,i)=>{ if(i===0)return;              // 年齢はコピーしない（各お子さまのまま）
-    c.querySelector('.c-plan').value=plan;
-    c.querySelector('.c-scholar').value=scholar;
-    c.querySelector('.c-saved').value=saved;
+    const pl=c.querySelector('.c-plan'), sc=c.querySelector('.c-scholar'), sv=c.querySelector('.c-saved');
+    pl.value=plan; sc.value=scholar; sv.value=saved;
+    [pl,sc,sv].forEach(el=>el.setAttribute('data-fpt','1')); // コピーした値は「入力済み」＝黒字で表示
   });
   if(ready)simulate();
   // 押下フィードバック（色を変える）※インラインで確実に適用
@@ -653,7 +653,7 @@ function render(R){
   {
     const crashKey=SIM_CRASH||'lehman';
     const sim=investSimChart(R,crashKey);
-    let crashOpts=''; for(const k in CRASH){ crashOpts+=`<option value="${k}"${k===crashKey?' selected':''}>${CRASH[k].name}（−${Math.round(CRASH[k].drop*100)}%）</option>`; }
+    let crashOpts=''; for(const k in CRASH){ crashOpts+=`<option value="${k}"${k===crashKey?' selected':''}>${CRASH[k].name}（−${Math.round(CRASH[k].drop*100)}%・回復${CRASH[k].recover}年）</option>`; }
     let crashFundOpts=''; FUNDS.filter(f=>f.key!=='cash').forEach(f=>{ crashFundOpts+=`<option value="${f.key}"${f.key===SIM_CRASH_FUND?' selected':''}>${f.name.replace(/（.*）/,'')}</option>`; });
     html+=`<div class="sec-h" style="margin-top:10px;border-top:2px solid var(--rule);padding-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">運用シミュレーション ─ 同じ積立額を利回りで運用すると<small style="font-weight:400;color:var(--ink-soft);">（過去実績イメージ・将来を保証しません）</small><span style="margin-left:auto;font-weight:400;font-size:11.5px;color:var(--ink);">暴落する銘柄：<select id="crashFund" onchange="setCrashFund(this.value)" style="font-size:11.5px;padding:3px 6px;border:1px solid var(--rule);border-radius:6px;">${crashFundOpts}</select> ／ 暴落シナリオ：<select id="simCrash" onchange="setSimCrash(this.value)" style="font-size:11.5px;padding:3px 6px;border:1px solid var(--rule);border-radius:6px;">${crashOpts}</select></span></div>`;
     // 表示する銘柄（チェックでON/OFF）
@@ -662,7 +662,9 @@ function render(R){
     fundChecks+=`<label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" ${SIM_FUNDS.crash?'checked':''} onchange="toggleFund('crash',this.checked)" style="cursor:pointer;"><i style="width:14px;height:0;border-top:2px dashed #b5623a;display:inline-block;"></i>暴落線</label>`;
     html+=`<div style="display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;padding:6px 8px 4px;font-size:11.5px;color:var(--ink);">${fundChecks}</div>`;
     html+=sim.svg;
-    if(sim.showCrash && sim.shortfall>0){ html+=`<div style="padding:3px 8px 0;"><div class="warn" style="font-size:12px;"><b>${sim.crashName}が入学初年に起きると、${sim.crashFundShort}で運用していても教育資金が最大 約${yen(sim.shortfall)}円 不足します</b>（グラフ赤い部分＝取り崩しリスク）。使う時期が近いお金は入学1〜2年前までに現金・預金へ移す設計が鉄則です。</div></div>`; }
+    const recYears=(CRASH[crashKey]||{}).recover;
+    if(sim.showCrash && sim.shortfall>0){ html+=`<div style="padding:3px 8px 0;"><div class="warn" style="font-size:12px;"><b>${sim.crashName}が入学初年に起きると、${sim.crashFundShort}で運用していても教育資金が最大 約${yen(sim.shortfall)}円 不足します</b>（グラフ赤い部分＝取り崩しリスク）。この暴落は<b>元の水準へ戻るまで過去に約${recYears}年</b>かかっており、入学時期には回復を待てません。使う時期が近いお金は入学1〜2年前までに現金・預金へ移す設計が鉄則です。</div></div>`; }
+    else if(sim.showCrash){ html+=`<div style="padding:3px 8px 0;"><div class="info" style="font-size:11.5px;">選んだ暴落（${sim.crashName}）は<b>元の水準へ戻るまで過去に約${recYears}年</b>かかりました。取り崩し期（入学後）に暴落すると回復を待てないため、使う時期が近いお金は入学1〜2年前までに現金・預金へ移す設計が安全です。</div></div>`; }
     let leg2='<div class="legend">';
     sim.scen.forEach(sc=>{ leg2+=`<span><i style="background:${sc.color};${sc.dash?'height:0;border-top:2px dashed '+sc.color+';border-radius:0;':''}"></i>${sc.name}</span>`; });
     leg2+='<span>棒＝その年の教育費（残高線と同じ金額目盛り）／各線＝毎月同額を積立て運用した残高（教育費を差引後）・縦＝万円・右端＝終了時残高</span></div>';
