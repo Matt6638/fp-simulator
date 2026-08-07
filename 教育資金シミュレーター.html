@@ -412,7 +412,6 @@ function applyFirstToAll(){
 document.getElementById('applyFirst').addEventListener('click',applyFirstToAll);
 document.querySelectorAll('.field .yen').forEach(attachAmount);
 ['fatherAge','motherAge'].forEach(id=>attachClear(document.getElementById(id)));
-addChild({course:'shibun',live:'home'});
 addChild({course:'shiri',live:'away'});
 
 /* ===== 計算 ===== */
@@ -484,11 +483,12 @@ let SIM_CRASH='lehman';   // 運用シミュレーションの暴落シナリオ
 // 銘柄カタログ（チェックで表示ON/OFF）
 const FUNDS=[
   {key:'cash',  name:'現金 0%',             rate:0,    color:'#8a8470'},
+  {key:'jp',    name:'日本株式（過去約6%）',  rate:0.06, color:'#2f8c8c'},
   {key:'world', name:'全世界株（過去約8%）',  rate:0.08, color:'#6b8c3f'},
   {key:'sp500', name:'S&P500（過去約10%）',   rate:0.10, color:'#3f6b8c'},
   {key:'nasdaq',name:'NASDAQ100（過去約14%）',rate:0.14, color:'#8c4f6b'},
 ];
-let SIM_FUNDS={cash:true,world:true,sp500:true,nasdaq:true,crash:true}; // 表示中の銘柄＋暴落線
+let SIM_FUNDS={cash:true,jp:true,world:true,sp500:true,nasdaq:true,crash:true}; // 表示中の銘柄＋暴落線
 function rerenderKeepScroll(){ // 再描画してもスクロール位置を保持（上へジャンプさせない）
   const sc=document.querySelector('.main'); const st=sc?sc.scrollTop:0;
   simulate();
@@ -500,7 +500,19 @@ window.setSimCrash=setSimCrash;
 window.toggleFund=toggleFund;
 
 let LAST=null;
+// 初期画面はブランク。両親いずれかの年齢＋お子さま1人以上の年齢が「実際に入力」されるまで結果を出さない（プレースホルダの既定値では計算しない）
+function inputReady(){
+  const rv=el=>el&&String(el.value).trim()!=='';
+  const parent=rv(document.getElementById('fatherAge'))||rv(document.getElementById('motherAge'));
+  const anyKid=[].some.call(document.querySelectorAll('.c-age'),a=>String(a.value).trim()!=='');
+  return parent && anyKid;
+}
 function simulate(){
+  if(!inputReady()){
+    document.getElementById('outBody').innerHTML='<div class="rpage placeholder-page"><div class="placeholder"><span class="mark">✎</span>下の「✎ 入力」から、<b>両親の年齢</b>と<b>お子さまの年齢・進路</b>を入れると、ここに結果が表示されます。</div></div>';
+    buildDots('outBody','rDots');
+    return;
+  }
   const rate=(parseFloat(document.getElementById('rate').value)||0)/100;
   const zaigaku=num(document.getElementById('zaigaku'));
   const shiokuri=num(document.getElementById('shiokuri'));
@@ -609,6 +621,9 @@ function render(R){
   html+=`<div class="sec-h">お子さまごとの内訳（総費用−奨学金−在学中払い＝積立で用意）</div>`;
   html+=`<div style="padding:6px 4px 4px;overflow-x:auto;"><table class="tbl"><thead><tr><th>子</th><th>進路</th><th>総費用</th><th>−奨学金</th><th>−在学中</th><th>積立で用意</th><th>期間</th><th>毎月</th></tr></thead><tbody>`;
   results.forEach((r,i)=>{html+=`<tr><td>${i+1}（${r.age}歳）</td><td>${r.co.name}${r.away?'・下宿':'・自宅'}</td><td>${yen(r.totalCost)}</td><td>${r.scholarTotal?('-'+yen(r.scholarTotal)):'—'}</td><td>${r.zaigakuTotal?('-'+yen(r.zaigakuTotal)):'—'}</td><td>${yen(r.presaveTarget)}</td><td>${r.yearsToSave>0?(r.yearsToSave+'年'):'—'}</td><td><b>${r.monthly!=null?(yen(r.monthly)):'—'}</b></td></tr>`;});
+  // 合計欄
+  const tTotal=results.reduce((s,r)=>s+r.totalCost,0), tSch=results.reduce((s,r)=>s+r.scholarTotal,0), tZai=results.reduce((s,r)=>s+r.zaigakuTotal,0), tPre=results.reduce((s,r)=>s+r.presaveTarget,0), tMon=results.reduce((s,r)=>s+(r.monthly||0),0);
+  html+=`<tr class="ttl-row" style="border-top:2px solid var(--rule);font-weight:700;background:var(--paper);"><td>合計</td><td>お子さま${results.length}人</td><td>${yen(tTotal)}</td><td>${tSch?('-'+yen(tSch)):'—'}</td><td>${tZai?('-'+yen(tZai)):'—'}</td><td>${yen(tPre)}</td><td>—</td><td><b>${yen(tMon)}</b></td></tr>`;
   html+=`</tbody></table></div>`;
   html+=`</div></div>`;
 
@@ -676,21 +691,9 @@ function familyTimelineSVG(R,opts){
   const yearlyTotal=new Array(N+1).fill(0);
   for(let y=0;y<=N;y++){ results.forEach((r,ci)=>{yearlyTotal[y]+=perChild[ci][y];}); }
   const ymax=Math.max.apply(null,yearlyTotal.concat([1]));
-  // 貯まる金額（積立残高）：就学前に三角形で積み上がり、在学中はその年の学費分だけ減る
-  const bal=new Array(N+1).fill(0);
-  { const delta=new Array(N+1).fill(0);
-    results.forEach((r)=>{ const enter=ENTER-r.age;
-      if(finishMode==='first'){ // 入学初年までに完了：三角で貯めてから在学中に取り崩す
-        const target=r.presaveTarget||0; const sy=Math.max(0,r.yearsToEnter||0); const perSave=sy>0?target/sy:0;
-        for(let y=0;y<sy&&y<=N;y++)delta[y]+=perSave;
-        const ey=r.co.years, perDraw=ey>0?target/ey:0;
-        for(let k=0;k<ey;k++){const y=enter+k; if(y>=0&&y<=N)delta[y]-=perDraw;}
-      } else { // 各年度まで：年度ごとに貯めてその年に使う（残高は低めののこぎり波）
-        (r.costY||[]).forEach((c,k)=>{ const s=c*(r.savRatio||0); const Yk=enter+k; const ps=Yk>0?s/Yk:0; for(let y=0;y<Yk&&y<=N;y++)delta[y]+=ps; if(Yk>=0&&Yk<=N)delta[Yk]-=s; });
-      }
-    });
-    let run=0; for(let y=0;y<=N;y++){run+=delta[y]; bal[y]=Math.max(0,run);}
-  }
+  // 貯まる金額（積立残高＝現金0%）：運用シミュレーションの現金線と同一計算にそろえる（2つのグラフで一致させる）
+  const balRaw=fundBalance(0,results,finishMode,N);
+  const bal=balRaw.map(v=>Math.max(0,v));
   const balMax=Math.max.apply(null,bal.concat([1]));
   // ピーク位置：first=最も早く入学する子の「貯め終わり年」／each=残高が最大の年
   let peakY;
