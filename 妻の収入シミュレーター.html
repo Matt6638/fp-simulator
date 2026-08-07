@@ -20,9 +20,54 @@
     --mincho:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
+  html,body{margin:0;padding:0;height:100%;}
   body{background:var(--paper);color:var(--ink);font-family:var(--gothic);line-height:1.7;font-size:15px;-webkit-font-smoothing:antialiased;}
-  .wrap{max-width:1120px;margin:0 auto;padding:32px 20px 72px;}
+  /* ===== 新シェル（サイドバー＋FAB＋ドロワー＋1ページ結果）：教育資金シミュレーターより移植 ===== */
+  .wrap{height:100vh;padding:8px 10px;display:flex;gap:10px;align-items:stretch;overflow:hidden;max-width:none;margin:0;}
+  .side{flex:0 0 60px;display:flex;flex-direction:column;align-items:center;gap:9px;padding-top:4px;}
+  .side-eyebrow{font-family:var(--mincho);font-size:10px;letter-spacing:.3em;color:var(--brass-deep);margin:0;}
+  .side-tt{font-family:var(--mincho);font-weight:600;font-size:23px;color:var(--ink);writing-mode:vertical-rl;text-orientation:upright;letter-spacing:.14em;line-height:1;margin:0 0 8px;}
+  .side .fpbar{flex-direction:column;align-items:stretch;gap:6px;margin:0;flex-wrap:nowrap;width:100%;}
+  .side .fpbtn{width:100%;text-align:center;padding:7px 2px;font-size:11.5px;letter-spacing:0;white-space:nowrap;}
+  .main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:8px;height:100%;overflow-y:auto;overflow-x:hidden;}
+  .deck{background:var(--surface);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+  /* 入力＝普段は非表示、FAB／「入力」ボタンで下からせり出すドロワー */
+  .deck-input{position:fixed;left:8px;right:8px;bottom:0;height:54vh;max-height:600px;transform:translateY(106%);transition:transform .28s ease;z-index:30;border-radius:12px 12px 0 0;box-shadow:0 -12px 34px -12px rgba(0,0,0,.45);}
+  .deck-input.open{transform:translateY(0);}
+  .deck-input>.deck-head{flex:0 0 auto;}
+  #inScroll{flex:1 1 auto;min-height:0;overflow-y:auto;padding:16px 18px;}
+  .deck-close{margin-left:auto;font:600 12.5px var(--gothic);color:#fff;background:var(--brass);border:1px solid var(--brass-deep);border-radius:7px;padding:6px 16px;cursor:pointer;}
+  .deck-close:hover{background:var(--brass-deep);}
+  .fpbtn-input{background:var(--brass)!important;color:#fff!important;border-color:var(--brass-deep)!important;font-weight:700;}
+  .fpbtn-input.on{background:var(--brass-deep)!important;}
+  #btnInput{display:none;}  /* サイドバーの入力ボタンはFABに集約 */
+  /* 入力FAB（右下の＋ボタン）。印刷では非表示 */
+  .fab-input{position:fixed;right:22px;bottom:22px;width:60px;height:60px;border-radius:50%;background:var(--brass);color:#fff;border:1px solid var(--brass-deep);cursor:pointer;box-shadow:0 10px 26px -8px rgba(0,0,0,.55);z-index:45;display:flex;align-items:center;justify-content:center;padding:0;transition:transform .22s ease,background .2s;}
+  .fab-input .fab-plus{font-size:32px;line-height:1;font-weight:400;transition:transform .22s ease;}
+  .fab-input::after{content:"入力";position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--brass-deep);font-weight:700;letter-spacing:.04em;}
+  .fab-input:hover{background:var(--brass-deep);}
+  .fab-input.on{background:var(--brass-deep);}
+  .fab-input.on .fab-plus{transform:rotate(45deg);}  /* 開いている間は×に */
+  @media print{.fab-input{display:none!important;}}
+  .build-stamp{margin-top:auto;padding-top:8px;font-size:8.5px;line-height:1.35;color:var(--brass-deep);opacity:.6;text-align:center;white-space:pre-line;}
+  @media print{.build-stamp{display:none!important;}}
+  .deck-head{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:5px 12px;border-bottom:1px solid var(--rule-soft);}
+  .deck-head .no{font-family:var(--mono);font-size:11px;color:var(--brass);}
+  .deck-head b{font-family:var(--mincho);font-size:14px;font-weight:600;letter-spacing:.03em;}
+  .deck-hint{font-size:10.5px;color:var(--brass-deep);}
+  /* 結果は1ページとして自然に縦スクロール */
+  .deck-result{flex:0 0 auto;overflow:visible;}
+  #outBody{overflow:visible;min-height:0;display:block;}
+  .deck-result .deck-head{position:sticky;top:0;z-index:6;background:var(--surface);}
+  @media(max-width:760px){
+    .wrap{flex-direction:column;gap:14px;padding:14px 10px;height:auto;overflow:visible;}
+    .side{position:static;flex-basis:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px;width:100%;}
+    .side-eyebrow{display:none;}
+    .side-tt{writing-mode:horizontal-tb;text-orientation:mixed;margin:0 6px 0 0;font-size:20px;letter-spacing:.02em;}
+    .side .fpbar{flex-direction:row;flex-wrap:wrap;width:auto;}
+    .side .fpbtn{width:auto;}
+    .main{height:auto;overflow:visible;}
+  }
   header{border-bottom:1px solid var(--rule);padding-bottom:22px;margin-bottom:26px;}
   .eyebrow{font-family:var(--mincho);font-size:12px;letter-spacing:.42em;color:var(--brass-deep);margin:0 0 8px;}
   h1{font-family:var(--mincho);font-weight:600;font-size:26px;letter-spacing:.03em;margin:0;color:var(--ink);}
@@ -106,13 +151,11 @@
 </head>
 <body>
 <div class="wrap">
-<header>
-  <p class="eyebrow">配偶者の就業調整シミュレーション</p>
-  <h1>妻の収入シミュレーター</h1>
-  <p class="sub">扶養の範囲で働くのと、壁を超えて働くのとで<b>世帯の手取り</b>がどう変わるか。手取りが逆転する「働き損ゾーン」と、そこを抜けて損しなくなる「回復ライン」を試算します。<br>2025年（令和7年）税制改正・年金制度改正法 反映。数値は<b>概算</b>です。</p>
-</header>
-
-<div class="fpbar">
+<aside class="side">
+  <div class="side-eyebrow">FP</div>
+  <div class="side-tt">妻の収入</div>
+  <div class="fpbar">
+  <button type="button" class="fpbtn fpbtn-input" id="btnInput" onclick="toggleInput()">✎ 入力</button>
   <a class="fpbtn fphome" href="index.html">トップ</a>
   <button type="button" class="fpbtn" onclick="FP.toggleManual()">使い方</button>
   <button type="button" class="fpbtn" onclick="FP.clearAll()">クリア</button>
@@ -121,14 +164,17 @@
   <button type="button" class="fpbtn fpbtn-pdf" onclick="FP.printPDF()">PDF・共有</button>
   <input type="file" id="fpLoadInput" accept=".json,application/json" style="display:none;">
 </div>
+<div class="build-stamp" id="buildStamp" title="表示中のファイルの更新時刻。ハードリロード後にこの時刻が新しくなっていれば最新版です。"></div>
+</aside>
+
+<main class="main">
 
 <div id="fpManual" class="fp-manual" hidden><span class="tag">取扱説明書</span><h3>妻の収入シミュレーターの使い方</h3><p>扶養内で働くのと壁を超えて働くので、<b>世帯の手取りがどう逆転するか</b>を試算します。</p><h4>入力のポイント</h4><ul><li>勤務先で<b>106万円の壁／130万円の壁</b>が決まります（従業員数・週20時間）。</li><li>加入する保険、40歳以上/60歳以上、夫の年収、配偶者手当を入力。</li></ul><h4>結果の見方</h4><ul><li><b>回復ライン</b>（ここまで働けば損しない年収）、<b>働き損ゾーン</b>、崖の深さ、年収別グラフ。</li></ul><h4>注意</h4><ul><li>保険料率・住民税非課税は自治体差。2026年10月に106万円の壁は変更予定。概算です。</li></ul></div>
 
-<div class="grid">
-  <!-- INPUT -->
-  <section class="panel">
-    <div class="panel-head"><span class="no">01</span><h2>条件を入力</h2></div>
-    <div class="panel-body">
+  <!-- 入力ドロワー（下からせり出す） -->
+  <section class="deck deck-input">
+    <div class="deck-head"><span class="no">01</span><b>入力</b><button type="button" class="deck-close" onclick="closeInput()">完了 ✓</button></div>
+    <div class="deck-scroll" id="inScroll">
 
       <div class="field">
         <label class="lab">制度の基準時点</label>
@@ -207,26 +253,27 @@
         </div>
       </details>
 
-      <div class="actions" style="margin-top:18px;">
-        <button class="btn btn-primary" id="calcBtn">シミュレーションする</button>
-      </div>
     </div>
   </section>
 
-  <!-- OUTPUT -->
-  <section class="panel" id="out">
-    <div class="panel-head"><span class="no">02</span><h2>結果</h2></div>
+  <!-- 結果デッキ（1ページ縦スクロール） -->
+  <section class="deck deck-result" id="out">
+    <div class="deck-head"><span class="no">02</span><b>結果</b><span class="deck-hint">下へスクロールして全体をご覧いただけます</span></div>
     <div id="outBody">
       <div class="placeholder"><span class="mark">〆</span>左の条件を入力して「シミュレーションする」を押してください。</div>
     </div>
   </section>
-</div>
 
-<footer>
+  <footer>
   <b>免責・前提</b>：本シミュレーターは2026年7月時点の制度（2025年＝令和7年 税制改正、年金制度改正法）に基づく<b>概算</b>です。実際の税額・社会保険料は、お住まいの自治体・加入する健保組合・年度の料率・世帯構成により異なります。住民税の非課税基準や国民健康保険料は特に地域差が大きいため、正確な判断は市区町村・年金事務所・税理士等にご確認ください。<br>
   2026年10月に106万円の壁（賃金要件）撤廃・企業規模要件の段階的縮小、2026年4月に130万円認定の運用変更が予定されており、前提は今後変わります。<br>
   主な出典：国税庁「令和7年度税制改正による所得税の基礎控除の見直し等について」／国税庁 タックスアンサーNo.1195 配偶者特別控除／厚生労働省「年収の壁への対応」／財務省 令和7年度税制改正の大綱。
 </footer>
+
+  <!-- 入力FAB（右下の＋。印刷では非表示） -->
+  <button type="button" class="fab-input" id="fabInput" onclick="toggleInput()" aria-label="入力を開く" title="入力"><span class="fab-plus">＋</span></button>
+
+</main>
 </div>
 
 <script>
@@ -566,8 +613,26 @@ function updateHusbandInfo(){
   document.getElementById('husbandInfo').textContent=`${label}／推定限界税率 約${mr}%（所得税＋住民税）`;
 }
 document.getElementById('husbandY').addEventListener('input',updateHusbandInfo);
-document.getElementById('calcBtn').addEventListener('click',simulate);
+// 入力ドロワー：普段は非表示。「入力」ボタン／FABで表示、「完了」で閉じる
+function openInput(){var d=document.querySelector('.deck-input');if(d)d.classList.add('open');['btnInput','fabInput'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.add('on');});}
+function closeInput(){var d=document.querySelector('.deck-input');if(d)d.classList.remove('open');['btnInput','fabInput'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.remove('on');});if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}
+function toggleInput(){var d=document.querySelector('.deck-input');if(d&&d.classList.contains('open'))closeInput();else openInput();}
+window.openInput=openInput;window.closeInput=closeInput;window.toggleInput=toggleInput;
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeInput();});
+
+// 入力変更でリアルタイム再計算（「計算」ボタンは廃止）
+var inScrollEl=document.getElementById('inScroll');
+if(inScrollEl){
+  inScrollEl.addEventListener('input',function(){simulate();});
+  inScrollEl.addEventListener('change',function(){simulate();});
+  inScrollEl.addEventListener('click',function(e){if(e.target.closest('.seg button'))setTimeout(simulate,0);});
+}
+
+// 更新時刻スタンプ（表示中ファイルのLast-Modified＝キャッシュ確認用）
+(function(){var b=document.getElementById('buildStamp');if(!b)return;var lm=document.lastModified||'';var m=lm.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})[ ,]+(\d{1,2}):(\d{2})/);b.textContent=m?('更新\n'+m[1]+'/'+m[2]+' '+m[4]+':'+m[5]):('更新\n'+lm);})();
+
 updateHusbandInfo();
+simulate(); // 初期表示
 </script>
 <script>
 /* ===== FPコア v2（全ツール共通：トップ/設定(単位・自動保存・提案者名)/自動保存/JSON/PDF・A4印刷/全角） ===== */
