@@ -100,6 +100,7 @@
   .rcol .warn,.rcol .info{font-size:10px;padding:5px 8px;line-height:1.4;margin-top:4px;}
   /* サマリーページ（1ページ目）は3カード横1列・注記非表示で高さを最小化 */
   .deck-scroll>.rpage:first-child .result-cards{grid-template-columns:repeat(3,minmax(0,1fr));padding:12px 16px 2px;}
+  @media(min-width:620px){ .summary-cards{grid-template-columns:1.85fr 1fr 1fr!important;} } /* 積立額(ボーナス欄付)を広く、ピーク年・親年齢を狭く */
   .deck-scroll>.rpage:first-child .rc.hero{grid-column:auto;max-width:none;}
   .deck-scroll>.rpage:first-child .result-cards .note{display:none;}
   .deck-scroll>.rpage:first-child .rc.hero .v{font-size:22px;}
@@ -303,7 +304,6 @@
             <div class="field ff lodging-f"><label class="lab">家賃(月)<small style="font-weight:400;color:var(--ink-soft);">※下宿・既定8万</small></label><input type="text" inputmode="numeric" class="yen" id="rentM" value="" placeholder="80,000"></div>
             <div class="field ff lodging-f"><label class="lab">生活費(月)<small style="font-weight:400;color:var(--ink-soft);">※下宿・既定10万</small></label><input type="text" inputmode="numeric" class="yen" id="livingM" value="" placeholder="100,000"></div>
             <div class="field ff lodging-f"><label class="lab">敷金・礼金等<small style="font-weight:400;color:var(--ink-soft);">※下宿・既定40万(初年度)</small></label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
-            <div class="field ff lodging-f"><label class="lab">きょうだい同居</label><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;padding:5px 2px;"><input type="checkbox" id="shareRent" style="cursor:pointer;">同じ下宿に同居（家賃は1軒分）</label></div>
             <div class="field ff"><label class="lab">奨学金利率(年%)<small style="font-weight:400;color:var(--ink-soft);">※返還年数・月額はJASSO制度で自動計算。第二種相当=1.9%／第一種は0</small></label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="1.9" step="0.1"></div>
             <div class="field ff"><label class="lab">利回り(年%)<small style="font-weight:400;color:var(--ink-soft);">※未入力=0%</small></label><input type="text" inputmode="decimal" id="rate" value="" placeholder="0" step="0.1"></div>
             <div class="field ff"><label class="lab">開始遅延の比較（5年目を変更）</label><select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
@@ -404,7 +404,7 @@ function addChild(data){
   tr.innerHTML=`
     <td class="tobj"><b>子</b></td>
     <td><input type="text" inputmode="text" class="c-age" value="${data.age!=null?data.age:''}" placeholder="" step="1" min="-15" max="30" title="未出生の子はマイナス（例 -2＝2年後に出産予定→積立期間は18+2=20年）"></td>
-    <td><select class="c-plan">${opts}</select></td>
+    <td><select class="c-plan">${opts}</select><label class="c-share-wrap" style="display:none;margin-top:3px;font-size:10.5px;color:var(--ink-soft);cursor:pointer;align-items:center;gap:4px;"><input type="checkbox" class="c-share" style="cursor:pointer;">きょうだいと同居（家賃・敷金なし）</label></td>
     <td><select class="c-scholar" title="日本学生支援機構(JASSO)の貸与月額の目安から選択">${SCHOLAR_OPTS}</select></td>
     <td><input type="text" inputmode="numeric" class="yen c-saved" value="" placeholder="0"></td>
     <td class="delcell"><button class="del" type="button" title="削除">✕</button></td>
@@ -423,22 +423,39 @@ function syncFromFirst(){
   const kids=document.querySelectorAll('.child');
   if(kids.length<2)return;
   const f=kids[0];
-  const map=[['.c-plan','plan'],['.c-scholar','scholar'],['.c-saved','saved']];
+  const map=['.c-plan','.c-scholar','.c-saved'];
   kids.forEach((c,i)=>{ if(i===0)return;
-    map.forEach(([cls])=>{
+    map.forEach(cls=>{
       const src=f.querySelector(cls), dst=c.querySelector(cls);
       if(!src||!dst) return;
       if(dst.dataset.userset) return;                 // その子が個別に設定した欄は触らない
       dst.value=src.value;
       if(src.getAttribute('data-fpt')) dst.setAttribute('data-fpt','1'); else dst.removeAttribute('data-fpt'); // 子1が薄字なら薄字、黒字なら黒字
+      if(cls==='.c-saved' && String(dst.value).trim()!=='') formatYen(dst);   // コンマ整形を確実に
     });
   });
 }
-// ユーザーが2人目以降の欄を直接操作したら個別設定に（isTrusted=実操作のみ）
+// 子の欄の文字色をインラインで強制（Safari等でも確実に薄字/黒字が切替わるように）。data-fpt=決定済み=黒字
+function applyChildColors(){
+  document.querySelectorAll('.child').forEach(function(c){
+    ['.c-age','.c-plan','.c-scholar','.c-saved'].forEach(function(cls){
+      var el=c.querySelector(cls); if(!el)return;
+      var decided=!!el.getAttribute('data-fpt');
+      el.style.setProperty('color', decided?'var(--ink)':'#c6c1b4', 'important');
+    });
+  });
+}
+// ユーザー操作の記録：子1の欄を触ったら決定(黒字)、2人目以降を触ったら個別設定(黒字)。isTrusted=実操作のみ
 (function(){
   const cl=document.getElementById('childList');
-  const mark=e=>{ if(!e.isTrusted)return; const t=e.target; const c=t&&t.closest&&t.closest('.child'); if(!c)return; const kids=document.querySelectorAll('.child'); if(kids[0]===c)return; if(t.matches&&t.matches('.c-plan,.c-scholar,.c-saved')) t.setAttribute('data-userset','1'); };
+  const mark=e=>{ if(!e.isTrusted)return; const t=e.target; const c=t&&t.closest&&t.closest('.child'); if(!c)return; if(!(t.matches&&t.matches('.c-plan,.c-scholar,.c-saved,.c-age')))return;
+    const kids=document.querySelectorAll('.child');
+    if(kids[0]===c){ t.setAttribute('data-fpt','1'); }                 // 子1を触ったら確定＝黒字
+    else { t.setAttribute('data-userset','1'); t.setAttribute('data-fpt','1'); } // 2人目以降を直接変えたら個別設定＝黒字
+  };
   cl.addEventListener('input',mark,true); cl.addEventListener('change',mark,true);
+  // コンマ整形の委譲（各要素のattachAmountに加え、保険として親でも整形）
+  cl.addEventListener('input',function(e){ var t=e.target; if(t&&t.classList&&t.classList.contains('yen')&&String(t.value).trim()!==''){ formatYen(t); } }, false);
 })();
 document.querySelectorAll('input.yen').forEach(attachAmount);
 ['fatherAge','motherAge'].forEach(id=>attachClear(document.getElementById(id)));
@@ -459,7 +476,8 @@ function readChildren(){
   const arr=[];
   document.querySelectorAll('.child').forEach(c=>{
     const plan=(c.querySelector('.c-plan').value||'shibun|home').split('|');
-    arr.push({age:parseFloat(zen2han(c.querySelector('.c-age').value))||0,course:plan[0],live:plan[1]||'home',scholar:num(c.querySelector('.c-scholar')),saved:num(c.querySelector('.c-saved'))});
+    const shEl=c.querySelector('.c-share');
+    arr.push({age:parseFloat(zen2han(c.querySelector('.c-age').value))||0,course:plan[0],live:plan[1]||'home',scholar:num(c.querySelector('.c-scholar')),saved:num(c.querySelector('.c-saved')),share:!!(shEl&&shEl.checked)});
   });
   return arr;
 }
@@ -517,6 +535,10 @@ function rerenderKeepScroll(){ // 再描画してもスクロール位置を保�
   const sc2=document.querySelector('.main'); if(sc2)sc2.scrollTop=st;
 }
 let SIM_CRASH_FUND='jp'; // 比較・暴落のベース銘柄（既定：日本株）
+let SIM_MONTHLY_PAY=null; // 積立額カード：月払で払える額（残りをボーナス年2回で算出）。null=全額月払
+function onMonthlyPay(el){ formatYen(el); SIM_MONTHLY_PAY=parseFloat(String(el.value).replace(/,/g,''))||0; updateBonusOut(); }
+function updateBonusOut(){ if(!LAST)return; const reqA=(LAST.householdMonthly||0)*12; let m=(SIM_MONTHLY_PAY!=null?SIM_MONTHLY_PAY:(LAST.householdMonthly||0)); m=Math.max(0,Math.min(m,LAST.householdMonthly||0)); const bonus=Math.max(0,(reqA-m*12)/2); const o=document.getElementById('bonusOut'); if(o)o.textContent=yen(bonus); }
+window.onMonthlyPay=onMonthlyPay;
 function setSimCrash(v){ SIM_CRASH=v; rerenderKeepScroll(); }
 function setCrashFund(v){ SIM_CRASH_FUND=v; rerenderKeepScroll(); }
 function toggleFund(k,on){ SIM_FUNDS[k]=!!on; rerenderKeepScroll(); }
@@ -557,13 +579,21 @@ function syncRepayField(){
 function syncLodging(){
   const anyAway=[].some.call(document.querySelectorAll('.c-plan'),s=>String(s.value).split('|')[1]==='away');
   document.querySelectorAll('.lodging-f').forEach(el=>{ el.style.display=anyAway?'':'none'; });
+  // きょうだい同居チェックは「下宿かつ上に下宿のきょうだいがいる子」だけ表示（先頭の下宿の子＝家賃を負担する側）
+  let awaySeenL=false;
+  document.querySelectorAll('.child').forEach(function(c){
+    const isAway=String(c.querySelector('.c-plan').value).split('|')[1]==='away';
+    const w=c.querySelector('.c-share-wrap');
+    if(w) w.style.display=(isAway&&awaySeenL)?'inline-flex':'none';
+    if(isAway) awaySeenL=true;
+  });
   ['rentM','livingM','initCost'].forEach(id=>{ const e=document.getElementById(id); if(!e)return;
     if(anyAway){ if(String(e.value).trim()==='') e.value=e.placeholder; e.setAttribute('data-fpt','1'); }
     else { e.removeAttribute('data-fpt'); }
   });
 }
 function simulate(){
-  syncFromFirst(); syncLodging(); syncRepayField();
+  syncFromFirst(); syncLodging(); syncRepayField(); applyChildColors();
   if(!inputReady()){
     document.getElementById('outBody').innerHTML='<div class="rpage placeholder-page"><div class="placeholder"><span class="mark">✎</span>下の「✎ 入力」から、<b>両親の年齢</b>と<b>お子さまの年齢・進路</b>を入れると、ここに結果が表示されます。</div></div>';
     buildDots('outBody','rDots');
@@ -574,19 +604,17 @@ function simulate(){
   const rentM=num(document.getElementById('rentM'));           // 下宿の家賃（月・既定8万）
   const livingM=num(document.getElementById('livingM'));       // 下宿の生活費（月・既定10万）
   const initCost=num(document.getElementById('initCost'));
-  const shareRent=!!(document.getElementById('shareRent')&&document.getElementById('shareRent').checked); // きょうだい同居＝家賃/敷金は1軒分
   const fatherAge=parseFloat(document.getElementById('fatherAge').value)||0;
   const motherAge=parseFloat(document.getElementById('motherAge').value)||0;
   const loanRate=(parseFloat(_pv(document.getElementById('loanRate')))||0)/100; // 空欄=既定1.9%（JASSO第二種 相当）
   const finishMode=document.getElementById('finishTiming').value||'each'; // 'each'=各年度まで／'first'=入学初年までに完了
   const children=readChildren();
 
-  let awaySeen=0;
   const results=children.map(ch=>{
     const co=COURSES[ch.course];
     const away=ch.live==='away';
     let myRent=rentM, myShoki=initCost;
-    if(away){ awaySeen++; if(shareRent && awaySeen>1){ myRent=0; myShoki=0; } } // きょうだい同居：2人目以降の下宿は家賃・敷金0（1軒分）
+    if(away && ch.share){ myRent=0; myShoki=0; } // きょうだい同居（この子は上のきょうだいと同じ下宿）＝家賃・敷金なし
     const shiokuriMy=(myRent+livingM)*12;                     // この子の年間の下宿費用（家賃＋生活費）
     const gakuhi=co.nyu+co.year*co.years, soufu=away?shiokuriMy*co.years:0, shoki=away?myShoki:0;
     const totalCost=gakuhi+soufu+shoki;
@@ -667,7 +695,7 @@ function render(R){
 
   // サマリー（横1列3カード）
   html+=`<div class="result-cards summary-cards">
-    <div class="rc hero"><div class="k">今から必要な毎月の積立額（世帯・貯蓄分）<small style="font-family:var(--gothic);font-size:10px;color:var(--brass-deep);">${finishMode==='first'?'入学初年までに完了（理想）':'各年度まで積立（都度）'}</small></div><div class="v">${yen(householdMonthly)}<small> 円／月</small></div><div class="note">貯蓄で用意 約${yen(savTarget)}円${savedTotal>0?('（うち既に約'+yen(savedTotal)+'円 準備済／残り約'+yen(contribTarget)+'円）'):''}・家計から約${yen(householdTotal)}円${hhMonthly>0?('（月'+yen(hhMonthly)+'円）'):''}／親負担 計約${yen(parentTotal)}円</div></div>
+    <div class="rc hero"><div class="k">今から必要な毎月の積立額（世帯・貯蓄分）<small style="font-family:var(--gothic);font-size:10px;color:var(--brass-deep);">${finishMode==='first'?'入学初年までに完了（理想）':'各年度まで積立（都度）'}</small></div><div class="v">${yen(householdMonthly)}<small> 円／月</small></div>${(function(){const reqA=householdMonthly*12; let mp=(SIM_MONTHLY_PAY!=null?SIM_MONTHLY_PAY:householdMonthly); mp=Math.max(0,Math.min(mp,householdMonthly)); const bonus=Math.max(0,(reqA-mp*12)/2); return `<div class="bonus-row" style="margin-top:6px;font-size:12px;color:var(--ink);display:flex;align-items:center;gap:4px;flex-wrap:wrap;background:rgba(255,255,255,.5);border:1px solid var(--rule);border-radius:7px;padding:5px 8px;">ボーナス併用：月払 <input type="text" inputmode="numeric" id="monthlyPay" oninput="onMonthlyPay(this)" value="${yen(mp)}" style="width:78px;text-align:right;font-family:var(--mono);padding:2px 5px;border:1px solid var(--rule);border-radius:5px;"> 円 ＋ ボーナス（年2回）各 <b id="bonusOut" style="color:var(--brass-deep);">${yen(bonus)}</b> 円</div>`;})()}<div class="note">貯蓄で用意 約${yen(savTarget)}円${savedTotal>0?('（うち既に約'+yen(savedTotal)+'円 準備済／残り約'+yen(contribTarget)+'円）'):''}・家計から約${yen(householdTotal)}円${hhMonthly>0?('（月'+yen(hhMonthly)+'円）'):''}／親負担 計約${yen(parentTotal)}円</div></div>
     <div class="rc"><div class="k">教育費のピーク年</div><div class="v" style="font-size:18px;">${peak.v>0?('今から'+peak.i+'年後'):'—'}</div><div class="note">${peak.v>0?('約'+yen(peak.v)+'円/年'):'—'}</div></div>
     <div class="rc"><div class="k">教育が終わる頃の親の年齢</div><div class="v" style="font-size:18px;${fatherEnd>=60?'color:var(--loss);':''}">父${fatherEnd}歳 / 母${motherEnd}歳</div><div class="note">末子卒業まで約${eduEndYears}年後</div></div>
   </div>`;
