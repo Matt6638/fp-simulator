@@ -134,7 +134,7 @@
   .ipeople{flex:1 1 360px;min-width:300px;}
   .iopts{flex:1 1 300px;min-width:270px;}
   /* 対象者見出し＋父母年齢を右に横並び */
-  .ihead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px;}
+  .ihead{display:flex;align-items:baseline;justify-content:flex-start;gap:22px;flex-wrap:wrap;margin-bottom:6px;}
   .grp.ginline{margin:0;padding:0;border:0;}
   .parent-ages{font-size:11.5px;color:var(--ink-soft);font-weight:600;display:inline-flex;align-items:center;white-space:nowrap;}
   .parent-ages input{width:46px!important;text-align:right;font-family:var(--mono);padding:4px 6px!important;font-size:12.5px!important;margin:0 2px;display:inline-block;}
@@ -295,7 +295,7 @@
       <div class="icol icol-opts">
         <div class="grp gtight">準備の前提</div>
         <div class="fieldwrap">
-          <div class="field ff"><label class="lab">教育期に家計から出せる月額<small style="font-weight:400;color:var(--ink-soft);">※世帯・固定（万円で選択・入力可）</small></label><input type="text" inputmode="numeric" class="yen" id="hhMonthly" list="hhMonthlyList" value="" placeholder="0" autocomplete="off"><datalist id="hhMonthlyList"><option value="0" label="0円"></option><option value="10,000" label="1万円/月"></option><option value="30,000" label="3万円/月"></option><option value="50,000" label="5万円/月"></option><option value="70,000" label="7万円/月"></option><option value="100,000" label="10万円/月"></option></datalist></div>
+          <div class="field ff"><label class="lab">教育期に家計から出せる月額<small style="font-weight:400;color:var(--ink-soft);">※世帯・1ヶ月（万円で選択・自由入力可）</small></label><input type="text" inputmode="text" id="hhMonthly" list="hhMonthlyList" value="" placeholder="0" autocomplete="off" title="世帯で1ヶ月に出せる額。不足分は貯蓄で用意します"><datalist id="hhMonthlyList"><option value="0円"></option><option value="1万円"></option><option value="3万円"></option><option value="5万円"></option><option value="7万円"></option><option value="10万円"></option></datalist></div>
           <div class="field ff"><label class="lab">積立の方式</label><select id="finishTiming"><option value="each" selected>各年度まで積立（都度）</option><option value="first">入学初年までに完了（理想）</option></select></div>
           <div class="field ff"><label class="lab">開始遅延の比較（5年目を変更）</label><select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
         </div>
@@ -464,7 +464,7 @@ function applyChildColors(){
   cl.addEventListener('input',function(e){ var t=e.target; if(t&&t.classList&&t.classList.contains('yen')&&String(t.value).trim()!==''){ formatYen(t); } }, false);
 })();
 document.querySelectorAll('input.yen').forEach(attachAmount);
-['fatherAge','motherAge'].forEach(id=>attachClear(document.getElementById(id)));
+['fatherAge','motherAge','hhMonthly'].forEach(id=>attachClear(document.getElementById(id)));
 addChild({course:'shiri',live:'away'});
 addChild({course:'shiri',live:'away'});
 // クリア時：子リストと親年齢も初期状態へ（FPコアの自動保存対象外のため個別にリセット）
@@ -477,7 +477,7 @@ window.__fpClearExtra=function(){
 
 /* ===== 計算 ===== */
 function _pv(e){return (e&&String(e.value).trim()!=="")?e.value:((e&&e.placeholder)||"");}
-function num(el){var v=parseFloat(zen2han(_pv(el)).replace(/,/g,''))||0;return (window.__fpU==='man'&&el&&el.classList&&el.classList.contains('yen'))?v*10000:v;}
+function num(el){var s=zen2han(_pv(el)); if(/万/.test(s)){ return (parseFloat(s.replace(/[^\d.\-]/g,''))||0)*10000; } var v=parseFloat(s.replace(/,/g,''))||0;return (window.__fpU==='man'&&el&&el.classList&&el.classList.contains('yen'))?v*10000:v;}
 function readChildren(){
   const arr=[];
   document.querySelectorAll('.child').forEach(c=>{
@@ -524,6 +524,19 @@ function fundBalance(rate,contribY,drawY,N,crashYear,crashDrop,initBal){
     b[y]=bal;
   }
   return b;
+}
+/* 利回りrで運用しながら積立てた場合に、必要な毎月積立額（0%時のhouseholdMonthlyを何倍にできるか）。
+   残高が最終0になる拠出係数 k を、拠出のみ成長・取崩のみ成長・既存貯蓄成長から線形に解く。 */
+function requiredMonthlyAt(rate,R){
+  const hm=R.householdMonthly||0; if(rate<=0||hm<=0)return hm;
+  const N=R.N, zeros=new Array(N+1).fill(0);
+  const contribEnd=fundBalance(rate,R.contribY,zeros,N)[N];              // 拠出のみを成長させた終価
+  const drawEnd=-fundBalance(rate,zeros,R.fromSav,N)[N];                 // 取崩のみの終価（正の額）
+  const initEnd=(R.savedTotal||0)*Math.pow(1+rate,N);                   // 既存貯蓄の成長
+  if(contribEnd<=0)return hm;
+  let k=(drawEnd-initEnd)/contribEnd;                                    // 残高0にする拠出係数
+  k=Math.max(0,k);
+  return hm*k;
 }
 
 let SIM_CRASH='lehman';   // 運用シミュレーションの暴落シナリオ（チャート横で切替）
@@ -701,7 +714,7 @@ function render(R){
 
   // サマリー（横1列3カード）
   html+=`<div class="result-cards summary-cards">
-    <div class="rc hero"><div class="k">今から必要な毎月の積立額（世帯・貯蓄分）<small style="font-family:var(--gothic);font-size:10px;color:var(--brass-deep);">${finishMode==='first'?'入学初年までに完了（理想）':'各年度まで積立（都度）'}</small></div><div class="v">${yen(householdMonthly)}<small> 円／月</small></div>${(function(){const reqA=householdMonthly*12; let mp=(SIM_MONTHLY_PAY!=null?SIM_MONTHLY_PAY:householdMonthly); mp=Math.max(0,Math.min(mp,householdMonthly)); const bonus=Math.max(0,(reqA-mp*12)/2); return `<div class="bonus-row" style="margin-top:6px;font-size:12px;color:var(--ink);display:flex;align-items:center;gap:4px;flex-wrap:wrap;background:rgba(255,255,255,.5);border:1px solid var(--rule);border-radius:7px;padding:5px 8px;">ボーナス併用：月払 <input type="text" inputmode="numeric" class="yen" id="monthlyPay" value="${yen(mp)}" style="width:82px;text-align:right;font-family:var(--mono);padding:2px 5px;border:1px solid var(--rule);border-radius:5px;"> 円 ＋ ボーナス（年2回）各 <b id="bonusOut" style="color:var(--brass-deep);">${yen(bonus)}</b> 円</div>`;})()}<div class="note">貯蓄で用意 約${yen(savTarget)}円${savedTotal>0?('（うち既に約'+yen(savedTotal)+'円 準備済／残り約'+yen(contribTarget)+'円）'):''}・家計から約${yen(householdTotal)}円${hhMonthly>0?('（月'+yen(hhMonthly)+'円）'):''}／親負担 計約${yen(parentTotal)}円</div></div>
+    <div class="rc hero"><div class="k">今から必要な毎月の積立額（世帯・貯蓄分）<small style="font-family:var(--gothic);font-size:10px;color:var(--brass-deep);">${finishMode==='first'?'入学初年までに完了（理想）':'各年度まで積立（都度）'}</small></div><div class="v">${yen(householdMonthly)}<small> 円／月</small></div>${(function(){const reqA=householdMonthly*12; let mp=(SIM_MONTHLY_PAY!=null?SIM_MONTHLY_PAY:householdMonthly); mp=Math.max(0,Math.min(mp,householdMonthly)); const bonus=Math.max(0,(reqA-mp*12)/2); return `<div class="bonus-row" style="margin-top:6px;font-size:12px;color:var(--ink);display:flex;align-items:center;gap:4px;flex-wrap:wrap;background:rgba(255,255,255,.5);border:1px solid var(--rule);border-radius:7px;padding:5px 8px;">ボーナス併用：月払 <input type="text" inputmode="numeric" class="yen" id="monthlyPay" value="${yen(mp)}" style="width:82px;text-align:right;font-family:var(--mono);padding:2px 5px;border:1px solid var(--rule);border-radius:5px;"> 円 ＋ ボーナス（年2回）各 <b id="bonusOut" style="color:var(--brass-deep);">${yen(bonus)}</b> 円</div>`;})()}${(function(){const rows=[{n:'日本株式',r:0.05},{n:'全世界株',r:0.08},{n:'S&P500',r:0.10}].map(function(f){return `<div style="display:flex;justify-content:space-between;gap:8px;"><span>${f.n}（${Math.round(f.r*100)}%）で運用</span><b style="color:var(--brass-deep);">${yen(requiredMonthlyAt(f.r,R))} 円／月</b></div>`;}).join('');return `<details class="invest-reveal" style="margin-top:6px;font-size:11.5px;"><summary style="cursor:pointer;color:var(--brass-deep);font-weight:600;">▸ 運用しながら積立てると必要額は下がる（タップで表示）</summary><div style="padding:5px 2px 2px;display:flex;flex-direction:column;gap:3px;">${rows}<div style="color:var(--ink-soft);font-size:10px;margin-top:2px;">※同じ目標額を各利回りで運用しながら積立てた場合の毎月額（現金0%＝上記${yen(householdMonthly)}円）。過去実績イメージ・将来を保証しません。</div></div></details>`;})()}<div class="note">貯蓄で用意 約${yen(savTarget)}円${savedTotal>0?('（うち既に約'+yen(savedTotal)+'円 準備済／残り約'+yen(contribTarget)+'円）'):''}・家計から約${yen(householdTotal)}円${hhMonthly>0?('（月'+yen(hhMonthly)+'円）'):''}／親負担 計約${yen(parentTotal)}円</div></div>
     <div class="rc"><div class="k">教育費のピーク年</div><div class="v" style="font-size:18px;">${peak.v>0?('今から'+peak.i+'年後'):'—'}</div><div class="note">${peak.v>0?('約'+yen(peak.v)+'円/年'):'—'}</div></div>
     <div class="rc"><div class="k">教育が終わる頃の親の年齢</div><div class="v" style="font-size:18px;${fatherEnd>=60?'color:var(--loss);':''}">父${fatherEnd}歳 / 母${motherEnd}歳</div><div class="note">末子卒業まで約${eduEndYears}年後</div></div>
   </div>`;
