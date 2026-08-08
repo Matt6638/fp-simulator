@@ -19,6 +19,11 @@
   .side-tt{font-family:var(--mincho);font-weight:600;font-size:23px;color:var(--ink);writing-mode:vertical-rl;text-orientation:upright;letter-spacing:.14em;line-height:1;margin:0 0 8px;white-space:nowrap;overflow:visible;}
   .side .fpbar{flex-direction:column;align-items:stretch;gap:6px;margin:0;flex-wrap:nowrap;width:100%;}
   .side .fpbtn{width:100%;text-align:center;padding:7px 2px;font-size:11.5px;letter-spacing:0;white-space:nowrap;}
+  .client-field{display:flex;align-items:center;gap:4px;width:100%;background:#fffdf8;border:1px dashed var(--brass);border-radius:7px;padding:5px 7px;box-sizing:border-box;}
+  .client-field label{font-size:10px;color:var(--brass-deep);white-space:nowrap;font-weight:600;}
+  .client-field input{flex:1;min-width:0;width:100%;border:none;border-bottom:1px solid var(--rule);background:transparent;font-family:var(--mincho);font-size:13px;color:var(--ink);padding:1px 2px;text-align:center;}
+  .client-field input:focus{outline:none;border-bottom-color:var(--brass);}
+  .client-field em{font-style:normal;font-size:11px;color:var(--ink-soft);}
   .main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:8px;height:100%;overflow-y:auto;overflow-x:hidden;}
   .deck{background:var(--surface);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;overflow:hidden;}
   .deck-result{flex:1 1 auto;}
@@ -243,7 +248,7 @@
   footer b{color:var(--ink-soft);}
   input::placeholder{color:#c0baa8;} /*FPPH-GREY*/
   /* 縦積みのため結果パネルの sticky は解除 */
-  /* ===== PDFレポート（A4横・2ページ・全情報を高密度で） ===== */
+  /* ===== PDFレポート（A4横・1ページ・全情報を高密度で） ===== */
   #reportView{display:none;}
   @media print{
     body.printing-report .wrap{display:none!important;}
@@ -251,8 +256,20 @@
     body.printing-report{background:#fff!important;}
     @page{size:A4 landscape;margin:0;}
   }
-  .rp-page{width:297mm;height:210mm;box-sizing:border-box;padding:8mm 10mm;font-family:var(--gothic);color:var(--ink);background:#fff;display:flex;flex-direction:column;gap:3.4mm;overflow:hidden;page-break-after:always;break-after:page;}
+  .rp-page{width:297mm;height:210mm;box-sizing:border-box;padding:6.5mm 9mm;font-family:var(--gothic);color:var(--ink);background:#fff;display:flex;flex-direction:column;gap:2.3mm;overflow:hidden;page-break-after:always;break-after:page;}
   .rp-page:last-child{page-break-after:auto;}
+  /* 1ページ用グリッド */
+  .rp-charts{display:flex;gap:6mm;align-items:flex-start;}
+  .rp-cols3{display:flex;gap:5mm;align-items:flex-start;}
+  .rp-cols2b{display:flex;gap:6mm;align-items:flex-start;}
+  .rp-charts>.rp-cell{flex:1;} .rp-cols2b>.rp-cell{flex:1;}
+  .rp-cols3>.rp-cell:nth-child(1){flex:1.25;} .rp-cols3>.rp-cell:nth-child(2){flex:1;} .rp-cols3>.rp-cell:nth-child(3){flex:1;}
+  .rp-cell{display:flex;flex-direction:column;min-width:0;}
+  .rp-sm{font-size:9px;}
+  .rp-sm th{padding:3px 5px;} .rp-sm td{padding:2.5px 5px;}
+  .rp-kstack{display:flex;flex-direction:column;gap:3px;}
+  .rp-kstack .rp-k2{padding:4px 9px;font-size:10px;} .rp-kstack .rp-k2 b{white-space:nowrap;}
+  .rp-legend-line{font-size:8.5px;color:var(--ink-soft);margin-top:2px;}
   /* ヘッダー＋KPI帯 */
   .rp-hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--brass);padding-bottom:5px;flex:0 0 auto;}
   .rp-hd-title{font-family:var(--mincho);font-size:21px;color:var(--ink);letter-spacing:.05em;line-height:1.1;}
@@ -306,6 +323,7 @@
   <button type="button" class="fpbtn" onclick="FP.clearAll()">クリア</button>
   <button type="button" class="fpbtn" onclick="saveStateFile()">保存</button>
   <button type="button" class="fpbtn" onclick="document.getElementById('customLoadInput').click()">読込</button>
+  <span class="client-field"><label for="clientName">お客様の姓</label><input type="text" id="clientName" placeholder="例：山田" autocomplete="off"><em>様</em></span>
   <button type="button" class="fpbtn fpbtn-pdf" onclick="printReport()">PDF・共有</button>
   <input type="file" id="fpLoadInput" accept=".json,application/json" style="display:none;">
   <input type="file" id="customLoadInput" accept=".json,application/json" style="display:none;">
@@ -536,6 +554,7 @@ function collectState(){
   var g=function(id){var e=document.getElementById(id);return e?e.value:'';};
   return {
     tool:'kyoiku', v:1, savedAt:new Date().toISOString().slice(0,10),
+    clientName:g('clientName'),
     father:g('fatherAge'), mother:g('motherAge'), hhMonthly:g('hhMonthly'),
     rate:g('rate'), loanRate:g('loanRate'), finishTiming:g('finishTiming'), delay4:g('delay4'),
     rentM:g('rentM'), livingM:g('livingM'), initCost:g('initCost'),
@@ -548,6 +567,7 @@ function collectState(){
 function applyState(o){
   if(!o||typeof o!=='object')return false;
   var setV=function(id,v){var e=document.getElementById(id);if(e&&v!=null&&v!==''){e.value=v;e.setAttribute('data-fpt','1');}};
+  setV('clientName',o.clientName);
   setV('fatherAge',o.father); setV('motherAge',o.mother); setV('hhMonthly',o.hhMonthly);
   setV('rate',o.rate); setV('loanRate',o.loanRate); setV('finishTiming',o.finishTiming); setV('delay4',o.delay4);
   setV('rentM',o.rentM); setV('livingM',o.livingM); setV('initCost',o.initCost);
@@ -568,12 +588,12 @@ function applyState(o){
   if(typeof simulate==='function') simulate();
   return true;
 }
+function clientSei(){ var e=document.getElementById('clientName'); return e?((e.value||'').trim().replace(/[\\\/:*?"<>|]/g,'')):''; }
 function saveStateFile(){
   try{
     var d=new Date();
     var ymd=String(d.getFullYear()).slice(-2)+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2); // 例 260810
-    var sei='';
-    try{ sei=(window.prompt('お客様の姓を入力してください（例：山田）。空欄も可。','')||'').trim().replace(/[\\\/:*?"<>|]/g,''); }catch(_){ sei=''; } // prompt無効な環境でも継続
+    var sei=clientSei(); // ツールバーの「お客様の姓」欄から取得
     var name=ymd+'_'+sei+'様.json'; // 例 260810_山田様.json
     var data=JSON.stringify(collectState(),null,2);
     var blob=new Blob([data],{type:'application/json'});
@@ -603,31 +623,32 @@ function buildReportHTML(sei){
      +'<div class="rp-kpi"><span>教育期間</span><b>今から '+R.firstEnterYears+'〜'+R.eduEndYears+' 年後</b></div>'
      +'<div class="rp-kpi"><span>教育終了時の親</span><b>父'+fatherEnd+' / 母'+motherEnd+'歳</b></div>'
      +'<div class="rp-kpi"><span>教育期の親の負担 合計</span><b>約'+yen(R.parentTotal)+' 円</b></div></div>';
-  var h='';
-  // ===== 1ページ目：現状と必要額 =====
-  h+='<section class="rp-page">'
+  // 開始遅延（積立開始が遅れると毎月額がどれだけ増えるか）
+  var dbase=(R.delayScan&&R.delayScan[0])?R.delayScan[0].sum:R.householdMonthly;
+  var delayRows=''; (R.delayScan||[]).forEach(function(dd){ var lab=dd.D===0?'今すぐ開始':(dd.D+'年 先送り'); delayRows+='<tr'+(dd.D===0?' class="rp-ttl"':'')+'><td>'+lab+(dd.needLoan?' ⚠':'')+'</td><td>'+yen(dd.sum)+' 円/月</td><td>'+(dd.D===0?'—':('＋'+yen(dd.sum-dbase)+' 円/月'))+'</td></tr>'; });
+  // ===== 全情報を A4横 1ページに凝縮 =====
+  var h='<section class="rp-page rp-1page">'
    +'<div class="rp-hd"><div><div class="rp-hd-title">お子さまの教育資金プラン</div><div class="rp-hd-sub">'+client+'　／　作成日 '+dateStr+'</div></div><div class="rp-hd-brand">FP SIMULATION</div></div>'
    +kpi
-   +'<div><div class="rp-sh">家族の年齢と、教育資金のかかる年度</div>'+familyTimelineSVG(R,{report:true})+'</div>'
-   +'<div class="rp-row">'
-     +'<div><div class="rp-sh">お子さまごとの内訳（総費用−奨学金＝親の負担）</div><table class="rp-tbl"><thead><tr><th>子</th><th>進路</th><th>総費用</th><th>−奨学金</th><th>親の負担</th></tr></thead><tbody>'+rows+'<tr class="rp-ttl"><td>合計</td><td>'+R.results.length+'人</td><td>'+yen(tTotal)+'</td><td>'+(tSch?'-'+yen(tSch):'—')+'</td><td>'+yen(R.parentTotal)+'</td></tr></tbody></table>'
-       +'<div class="rp-box" style="margin-top:5px;">教育期の<b>親の負担 約'+yen(R.parentTotal)+'円</b>を、<b>家計から 約'+yen(R.householdTotal)+'円</b>'+(R.hhMonthly>0?'（月'+yen(R.hhMonthly)+'円）':'')+'＋<b>貯蓄から 約'+yen(R.savTarget)+'円</b>で用意。'+(R.savedTotal>0?'すでに約'+yen(R.savedTotal)+'円 準備済み、':'')+'不足分は貯めた貯蓄から取り崩します。</div></div>'
-     +'<div><div class="rp-sh">教育期は毎月いくら出ていくか（親の毎月支出）</div>'+monthlySpendChart(R,{report:true})+'<div class="rp-cap">その年に親が毎月出す額（教育費−奨学金）。茶＝家計から（収入）／緑＝貯蓄から取り崩し。事前の積立が「取り崩し」部分を支えます。</div></div>'
+   // グラフ2枚（家族タイムライン／運用シミュレーション）
+   +'<div class="rp-charts">'
+     +'<div class="rp-cell"><div class="rp-sh">家族の年齢と、教育資金のかかる年度</div>'+familyTimelineSVG(R)+'<div class="rp-legend-line">棒＝その年の教育費／緑線＝貯まる金額（積立残高）</div></div>'
+     +'<div class="rp-cell"><div class="rp-sh">運用シミュレーション（同じ積立額を利回りで運用）</div>'+investSimChart(R,SIM_CRASH||'lehman').svg+'<div class="rp-cap">各線＝毎月同額を積立て運用した残高（教育費差引後）。破線＝入学初年に暴落した例。S&P500≒10%／全世界株≒8%／日本株≒5%（過去実績イメージ・将来保証なし）。</div></div>'
    +'</div>'
-   +'<div class="rp-foot"><span>教育費＝各種調査（文科省・日本政策金融公庫等）に基づく目安・概算</span><span>'+client+'　／　1 / 2</span></div>'
-   +'</section>';
-  // ===== 2ページ目：運用で備える／奨学金 =====
-  h+='<section class="rp-page">'
-   +'<div class="rp-hd"><div><div class="rp-hd-title">運用で備える ／ 奨学金</div><div class="rp-hd-sub">同じ積立額を利回りで運用した場合と、奨学金の返済</div></div><div class="rp-hd-brand">'+client+'</div></div>'
-   +'<div><div class="rp-sh">運用シミュレーション ― 同じ積立額を利回りで運用すると</div>'+investSimChart(R,SIM_CRASH||'lehman',{report:true}).svg
-     +'<div class="rp-cap">各線＝毎月同額を積立て運用した残高（教育費を差引後）。現金0%は使い切りでほぼ0、運用は成長分がプラスに。破線＝選んだ暴落が入学初年に起きた例。在学中（取り崩し期）も残額は同じ利回りで運用し続けた前提。利回りは代表的指数の長期の過去実績イメージ（S&P500≒10%・全世界株MSCI ACWI≒8%・日本株式TOPIX配当込み≒5%）で将来を保証しません。</div></div>'
-   +'<div class="rp-row">'
-     +'<div><div class="rp-sh">運用しながら積立てた場合の必要月額（同じ目標額）</div><div style="display:flex;flex-direction:column;gap:5px;">'+invRows+'</div></div>'
-     +'<div><div class="rp-sh">奨学金の返済（卒業後・本人が返済／JASSO制度）</div>'
-       +(loanRows?('<table class="rp-tbl"><thead><tr><th>子</th><th>借入総額</th><th>返済/月</th><th>返還年数</th><th>完済</th><th>総返済</th></tr></thead><tbody>'+loanRows+'</tbody></table><div class="rp-cap">返還年数＝貸与総額÷割賦金の基礎額（JASSO制度・小数点以下切捨）。月額は元利均等で自動計算。</div>'):'<div class="rp-box">奨学金を利用する場合は、卒業後にお子さまご本人が返済します（入力欄の奨学金月額を設定するとJASSO制度で自動計算）。</div>')
-     +'</div>'
+   // 表3枚（内訳／開始遅延／運用別の必要月額）
+   +'<div class="rp-cols3">'
+     +'<div class="rp-cell"><div class="rp-sh">お子さまごとの内訳（総費用−奨学金＝親の負担）</div><table class="rp-tbl rp-sm"><thead><tr><th>子</th><th>進路</th><th>総費用</th><th>−奨学金</th><th>親の負担</th></tr></thead><tbody>'+rows+'<tr class="rp-ttl"><td>合計</td><td>'+R.results.length+'人</td><td>'+yen(tTotal)+'</td><td>'+(tSch?'-'+yen(tSch):'—')+'</td><td>'+yen(R.parentTotal)+'</td></tr></tbody></table></div>'
+     +'<div class="rp-cell"><div class="rp-sh">積立開始が遅れると毎月額はどれだけ増えるか</div><table class="rp-tbl rp-sm"><thead><tr><th>積立の開始</th><th>必要積立額</th><th>今すぐとの差</th></tr></thead><tbody>'+delayRows+'</tbody></table></div>'
+     +'<div class="rp-cell"><div class="rp-sh">運用しながら積立てた場合の必要月額</div><div class="rp-kstack">'+invRows+'</div></div>'
    +'</div>'
-   +'<div class="rp-foot"><span>本資料は概算のシミュレーションであり、将来の成果を保証するものではありません。</span><span>'+client+'　／　2 / 2</span></div>'
+   // 毎月支出／奨学金返済＋準備方法
+   +'<div class="rp-cols2b">'
+     +'<div class="rp-cell"><div class="rp-sh">教育期は毎月いくら出ていくか（親の毎月支出）</div>'+monthlySpendChart(R)+'<div class="rp-cap">茶＝家計から（収入）／緑＝貯蓄から取り崩し。事前の積立が「取り崩し」部分を支えます。</div></div>'
+     +'<div class="rp-cell"><div class="rp-sh">奨学金の返済（卒業後・本人が返済／JASSO制度）</div>'
+       +(loanRows?('<table class="rp-tbl rp-sm"><thead><tr><th>子</th><th>借入総額</th><th>返済/月</th><th>返還年数</th><th>完済</th><th>総返済</th></tr></thead><tbody>'+loanRows+'</tbody></table><div class="rp-cap">返還年数＝貸与総額÷割賦金の基礎額（JASSO・小数点以下切捨）。月額は元利均等で自動計算。</div>'):'<div class="rp-box">奨学金を利用する場合は、卒業後にお子さまご本人が返済します（入力欄の奨学金月額を設定するとJASSO制度で自動計算）。</div>')
+       +'<div class="rp-box" style="margin-top:4px;">教育期の<b>親の負担 約'+yen(R.parentTotal)+'円</b>＝<b>家計 約'+yen(R.householdTotal)+'円</b>'+(R.hhMonthly>0?'（月'+yen(R.hhMonthly)+'円）':'')+'＋<b>貯蓄 約'+yen(R.savTarget)+'円</b>'+(R.savedTotal>0?'（うち準備済 約'+yen(R.savedTotal)+'円）':'')+'。不足分は貯めた貯蓄から取り崩します。</div></div>'
+   +'</div>'
+   +'<div class="rp-foot"><span>教育費＝各種調査（文科省・日本政策金融公庫等）に基づく目安・概算。本資料は将来の成果を保証しません。</span><span>'+client+'</span></div>'
    +'</section>';
   return h;
 }
@@ -635,8 +656,7 @@ function printReport(){
   try{
     if(typeof simulate==='function'&&ready)simulate(); // 最新の入力で再計算してから
     if(!LAST||!inputReady()){ window.alert('先に「入力」から両親の年齢とお子さまの年齢・進路を入れてください。'); return; }
-    var sei='';
-    try{ sei=(window.prompt('お客様の姓を入力してください（PDF表紙に表示・空欄可）','')||'').trim().replace(/[\\\/:*?"<>|]/g,''); }catch(_){ sei=''; }
+    var sei=clientSei(); // ツールバーの「お客様の姓」欄から取得
     var rv=document.getElementById('reportView');
     rv.innerHTML=buildReportHTML(sei);
     document.body.classList.add('printing-report');
@@ -1072,7 +1092,11 @@ function familyTimelineSVG(R,opts){
     g+=`<line x1="${px.toFixed(1)}" y1="6" x2="${px.toFixed(1)}" y2="${(H-axisH).toFixed(1)}" stroke="#2f6b4f" stroke-width="1.1" stroke-dasharray="3 3" opacity="0.6"/>`;
     g+=`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="3" fill="#2f6b4f"/>`;
     const pkRight=px>(padL+(W-padR-padL)*0.5); // ピークが右寄りなら棒グラフの金額と重ならないようラベルを左へ出す
-    g+=`<text x="${(pkRight?px-6:px+6).toFixed(1)}" y="${(py-4).toFixed(1)}" text-anchor="${pkRight?'end':'start'}" font-size="9" fill="#2f6b4f" font-weight="700">${finishMode==='first'?'貯め終わり':'残高ピーク'} ${man(bal[peakY])}万</text>`;
+    const pkLabel=(finishMode==='first'?'貯め終わり':'残高ピーク')+' '+man(bal[peakY])+'万';
+    const lblFS=9, lblW=pkLabel.length*lblFS*0.62+8, lblY=Math.max(lblFS+3,py-7); // 上端で切れないよう下限を確保
+    const lblX=(pkRight?px-6:px+6), rectX=(pkRight?lblX-lblW:lblX);
+    g+=`<rect x="${rectX.toFixed(1)}" y="${(lblY-lblFS-1).toFixed(1)}" width="${lblW.toFixed(1)}" height="${(lblFS+5).toFixed(1)}" rx="2.5" fill="#faf7ef" opacity="0.88"/>`; // 折れ線と重なっても読めるよう下地
+    g+=`<text x="${lblX.toFixed(1)}" y="${lblY.toFixed(1)}" text-anchor="${pkRight?'end':'start'}" font-size="${lblFS}" fill="#2f6b4f" font-weight="700">${pkLabel}</text>`;
   }
   g+=`<line x1="${padL}" y1="${(base+1).toFixed(1)}" x2="${(W-padR).toFixed(1)}" y2="${(base+1).toFixed(1)}" stroke="#d8cfb8"/>`;
   // 各人の行（年齢＋子は在学バーを子色で）
