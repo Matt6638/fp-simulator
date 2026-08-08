@@ -514,7 +514,10 @@ function applyState(o){
   return true;
 }
 function saveStateFile(){
-  var name='教育資金_'+new Date().toISOString().slice(0,10)+'.json';
+  var d=new Date();
+  var ymd=String(d.getFullYear()).slice(-2)+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2); // 例 260810
+  var sei=(window.prompt('お客様の姓を入力してください（例：山田）。空欄も可。','')||'').trim().replace(/[\\\/:*?"<>|]/g,''); // ファイル名に使えない文字を除去
+  var name=ymd+'_'+sei+'様.json'; // 例 260810_山田様.json
   var data=JSON.stringify(collectState(),null,2);
   var blob=new Blob([data],{type:'application/json'});
   var url=URL.createObjectURL(blob);
