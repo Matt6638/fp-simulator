@@ -240,46 +240,50 @@
   footer b{color:var(--ink-soft);}
   input::placeholder{color:#c0baa8;} /*FPPH-GREY*/
   /* 縦積みのため結果パネルの sticky は解除 */
-  /* ===== PDFレポート（画面では非表示。PDF・共有で生成→印刷） ===== */
+  /* ===== PDFレポート（A4横・4ページ・画面非表示） ===== */
   #reportView{display:none;}
   @media print{
     body.printing-report .wrap{display:none!important;}
     body.printing-report #reportView{display:block!important;}
     body.printing-report{background:#fff!important;}
-    @page{size:A4;margin:12mm;}
+    @page{size:A4 landscape;margin:0;}
   }
-  .rp-page{page-break-after:always;break-after:page;padding:4mm 2mm 2mm;box-sizing:border-box;font-family:var(--gothic);color:var(--ink);}
+  /* 横A4：297×210mm。ヘッダー/フッターを抑えるため@page margin:0、各ページ内で余白 */
+  .rp-page{page-break-after:always;break-after:page;box-sizing:border-box;width:297mm;min-height:209mm;padding:11mm 14mm 9mm;font-family:var(--gothic);color:var(--ink);display:flex;flex-direction:column;position:relative;background:#fff;}
   .rp-page:last-child{page-break-after:auto;}
-  .rp-h2{font-family:var(--mincho);font-size:16px;color:var(--ink);border-bottom:2px solid var(--brass);padding-bottom:5px;margin:0 0 12px;}
-  .rp-h3{font-size:13px;color:var(--brass-deep);margin:16px 0 6px;}
-  .rp-cap{font-size:10.5px;color:var(--ink-soft);margin-top:10px;line-height:1.7;}
-  .rp-tbl{width:100%;border-collapse:collapse;font-size:12px;margin:4px 0;}
-  .rp-tbl th{background:var(--ink);color:#fff;padding:7px 9px;text-align:right;font-weight:600;}
+  .rp-h2{font-family:var(--mincho);font-size:15px;color:var(--ink);border-bottom:2px solid var(--brass);padding-bottom:4px;margin:0 0 7px;}
+  .rp-h3{font-size:12px;color:var(--brass-deep);margin:9px 0 4px;font-weight:700;}
+  .rp-cap{font-size:10px;color:var(--ink-soft);margin-top:5px;line-height:1.55;}
+  .rp-tbl{width:100%;border-collapse:collapse;font-size:11.5px;margin:2px 0;}
+  .rp-tbl th{background:var(--ink);color:#fff;padding:5px 9px;text-align:right;font-weight:600;}
   .rp-tbl th:first-child,.rp-tbl th:nth-child(2){text-align:left;}
-  .rp-tbl td{border-bottom:1px solid var(--rule);padding:7px 9px;text-align:right;font-family:var(--mono);}
+  .rp-tbl td{border-bottom:1px solid var(--rule);padding:5px 9px;text-align:right;font-family:var(--mono);}
   .rp-tbl td:first-child,.rp-tbl td:nth-child(2){text-align:left;font-family:var(--gothic);}
   .rp-tbl .rp-ttl td{border-top:2px solid var(--brass);font-weight:700;background:var(--paper);}
-  .rp-box{margin:12px 0;padding:11px 13px;background:var(--paper);border:1px solid var(--rule);border-left:4px solid var(--brass);border-radius:6px;font-size:12px;line-height:1.75;}
-  .rp-cover{display:flex;flex-direction:column;min-height:266mm;}
-  .rp-cover-top{border-bottom:1px solid var(--rule);padding-bottom:10px;display:flex;justify-content:space-between;align-items:baseline;}
+  .rp-box{margin:8px 0;padding:9px 12px;background:var(--paper);border:1px solid var(--rule);border-left:4px solid var(--brass);border-radius:6px;font-size:11.5px;line-height:1.7;}
+  .rp-2col{display:flex;gap:14mm;align-items:flex-start;}
+  .rp-2col>*{flex:1;min-width:0;}
+  .rp-body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:9px;}
+  .rp-foot{margin-top:auto;font-size:9.5px;color:var(--ink-soft);border-top:1px solid var(--rule);padding-top:6px;display:flex;justify-content:space-between;}
+  /* 表紙（横2カラム） */
+  .rp-cover{flex-direction:row;gap:16mm;align-items:stretch;}
+  .rp-cover-l{flex:1.15;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--rule);padding-right:16mm;}
+  .rp-cover-r{flex:1;display:flex;flex-direction:column;justify-content:center;gap:9px;}
   .rp-brand{font-family:var(--mono);font-size:11px;letter-spacing:.34em;color:var(--brass-deep);}
-  .rp-brand-jp{font-family:var(--mincho);font-size:14px;color:var(--ink);}
-  .rp-cover-mid{margin:auto 0;text-align:center;}
-  .rp-lead{font-size:13px;color:var(--ink-soft);letter-spacing:.12em;}
-  .rp-title{font-family:var(--mincho);font-size:42px;letter-spacing:.1em;color:var(--ink);margin:8px 0 24px;}
-  .rp-client{font-family:var(--mincho);font-size:24px;color:var(--brass-deep);border-top:1px solid var(--brass);border-bottom:1px solid var(--brass);display:inline-block;padding:10px 48px;min-width:200px;}
-  .rp-keys{margin-top:auto;}
-  .rp-key{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:14px 18px;text-align:center;margin-bottom:10px;}
+  .rp-lead{font-size:14px;color:var(--ink-soft);letter-spacing:.12em;margin-top:14px;}
+  .rp-title{font-family:var(--mincho);font-size:46px;letter-spacing:.1em;color:var(--ink);margin:6px 0 22px;line-height:1.1;}
+  .rp-client{font-family:var(--mincho);font-size:26px;color:var(--brass-deep);border-top:1px solid var(--brass);border-bottom:1px solid var(--brass);padding:10px 6px;text-align:center;}
+  .rp-date{font-size:12px;color:var(--ink-soft);margin-top:16px;}
+  .rp-key{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:14px 18px;text-align:center;}
   .rp-key span{display:block;font-size:11px;color:var(--ink-soft);margin-bottom:4px;}
-  .rp-key b{font-family:var(--mincho);font-size:30px;color:var(--ink);}
-  .rp-key b small{font-size:13px;font-family:var(--gothic);}
-  .rp-key2{display:flex;gap:10px;}
-  .rp-k2{flex:1;background:#fff;border:1px solid var(--rule);border-radius:10px;padding:10px 8px;text-align:center;}
-  .rp-k2 span{display:block;font-size:10px;color:var(--ink-soft);margin-bottom:3px;}
-  .rp-k2 b{font-size:14px;color:var(--ink);}
-  .rp-cover-foot{font-size:10px;color:var(--ink-soft);border-top:1px solid var(--rule);padding-top:8px;margin-top:14px;text-align:center;}
-  #reportView .chartwrap{padding:2px 0!important;}
-  #reportView .legend{font-size:10.5px;color:var(--ink-soft);display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;padding:0;}
+  .rp-key b{font-family:var(--mincho);font-size:34px;color:var(--ink);}
+  .rp-key b small{font-size:14px;font-family:var(--gothic);}
+  .rp-k2{background:#fff;border:1px solid var(--rule);border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:baseline;}
+  .rp-k2 span{font-size:11px;color:var(--ink-soft);}
+  .rp-k2 b{font-size:15px;color:var(--ink);}
+  .rp-note-s{font-size:9.5px;color:var(--ink-soft);margin-top:4px;line-height:1.5;}
+  #reportView .chartwrap{padding:0!important;}
+  #reportView .legend{font-size:10px;color:var(--ink-soft);display:flex;gap:14px;flex-wrap:wrap;margin-top:5px;padding:0;}
   #reportView .legend i{display:inline-block;width:14px;height:10px;border-radius:2px;margin-right:4px;vertical-align:middle;}
 </style>
 <!-- FP Auth (Phase1: login gate + usage log) -->
@@ -587,34 +591,36 @@ function buildReportHTML(sei){
   var tTotal=R.results.reduce(function(s,r){return s+r.totalCost;},0), tSch=R.results.reduce(function(s,r){return s+r.scholarTotal;},0);
   var scen=investSimChart(R,SIM_CRASH||'lehman');
   var loanRows=''; R.results.forEach(function(r,i){ if(r.borrowed<=0)return; loanRows+='<tr><td>'+(i+1)+'</td><td>'+yen(r.borrowed)+'</td><td>'+yen(r.repayMonthly)+'</td><td>'+r.repayYears+'年</td><td>'+r.finishAge+'歳</td><td>'+yen(r.totalRepay)+'</td></tr>'; });
+  var invRows=[{n:'日本株式',r:0.05},{n:'全世界株',r:0.08},{n:'S&P500',r:0.10}].map(function(f){return '<div class="rp-k2"><span>'+f.n+'（'+Math.round(f.r*100)+'%）で運用</span><b>'+yen(requiredMonthlyAt(f.r,R))+' 円／月</b></div>';}).join('')+'<div class="rp-k2" style="background:var(--paper);"><span>現金 0%（運用なし）</span><b>'+yen(R.householdMonthly)+' 円／月</b></div>';
+  var foot='<div class="rp-foot"><span>FP 教育資金シミュレーション</span><span>'+client+'　／　'+dateStr+'</span></div>';
   var h='';
-  // 表紙
+  // P1 表紙（横2カラム）
   h+='<section class="rp-page rp-cover">'
-   +'<div class="rp-cover-top"><div class="rp-brand">FP SIMULATION</div><div class="rp-brand-jp">教育資金シミュレーション</div></div>'
-   +'<div class="rp-cover-mid"><div class="rp-lead">お子さまの未来のための</div><h1 class="rp-title">教育資金プラン</h1><div class="rp-client">'+client+'</div></div>'
-   +'<div class="rp-keys">'
-     +'<div class="rp-key"><span>今から必要な毎月の積立額（世帯・貯蓄分）</span><b>'+yen(R.householdMonthly)+'<small> 円／月</small></b></div>'
-     +'<div class="rp-key2"><div class="rp-k2"><span>教育期間</span><b>今から '+R.firstEnterYears+'〜'+R.eduEndYears+' 年後</b></div><div class="rp-k2"><span>教育が終わる頃の親の年齢</span><b>父'+fatherEnd+'歳 / 母'+motherEnd+'歳</b></div><div class="rp-k2"><span>教育期の親の負担 合計</span><b>約'+yen(R.parentTotal)+' 円</b></div></div>'
-   +'</div>'
-   +'<div class="rp-cover-foot">作成日：'+dateStr+'　／　本資料は概算のシミュレーションであり、将来の成果を保証するものではありません。</div>'
+   +'<div class="rp-cover-l"><div class="rp-brand">FP SIMULATION</div><div class="rp-lead">お子さまの未来のための</div><h1 class="rp-title">教育資金プラン</h1><div class="rp-client">'+client+'</div><div class="rp-date">作成日：'+dateStr+'</div></div>'
+   +'<div class="rp-cover-r"><div class="rp-key"><span>今から必要な毎月の積立額（世帯・貯蓄分）</span><b>'+yen(R.householdMonthly)+'<small> 円／月</small></b></div>'
+     +'<div class="rp-k2"><span>教育期間</span><b>今から '+R.firstEnterYears+'〜'+R.eduEndYears+' 年後</b></div>'
+     +'<div class="rp-k2"><span>教育が終わる頃の親の年齢</span><b>父'+fatherEnd+'歳 / 母'+motherEnd+'歳</b></div>'
+     +'<div class="rp-k2"><span>教育期の親の負担 合計</span><b>約'+yen(R.parentTotal)+' 円</b></div>'
+     +'<div class="rp-note-s">本資料は概算のシミュレーションであり、将来の成果を保証するものではありません。</div></div>'
    +'</section>';
-  // P2 家族の年齢と教育資金
-  h+='<section class="rp-page"><h2 class="rp-h2">家族の年齢と、教育資金のかかる年度</h2>'+familyTimelineSVG(R)
-   +'<div class="rp-cap">緑の線＝現金で積み立てた場合の残高（三角形で貯まり、在学中に取り崩し）。棒＝その年の教育費。</div></section>';
-  // P3 内訳
-  h+='<section class="rp-page"><h2 class="rp-h2">お子さまごとの内訳と、資金の準備方法</h2>'
-   +'<table class="rp-tbl"><thead><tr><th>子</th><th>進路</th><th>総費用</th><th>−奨学金</th><th>親の負担</th></tr></thead><tbody>'+rows
-   +'<tr class="rp-ttl"><td>合計</td><td>お子さま'+R.results.length+'人</td><td>'+yen(tTotal)+'</td><td>'+(tSch?'-'+yen(tSch):'—')+'</td><td>'+yen(R.parentTotal)+'</td></tr></tbody></table>'
-   +'<div class="rp-box">教育期の<b>親の負担 約'+yen(R.parentTotal)+'円</b>を、<b>家計から 約'+yen(R.householdTotal)+'円</b>'+(R.hhMonthly>0?'（月'+yen(R.hhMonthly)+'円）':'')+' ＋ <b>貯蓄から 約'+yen(R.savTarget)+'円</b>で用意。'+(R.savedTotal>0?'既に約'+yen(R.savedTotal)+'円 準備済み、':'')+'貯蓄分は<b>今から月 '+yen(R.householdMonthly)+'円</b>の積立で準備します（不足分は貯めた貯蓄から取り崩し）。</div>'
-   +(loanRows?('<h3 class="rp-h3">奨学金の返済（卒業後・本人／JASSO制度）</h3><table class="rp-tbl"><thead><tr><th>子</th><th>借入総額</th><th>返済/月</th><th>返還年数</th><th>完済</th><th>総返済</th></tr></thead><tbody>'+loanRows+'</tbody></table>'):'')
-   +'</section>';
-  // P4 毎月支出
-  h+='<section class="rp-page"><h2 class="rp-h2">教育期は毎月いくら出ていくか</h2>'+monthlySpendChart(R)
-   +'<div class="rp-cap">その年に親が毎月出す額（教育費−奨学金）。茶＝家計から／緑＝貯蓄から取り崩し。事前の積立が「取り崩し」部分を支えます。</div></section>';
-  // P5 運用
-  h+='<section class="rp-page"><h2 class="rp-h2">運用シミュレーション ― 同じ積立額を利回りで運用すると</h2>'+scen.svg
-   +'<div class="rp-cap">現金0%は使い切りでちょうど0、運用は成長分がプラスに。破線＝選んだ暴落が入学初年に起きた例。過去実績イメージで将来を保証しません。</div>'
-   +'<div class="rp-cover-foot" style="margin-top:8mm;">作成：FP教育資金シミュレーション　／　'+dateStr+'</div></section>';
+  // P2 家族タイムライン＋内訳＋準備方法
+  h+='<section class="rp-page"><h2 class="rp-h2">家族の年齢と、教育資金のかかる年度</h2><div class="rp-body">'+familyTimelineSVG(R,{report:true})
+   +'<div class="rp-cap">緑の線＝現金で積み立てた場合の残高（三角形で貯まり、在学中に取り崩し）。棒＝その年の教育費。</div>'
+   +'<div class="rp-2col" style="margin-top:9px;">'
+     +'<div><h3 class="rp-h3">お子さまごとの内訳（総費用−奨学金＝親の負担）</h3><table class="rp-tbl"><thead><tr><th>子</th><th>進路</th><th>総費用</th><th>−奨学金</th><th>親の負担</th></tr></thead><tbody>'+rows+'<tr class="rp-ttl"><td>合計</td><td>'+R.results.length+'人</td><td>'+yen(tTotal)+'</td><td>'+(tSch?'-'+yen(tSch):'—')+'</td><td>'+yen(R.parentTotal)+'</td></tr></tbody></table></div>'
+     +'<div><h3 class="rp-h3">資金の準備方法</h3><div class="rp-box" style="margin-top:0;">教育期の<b>親の負担 約'+yen(R.parentTotal)+'円</b>を、<b>家計から 約'+yen(R.householdTotal)+'円</b>'+(R.hhMonthly>0?'（月'+yen(R.hhMonthly)+'円）':'')+'＋<b>貯蓄から 約'+yen(R.savTarget)+'円</b>で用意。'+(R.savedTotal>0?'すでに約'+yen(R.savedTotal)+'円 準備済み、':'')+'貯蓄分は<b>今から月 '+yen(R.householdMonthly)+'円</b>の積立で準備します（不足分は貯めた貯蓄から取り崩し）。</div></div>'
+   +'</div></div>'+foot+'</section>';
+  // P3 教育期の毎月支出＋奨学金返済
+  h+='<section class="rp-page"><h2 class="rp-h2">教育期は毎月いくら出ていくか</h2><div class="rp-body">'+monthlySpendChart(R,{report:true})
+   +'<div class="rp-cap">その年に親が毎月出す額（教育費−奨学金）。茶＝家計から（収入）／緑＝貯蓄から取り崩し。事前の積立が「取り崩し」部分を支えます。</div>'
+   +(loanRows?('<h3 class="rp-h3">奨学金の返済（卒業後・本人が返済／JASSO制度・貸与総額÷割賦基礎額の切捨）</h3><table class="rp-tbl"><thead><tr><th>子</th><th>借入総額</th><th>返済/月</th><th>返還年数</th><th>完済</th><th>総返済</th></tr></thead><tbody>'+loanRows+'</tbody></table>'):'<div class="rp-box">奨学金を利用する場合は、卒業後にお子さまご本人が返済します（JASSO制度で自動計算・入力欄の奨学金月額を設定）。</div>')
+   +'</div>'+foot+'</section>';
+  // P4 運用シミュレーション＋運用時の必要額
+  h+='<section class="rp-page"><h2 class="rp-h2">運用シミュレーション ― 同じ積立額を利回りで運用すると</h2><div class="rp-body">'+investSimChart(R,SIM_CRASH||'lehman',{report:true}).svg
+   +'<div class="rp-2col" style="margin-top:9px;">'
+     +'<div><div class="rp-cap" style="margin-top:0;">現金0%は使い切りでちょうど0、運用は成長分がプラスに。破線＝選んだ暴落が入学初年に起きた例。在学中（取り崩し期）も残額は同じ利回りで運用し続けた前提です。<br>利回りは代表的指数の長期の過去実績イメージ（S&P500≒10%・全世界株(MSCI ACWI)≒8%・日本株式(TOPIX配当込み)≒5%）で、将来の成果を保証しません。</div></div>'
+     +'<div><h3 class="rp-h3" style="margin-top:0;">運用しながら積立てた場合の必要月額（同じ目標額）</h3><div style="display:flex;flex-direction:column;gap:5px;">'+invRows+'</div></div>'
+   +'</div></div>'+foot+'</section>';
   return h;
 }
 function printReport(){
@@ -957,12 +963,13 @@ function render(R){
 }
 
 /* 教育期に親が毎月出す額（横棒グラフ）：各年の 親負担/月 を「家計から＋貯蓄取り崩し」で積み上げ表示 */
-function monthlySpendChart(R){
+function monthlySpendChart(R,opts){
+  const rep=opts&&opts.report;
   const {N,yearlyFull,yearlyParent,householdCoverY,fromSav}=R;
   const years=[]; for(let y=0;y<=N;y++){ if(yearlyFull[y]>0) years.push(y); }
   if(!years.length) return '<div class="hint" style="padding:8px;">お子さまの年齢・進路を入れると表示されます。</div>';
   const man=v=>Math.round(v/10000);
-  const W=1000, rowH=32, padL=88, padR=112, padT=8, padB=6;
+  const W=1000, rowH=(rep?52:32), padL=88, padR=112, padT=8, padB=6;
   const H=padT+years.length*rowH+padB;
   const barX=padL, barW=W-padL-padR;
   const maxP=Math.max.apply(null, years.map(y=>yearlyParent[y]/12)) || 1;
@@ -973,9 +980,10 @@ function monthlySpendChart(R){
     const hhM=householdCoverY[y]/12, savM=fromSav[y]/12, totM=yearlyParent[y]/12;
     const wHh=X(hhM), wSav=X(savM);
     g+=`<text x="4" y="${(cy+4).toFixed(1)}" font-size="12" fill="#2a2a2a" font-weight="600">${y}年後</text>`;
+    var bh=rep?28:18, by=cy-bh/2;
     g+=`<line x1="${barX}" y1="${cy.toFixed(1)}" x2="${(barX+barW).toFixed(1)}" y2="${cy.toFixed(1)}" stroke="#efe9db"/>`;
-    g+=`<rect x="${barX}" y="${(cy-9).toFixed(1)}" width="${Math.max(0,wHh).toFixed(1)}" height="18" fill="#9a7b4f" rx="2"/>`;
-    g+=`<rect x="${(barX+wHh).toFixed(1)}" y="${(cy-9).toFixed(1)}" width="${Math.max(0,wSav).toFixed(1)}" height="18" fill="#2f6b4f" rx="2"/>`;
+    g+=`<rect x="${barX}" y="${by.toFixed(1)}" width="${Math.max(0,wHh).toFixed(1)}" height="${bh}" fill="#9a7b4f" rx="2"/>`;
+    g+=`<rect x="${(barX+wHh).toFixed(1)}" y="${by.toFixed(1)}" width="${Math.max(0,wSav).toFixed(1)}" height="${bh}" fill="#2f6b4f" rx="2"/>`;
     if(wHh>42) g+=`<text x="${(barX+5).toFixed(1)}" y="${(cy+3.5).toFixed(1)}" font-size="9.5" fill="#fff" font-weight="600">家計${man(hhM)}万</text>`;
     if(wSav>62) g+=`<text x="${(barX+wHh+5).toFixed(1)}" y="${(cy+3.5).toFixed(1)}" font-size="9.5" fill="#fff" font-weight="600">貯蓄取崩 ${man(savM)}万</text>`;
     g+=`<text x="${(W-padR+6).toFixed(1)}" y="${(cy+4).toFixed(1)}" font-size="12" fill="#2a2a2a" font-weight="700">月${man(totM)}万</text>`;
@@ -1016,7 +1024,7 @@ function familyTimelineSVG(R,opts){
 
   const persons=[{lab:'父',age0:fatherAge,type:'p'},{lab:'母',age0:motherAge,type:'p'}];
   results.forEach((r,i)=>persons.push({lab:'子'+(i+1),age0:r.age,type:'c',enter:ENTER-r.age,yrs:r.co.years,co:r.co,away:r.away,ci:i}));
-  const W=1000,padL=50,padR=62,bandH=90,rowH=22,axisH=18;
+  const rep=opts&&opts.report; const W=1000,padL=50,padR=62,bandH=(rep?150:90),rowH=(rep?30:22),axisH=18;
   const H=bandH+persons.length*rowH+axisH+8;
   const X=y=>padL+(y/N)*(W-padL-padR);
   const bw=Math.min(44,(W-padL-padR)/(N+1)*0.72);
@@ -1071,7 +1079,8 @@ function familyTimelineSVG(R,opts){
 }
 
 /* 運用シミュレーション専用チャート：利回り別の残高（折れ線）＋教育費（同一Y軸の積み上げバー）＋暴落時の不足額。銘柄はチェックで表示ON/OFF */
-function investSimChart(R,crashKey){
+function investSimChart(R,crashKey,opts){
+  const rep=opts&&opts.report;
   const {results,firstEnterYears,finishMode,contribY,fromSav}=R;
   const ENTER=18; const N=R.N||Math.max(R.eduEndYears||0,12);
   const cr=CRASH[crashKey]||CRASH.lehman;
@@ -1098,7 +1107,7 @@ function investSimChart(R,crashKey){
   let vmax=1,vmin=0; series.forEach(s=>s.values.forEach(v=>{ if(v>vmax)vmax=v; if(v<vmin)vmin=v; })); yTot.forEach(v=>{ if(v>vmax)vmax=v; });
   vmax*=1.06;
   const col=i=>CHILD_COLORS[i%CHILD_COLORS.length];
-  const W=1000,padL=56,padR=72,padT=14,plotH=234,axisH=22;
+  const W=1000,padL=56,padR=72,padT=14,plotH=(rep?300:234),axisH=22;
   const H=padT+plotH+axisH;
   const X=y=>padL+(y/N)*(W-padL-padR);
   const Y=v=>padT+plotH-((v-vmin)/(vmax-vmin))*plotH;
