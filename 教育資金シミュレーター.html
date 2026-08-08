@@ -295,8 +295,9 @@
       <div class="icol icol-opts">
         <div class="grp gtight">準備の前提</div>
         <div class="fieldwrap">
-          <div class="field ff"><label class="lab">教育期に家計から出せる月額<small style="font-weight:400;color:var(--ink-soft);">※世帯・固定（子が増えても一定）</small></label><input type="text" inputmode="numeric" class="yen" id="hhMonthly" value="" placeholder="0"></div>
+          <div class="field ff"><label class="lab">教育期に家計から出せる月額<small style="font-weight:400;color:var(--ink-soft);">※世帯・固定（万円で選択・入力可）</small></label><input type="text" inputmode="numeric" class="yen" id="hhMonthly" list="hhMonthlyList" value="" placeholder="0" autocomplete="off"><datalist id="hhMonthlyList"><option value="0" label="0円"></option><option value="10,000" label="1万円/月"></option><option value="30,000" label="3万円/月"></option><option value="50,000" label="5万円/月"></option><option value="70,000" label="7万円/月"></option><option value="100,000" label="10万円/月"></option></datalist></div>
           <div class="field ff"><label class="lab">積立の方式</label><select id="finishTiming"><option value="each" selected>各年度まで積立（都度）</option><option value="first">入学初年までに完了（理想）</option></select></div>
+          <div class="field ff"><label class="lab">開始遅延の比較（5年目を変更）</label><select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
         </div>
         <details class="advbox" style="margin-top:10px;">
           <summary>＋ 詳細（下宿の費用・きょうだい同居／奨学金の利率／利回り・開始遅延）</summary>
@@ -306,7 +307,6 @@
             <div class="field ff lodging-f"><label class="lab">敷金・礼金等<small style="font-weight:400;color:var(--ink-soft);">※下宿・既定40万(初年度)</small></label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
             <div class="field ff"><label class="lab">奨学金利率(年%)<small style="font-weight:400;color:var(--ink-soft);">※返還年数・月額はJASSO制度で自動計算。第二種相当=1.9%／第一種は0</small></label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="1.9" step="0.1"></div>
             <div class="field ff"><label class="lab">利回り(年%)<small style="font-weight:400;color:var(--ink-soft);">※未入力=0%</small></label><input type="text" inputmode="decimal" id="rate" value="" placeholder="0" step="0.1"></div>
-            <div class="field ff"><label class="lab">開始遅延の比較（5年目を変更）</label><select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
           </div>
         </details>
       </div>
@@ -445,15 +445,21 @@ function applyChildColors(){
     });
   });
 }
-// ユーザー操作の記録：子1の欄を触ったら決定(黒字)、2人目以降を触ったら個別設定(黒字)。isTrusted=実操作のみ
+// 子の欄に触れたら即・確定（黒字）。子1確定→以降へ自動反映。色は即時に更新（simulateを待たない＝Safari等でも確実）
 (function(){
   const cl=document.getElementById('childList');
-  const mark=e=>{ if(!e.isTrusted)return; const t=e.target; const c=t&&t.closest&&t.closest('.child'); if(!c)return; if(!(t.matches&&t.matches('.c-plan,.c-scholar,.c-saved,.c-age')))return;
+  function touch(t){
+    const c=t&&t.closest&&t.closest('.child'); if(!c)return;
+    if(!(t.matches&&t.matches('.c-plan,.c-scholar,.c-saved,.c-age')))return;
     const kids=document.querySelectorAll('.child');
-    if(kids[0]===c){ t.setAttribute('data-fpt','1'); }                 // 子1を触ったら確定＝黒字
-    else { t.setAttribute('data-userset','1'); t.setAttribute('data-fpt','1'); } // 2人目以降を直接変えたら個別設定＝黒字
-  };
-  cl.addEventListener('input',mark,true); cl.addEventListener('change',mark,true);
+    if(kids[0]===c){ t.setAttribute('data-fpt','1'); syncFromFirst(); }              // 子1確定→以降へ伝播
+    else { t.setAttribute('data-userset','1'); t.setAttribute('data-fpt','1'); }     // 2人目以降を直接変えたら個別設定
+    applyChildColors();                                                             // 即・色反映
+  }
+  // 進路・奨学金（ドロップダウン）は開いた時点で確定。教育貯蓄・年齢（入力）は入力時に確定
+  cl.addEventListener('focusin',function(e){ if(e.target && e.target.tagName==='SELECT') touch(e.target); }, true);
+  cl.addEventListener('change',function(e){ if(e.isTrusted) touch(e.target); }, true);
+  cl.addEventListener('input',function(e){ if(e.isTrusted) touch(e.target); }, true);
   // コンマ整形の委譲（各要素のattachAmountに加え、保険として親でも整形）
   cl.addEventListener('input',function(e){ var t=e.target; if(t&&t.classList&&t.classList.contains('yen')&&String(t.value).trim()!==''){ formatYen(t); } }, false);
 })();
@@ -695,7 +701,7 @@ function render(R){
 
   // サマリー（横1列3カード）
   html+=`<div class="result-cards summary-cards">
-    <div class="rc hero"><div class="k">今から必要な毎月の積立額（世帯・貯蓄分）<small style="font-family:var(--gothic);font-size:10px;color:var(--brass-deep);">${finishMode==='first'?'入学初年までに完了（理想）':'各年度まで積立（都度）'}</small></div><div class="v">${yen(householdMonthly)}<small> 円／月</small></div>${(function(){const reqA=householdMonthly*12; let mp=(SIM_MONTHLY_PAY!=null?SIM_MONTHLY_PAY:householdMonthly); mp=Math.max(0,Math.min(mp,householdMonthly)); const bonus=Math.max(0,(reqA-mp*12)/2); return `<div class="bonus-row" style="margin-top:6px;font-size:12px;color:var(--ink);display:flex;align-items:center;gap:4px;flex-wrap:wrap;background:rgba(255,255,255,.5);border:1px solid var(--rule);border-radius:7px;padding:5px 8px;">ボーナス併用：月払 <input type="text" inputmode="numeric" id="monthlyPay" oninput="onMonthlyPay(this)" value="${yen(mp)}" style="width:78px;text-align:right;font-family:var(--mono);padding:2px 5px;border:1px solid var(--rule);border-radius:5px;"> 円 ＋ ボーナス（年2回）各 <b id="bonusOut" style="color:var(--brass-deep);">${yen(bonus)}</b> 円</div>`;})()}<div class="note">貯蓄で用意 約${yen(savTarget)}円${savedTotal>0?('（うち既に約'+yen(savedTotal)+'円 準備済／残り約'+yen(contribTarget)+'円）'):''}・家計から約${yen(householdTotal)}円${hhMonthly>0?('（月'+yen(hhMonthly)+'円）'):''}／親負担 計約${yen(parentTotal)}円</div></div>
+    <div class="rc hero"><div class="k">今から必要な毎月の積立額（世帯・貯蓄分）<small style="font-family:var(--gothic);font-size:10px;color:var(--brass-deep);">${finishMode==='first'?'入学初年までに完了（理想）':'各年度まで積立（都度）'}</small></div><div class="v">${yen(householdMonthly)}<small> 円／月</small></div>${(function(){const reqA=householdMonthly*12; let mp=(SIM_MONTHLY_PAY!=null?SIM_MONTHLY_PAY:householdMonthly); mp=Math.max(0,Math.min(mp,householdMonthly)); const bonus=Math.max(0,(reqA-mp*12)/2); return `<div class="bonus-row" style="margin-top:6px;font-size:12px;color:var(--ink);display:flex;align-items:center;gap:4px;flex-wrap:wrap;background:rgba(255,255,255,.5);border:1px solid var(--rule);border-radius:7px;padding:5px 8px;">ボーナス併用：月払 <input type="text" inputmode="numeric" class="yen" id="monthlyPay" value="${yen(mp)}" style="width:82px;text-align:right;font-family:var(--mono);padding:2px 5px;border:1px solid var(--rule);border-radius:5px;"> 円 ＋ ボーナス（年2回）各 <b id="bonusOut" style="color:var(--brass-deep);">${yen(bonus)}</b> 円</div>`;})()}<div class="note">貯蓄で用意 約${yen(savTarget)}円${savedTotal>0?('（うち既に約'+yen(savedTotal)+'円 準備済／残り約'+yen(contribTarget)+'円）'):''}・家計から約${yen(householdTotal)}円${hhMonthly>0?('（月'+yen(hhMonthly)+'円）'):''}／親負担 計約${yen(parentTotal)}円</div></div>
     <div class="rc"><div class="k">教育費のピーク年</div><div class="v" style="font-size:18px;">${peak.v>0?('今から'+peak.i+'年後'):'—'}</div><div class="note">${peak.v>0?('約'+yen(peak.v)+'円/年'):'—'}</div></div>
     <div class="rc"><div class="k">教育が終わる頃の親の年齢</div><div class="v" style="font-size:18px;${fatherEnd>=60?'color:var(--loss);':''}">父${fatherEnd}歳 / 母${motherEnd}歳</div><div class="note">末子卒業まで約${eduEndYears}年後</div></div>
   </div>`;
@@ -767,6 +773,11 @@ function render(R){
   html+='</div>';
   document.getElementById('outBody').innerHTML=html;
   buildDots('outBody','rDots');
+  // 月払（ボーナス併用）欄：他の金額欄と同じ挙動（フォーカスでクリア＋コンマ整形）＋ボーナス再計算
+  (function(){ var mp=document.getElementById('monthlyPay'); if(!mp)return; attachAmount(mp);
+    mp.addEventListener('input',function(){ var v=String(this.value).replace(/,/g,''); SIM_MONTHLY_PAY=(v.trim()==='')?SIM_MONTHLY_PAY:(parseFloat(v)||0); updateBonusOut(); });
+    mp.addEventListener('blur',function(){ var v=String(this.value).replace(/,/g,''); if(v.trim()!=='')SIM_MONTHLY_PAY=parseFloat(v)||0; updateBonusOut(); });
+  })();
 }
 
 /* 家族の年齢＋教育費のかかる年度（ガント風タイムライン。子ごと色分け・積み上げ・金額・累計線） */
@@ -1031,7 +1042,7 @@ simulate(); // 初期表示
 /* ===== FPコア v2（全ツール共通：トップ/設定(単位・自動保存・提案者名)/自動保存/JSON/PDF・A4印刷/全角） ===== */
 window.FP=(function(){
   var KEY='',RECALC=null,DEFAULTS={},obs=null,converting=false,SKEY='fp:settings';
-  var __noSave={fpLoadInput:1,fpPresenter:1,fatherAge:1,motherAge:1,rentM:1,livingM:1,initCost:1,shareRent:1}; // 常にデフォルト（自動保存/復元しない）
+  var __noSave={fpLoadInput:1,fpPresenter:1,fatherAge:1,motherAge:1,rentM:1,livingM:1,initCost:1,shareRent:1,hhMonthly:1}; // 常にデフォルト（自動保存/復元しない）
   function els(){return Array.prototype.slice.call(document.querySelectorAll('input[id],select[id],textarea[id]')).filter(function(e){return !__noSave[e.id];});}
   function ser(){var o={};els().forEach(function(e){if(e.type==='checkbox'){o[e.id]=e.checked;}else if(e.classList&&e.classList.contains('yen')){var d=String(e.value).replace(/[^\d.\-]/g,'');o[e.id]=(d===''?'':String(Math.round(parseFloat(d)*(window.__fpU==='man'?10000:1))));}else{o[e.id]=e.value;}});return o;}
   function resx(o){els().forEach(function(e){if(Object.prototype.hasOwnProperty.call(o,e.id)){if(e.type==='checkbox'){e.checked=!!o[e.id];}else if(e.classList&&e.classList.contains('yen')){var raw=String(o[e.id]).replace(/,/g,'');if(raw===''||raw==='null'||isNaN(Number(raw))){e.value='';}else{e.value=fpFmt(Number(raw)/(window.__fpU==='man'?10000:1));}}else{e.value=o[e.id];}}});}
