@@ -16,7 +16,7 @@
   .wrap{height:100vh;padding:8px 10px;display:flex;gap:10px;align-items:stretch;overflow:hidden;}
   .side{flex:0 0 60px;display:flex;flex-direction:column;align-items:center;gap:9px;padding-top:4px;}
   .side-eyebrow{font-family:var(--mincho);font-size:10px;letter-spacing:.3em;color:var(--brass-deep);margin:0;}
-  .side-tt{font-family:var(--mincho);font-weight:600;font-size:23px;color:var(--ink);writing-mode:vertical-rl;text-orientation:upright;letter-spacing:.14em;line-height:1;margin:0 0 8px;}
+  .side-tt{font-family:var(--mincho);font-weight:600;font-size:23px;color:var(--ink);writing-mode:vertical-rl;text-orientation:upright;letter-spacing:.14em;line-height:1;margin:0 0 8px;white-space:nowrap;overflow:visible;}
   .side .fpbar{flex-direction:column;align-items:stretch;gap:6px;margin:0;flex-wrap:nowrap;width:100%;}
   .side .fpbtn{width:100%;text-align:center;padding:7px 2px;font-size:11.5px;letter-spacing:0;white-space:nowrap;}
   .main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:8px;height:100%;overflow-y:auto;overflow-x:hidden;}
@@ -38,6 +38,10 @@
   .fab-input.on{background:var(--brass-deep);}
   .fab-input.on .fab-plus{transform:rotate(45deg);}  /* 開いている間は×に */
   @media print{.fab-input{display:none!important;}}
+  .hh-chips{display:inline-flex;gap:4px;}
+  .hh-chip{font-family:var(--gothic);font-size:12px;padding:4px 10px;border:1px solid var(--rule);border-radius:14px;background:#fff;color:var(--ink);cursor:pointer;line-height:1;}
+  .hh-chip:hover{background:var(--brass);color:#fff;border-color:var(--brass-deep);}
+  .hh-chip::after{content:"万";font-size:9px;margin-left:1px;color:inherit;opacity:.7;}
   .build-stamp{margin-top:auto;padding-top:8px;font-size:8.5px;line-height:1.35;color:var(--brass-deep);opacity:.6;text-align:center;white-space:pre-line;}
   @media print{.build-stamp{display:none!important;}}
   .deck-head{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:5px 12px;border-bottom:1px solid var(--rule-soft);}
@@ -296,7 +300,7 @@
       <div class="icol icol-opts">
         <div class="grp gtight">準備の前提</div>
         <div class="fieldwrap">
-          <div class="field ff"><label class="lab">教育期に家計から出せる月額<small style="font-weight:400;color:var(--ink-soft);">※世帯・1ヶ月（万円で選択・自由入力可）</small></label><input type="text" inputmode="text" id="hhMonthly" list="hhMonthlyList" value="" placeholder="0" autocomplete="off" title="世帯で1ヶ月に出せる額。不足分は貯蓄で用意します"><datalist id="hhMonthlyList"><option value="0円"></option><option value="1万円"></option><option value="3万円"></option><option value="5万円"></option><option value="7万円"></option><option value="10万円"></option></datalist></div>
+          <div class="field ff"><label class="lab">教育期に家計から出せる月額<small style="font-weight:400;color:var(--ink-soft);">※世帯・1ヶ月（万円）</small></label><div class="hh-row" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><span style="display:inline-flex;align-items:center;"><input type="text" inputmode="numeric" id="hhMonthly" value="" placeholder="0" autocomplete="off" style="width:62px;text-align:right;" title="世帯で1ヶ月に出せる額（万円）。不足分は貯蓄で用意します"><em style="font-style:normal;margin-left:3px;font-size:12.5px;color:var(--ink-soft);">万円</em></span><span class="hh-chips"><button type="button" class="hh-chip" onclick="setHh(3)">3</button><button type="button" class="hh-chip" onclick="setHh(5)">5</button><button type="button" class="hh-chip" onclick="setHh(8)">8</button><button type="button" class="hh-chip" onclick="setHh(10)">10</button></span></div></div>
           <div class="field ff"><label class="lab">積立の方式</label><select id="finishTiming"><option value="each" selected>各年度まで積立（都度）</option><option value="first">入学初年までに完了（理想）</option></select></div>
           <div class="field ff"><label class="lab">開始遅延の比較（5年目を変更）</label><select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
         </div>
@@ -524,6 +528,8 @@ function saveStateFile(){
   var a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(function(){URL.revokeObjectURL(url);},1500);
 }
+function setHh(n){ var e=document.getElementById('hhMonthly'); if(!e)return; e.value=String(n); e.setAttribute('data-fpt','1'); if(typeof simulate==='function'&&ready)simulate(); }
+window.setHh=setHh;
 window.saveStateFile=saveStateFile;
 (function(){
   var fi=document.getElementById('customLoadInput'); if(!fi)return;
@@ -679,7 +685,7 @@ function simulate(){
     return;
   }
   const rate=(parseFloat(document.getElementById('rate').value)||0)/100;
-  const hhMonthly=num(document.getElementById('hhMonthly'));   // 教育期に家計から出せる月額（世帯・固定。子が増えても一定）
+  const hhMonthly=(parseFloat(zen2han(_pv(document.getElementById('hhMonthly'))).replace(/[^\d.]/g,''))||0)*10000; // 万円入力→円。世帯・1ヶ月・固定（子が増えても一定）
   const rentM=num(document.getElementById('rentM'));           // 下宿の家賃（月・既定8万）
   const livingM=num(document.getElementById('livingM'));       // 下宿の生活費（月・既定10万）
   const initCost=num(document.getElementById('initCost'));
@@ -775,7 +781,7 @@ function render(R){
   // サマリー（横1列3カード）
   html+=`<div class="result-cards summary-cards">
     <div class="rc hero"><div class="k">今から必要な毎月の積立額（世帯・貯蓄分）<small style="font-family:var(--gothic);font-size:10px;color:var(--brass-deep);">${finishMode==='first'?'入学初年までに完了（理想）':'各年度まで積立（都度）'}</small></div><div class="v">${yen(householdMonthly)}<small> 円／月</small></div>${(function(){const reqA=householdMonthly*12; let mp=(SIM_MONTHLY_PAY!=null?SIM_MONTHLY_PAY:householdMonthly); mp=Math.max(0,Math.min(mp,householdMonthly)); const bonus=Math.max(0,(reqA-mp*12)/2); return `<div class="bonus-row" style="margin-top:6px;font-size:12px;color:var(--ink);display:flex;align-items:center;gap:4px;flex-wrap:wrap;background:rgba(255,255,255,.5);border:1px solid var(--rule);border-radius:7px;padding:5px 8px;">ボーナス併用：月払 <input type="text" inputmode="numeric" class="yen" id="monthlyPay" value="${yen(mp)}" style="width:82px;text-align:right;font-family:var(--mono);padding:2px 5px;border:1px solid var(--rule);border-radius:5px;"> 円 ＋ ボーナス（年2回）各 <b id="bonusOut" style="color:var(--brass-deep);">${yen(bonus)}</b> 円</div>`;})()}${(function(){const rows=[{n:'日本株式',r:0.05},{n:'全世界株',r:0.08},{n:'S&P500',r:0.10}].map(function(f){return `<div style="display:flex;justify-content:space-between;gap:8px;"><span>${f.n}（${Math.round(f.r*100)}%）で運用</span><b style="color:var(--brass-deep);">${yen(requiredMonthlyAt(f.r,R))} 円／月</b></div>`;}).join('');return `<details class="invest-reveal" style="margin-top:6px;font-size:11.5px;"><summary style="cursor:pointer;color:var(--brass-deep);font-weight:600;">▸ 運用しながら積立てると必要額は下がる（タップで表示）</summary><div style="padding:5px 2px 2px;display:flex;flex-direction:column;gap:3px;">${rows}<div style="color:var(--ink-soft);font-size:10px;margin-top:2px;">※同じ目標額を各利回りで運用しながら積立てた場合の毎月額（現金0%＝上記${yen(householdMonthly)}円）。過去実績イメージ・将来を保証しません。</div></div></details>`;})()}<div class="note">貯蓄で用意 約${yen(savTarget)}円${savedTotal>0?('（うち既に約'+yen(savedTotal)+'円 準備済／残り約'+yen(contribTarget)+'円）'):''}・家計から約${yen(householdTotal)}円${hhMonthly>0?('（月'+yen(hhMonthly)+'円）'):''}／親負担 計約${yen(parentTotal)}円</div></div>
-    <div class="rc"><div class="k">教育費のピーク年</div><div class="v" style="font-size:18px;">${peak.v>0?('今から'+peak.i+'年後'):'—'}</div><div class="note">${peak.v>0?('約'+yen(peak.v)+'円/年'):'—'}</div></div>
+    <div class="rc"><div class="k">教育費のピーク年 と 教育期間</div><div class="v" style="font-size:18px;">${peak.v>0?('今から'+peak.i+'年後'):'—'}</div><div class="note">${peak.v>0?('ピーク 約'+yen(peak.v)+'円/年'):'—'}${eduEndYears>0?('<br>教育期：今から <b>'+firstEnterYears+'年後</b>（はじめ）〜 <b>'+eduEndYears+'年後</b>（終わり）'):''}</div></div>
     <div class="rc"><div class="k">教育が終わる頃の親の年齢</div><div class="v" style="font-size:18px;${fatherEnd>=60?'color:var(--loss);':''}">父${fatherEnd}歳 / 母${motherEnd}歳</div><div class="note">末子卒業まで約${eduEndYears}年後</div></div>
   </div>`;
 
