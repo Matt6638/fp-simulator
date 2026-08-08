@@ -107,6 +107,7 @@
   @media(min-width:620px){ .summary-cards{grid-template-columns:1.85fr 1fr 1fr!important;} } /* 積立額(ボーナス欄付)を広く、ピーク年・親年齢を狭く */
   .deck-scroll>.rpage:first-child .rc.hero{grid-column:auto;max-width:none;}
   .deck-scroll>.rpage:first-child .result-cards .note{display:none;}
+  .deck-scroll>.rpage:first-child .result-cards .note.note-keep{display:block;}  /* ピーク額は残す */
   .deck-scroll>.rpage:first-child .rc.hero .v{font-size:22px;}
   .deck-scroll>.rpage:first-child .rc:not(.hero) .v{font-size:16px;}
   .rcol>.sec-h{padding-left:0;padding-top:4px;padding-bottom:2px;font-size:10.5px;}
@@ -224,6 +225,8 @@
   .rc.hero .v{font-size:26px;color:var(--brass-deep);}
   .rc .v small{font-size:13px;color:var(--ink-soft);font-family:var(--gothic);font-weight:400;}
   .rc .note{font-size:11px;color:#8a8470;margin-top:4px;line-height:1.5;}
+  .rc .v2{font-size:13px;color:var(--ink);font-family:var(--gothic);margin-top:3px;line-height:1.4;}
+  .rc .v2 b{color:var(--brass-deep);}
   .chartwrap{padding:6px 16px 8px;}.chartwrap svg{width:100%;height:auto;display:block;}
   .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-soft);padding:2px 20px 14px;}
   .legend span{display:inline-flex;align-items:center;gap:6px;}.legend i{width:12px;height:12px;border-radius:3px;display:inline-block;}
@@ -566,15 +569,18 @@ function applyState(o){
   return true;
 }
 function saveStateFile(){
-  var d=new Date();
-  var ymd=String(d.getFullYear()).slice(-2)+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2); // 例 260810
-  var sei=(window.prompt('お客様の姓を入力してください（例：山田）。空欄も可。','')||'').trim().replace(/[\\\/:*?"<>|]/g,''); // ファイル名に使えない文字を除去
-  var name=ymd+'_'+sei+'様.json'; // 例 260810_山田様.json
-  var data=JSON.stringify(collectState(),null,2);
-  var blob=new Blob([data],{type:'application/json'});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(function(){URL.revokeObjectURL(url);},1500);
+  try{
+    var d=new Date();
+    var ymd=String(d.getFullYear()).slice(-2)+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2); // 例 260810
+    var sei='';
+    try{ sei=(window.prompt('お客様の姓を入力してください（例：山田）。空欄も可。','')||'').trim().replace(/[\\\/:*?"<>|]/g,''); }catch(_){ sei=''; } // prompt無効な環境でも継続
+    var name=ymd+'_'+sei+'様.json'; // 例 260810_山田様.json
+    var data=JSON.stringify(collectState(),null,2);
+    var blob=new Blob([data],{type:'application/json'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a'); a.href=url; a.download=name; a.rel='noopener'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){URL.revokeObjectURL(url);},1500);
+  }catch(e){ window.alert('保存に失敗しました：'+(e&&e.message?e.message:e)); }
 }
 function setHh(n){ var e=document.getElementById('hhMonthly'); if(!e)return; e.value=String(n); e.setAttribute('data-fpt','1'); if(typeof simulate==='function'&&ready)simulate(); }
 window.setHh=setHh;
@@ -626,11 +632,16 @@ function buildReportHTML(sei){
   return h;
 }
 function printReport(){
-  if(!LAST||!inputReady()){ window.alert('先に「入力」から両親の年齢とお子さまの年齢・進路を入れてください。'); return; }
-  var sei=(window.prompt('お客様の姓を入力してください（PDF表紙に表示・空欄可）','')||'').trim().replace(/[\\\/:*?"<>|]/g,'');
-  document.getElementById('reportView').innerHTML=buildReportHTML(sei);
-  document.body.classList.add('printing-report');
-  setTimeout(function(){ window.print(); setTimeout(function(){ document.body.classList.remove('printing-report'); },400); },120);
+  try{
+    if(typeof simulate==='function'&&ready)simulate(); // 最新の入力で再計算してから
+    if(!LAST||!inputReady()){ window.alert('先に「入力」から両親の年齢とお子さまの年齢・進路を入れてください。'); return; }
+    var sei='';
+    try{ sei=(window.prompt('お客様の姓を入力してください（PDF表紙に表示・空欄可）','')||'').trim().replace(/[\\\/:*?"<>|]/g,''); }catch(_){ sei=''; }
+    var rv=document.getElementById('reportView');
+    rv.innerHTML=buildReportHTML(sei);
+    document.body.classList.add('printing-report');
+    setTimeout(function(){ try{ window.print(); }catch(e){ window.alert('印刷ダイアログを開けませんでした：'+(e&&e.message?e.message:e)); } setTimeout(function(){ document.body.classList.remove('printing-report'); },400); },160);
+  }catch(e){ document.body.classList.remove('printing-report'); window.alert('PDFの作成に失敗しました：'+(e&&e.message?e.message:e)); }
 }
 window.printReport=printReport;
 window.saveStateFile=saveStateFile;
@@ -884,7 +895,7 @@ function render(R){
   // サマリー（横1列3カード）
   html+=`<div class="result-cards summary-cards">
     <div class="rc hero"><div class="k">今から必要な毎月の積立額（世帯・貯蓄分）<small style="font-family:var(--gothic);font-size:10px;color:var(--brass-deep);">${finishMode==='first'?'入学初年までに完了（理想）':'各年度まで積立（都度）'}</small></div><div class="v">${yen(householdMonthly)}<small> 円／月</small></div>${(function(){const reqA=householdMonthly*12; let mp=(SIM_MONTHLY_PAY!=null?SIM_MONTHLY_PAY:householdMonthly); mp=Math.max(0,Math.min(mp,householdMonthly)); const bonus=Math.max(0,(reqA-mp*12)/2); return `<div class="bonus-row" style="margin-top:6px;font-size:12px;color:var(--ink);display:flex;align-items:center;gap:4px;flex-wrap:wrap;background:rgba(255,255,255,.5);border:1px solid var(--rule);border-radius:7px;padding:5px 8px;">ボーナス併用：月払 <input type="text" inputmode="numeric" class="yen" id="monthlyPay" value="${yen(mp)}" style="width:82px;text-align:right;font-family:var(--mono);padding:2px 5px;border:1px solid var(--rule);border-radius:5px;"> 円 ＋ ボーナス（年2回）各 <b id="bonusOut" style="color:var(--brass-deep);">${yen(bonus)}</b> 円</div>`;})()}${(function(){const rows=[{n:'日本株式',r:0.05},{n:'全世界株',r:0.08},{n:'S&P500',r:0.10}].map(function(f){return `<div style="display:flex;justify-content:space-between;gap:8px;"><span>${f.n}（${Math.round(f.r*100)}%）で運用</span><b style="color:var(--brass-deep);">${yen(requiredMonthlyAt(f.r,R))} 円／月</b></div>`;}).join('');return `<details class="invest-reveal" style="margin-top:6px;font-size:11.5px;"><summary style="cursor:pointer;color:var(--brass-deep);font-weight:600;">▸ 運用しながら積立てると必要額は下がる（タップで表示）</summary><div style="padding:5px 2px 2px;display:flex;flex-direction:column;gap:3px;">${rows}<div style="color:var(--ink-soft);font-size:10px;margin-top:2px;">※同じ目標額を各利回りで運用しながら積立てた場合の毎月額（現金0%＝上記${yen(householdMonthly)}円）。過去実績イメージ・将来を保証しません。</div></div></details>`;})()}<div class="note">貯蓄で用意 約${yen(savTarget)}円${savedTotal>0?('（うち既に約'+yen(savedTotal)+'円 準備済／残り約'+yen(contribTarget)+'円）'):''}・家計から約${yen(householdTotal)}円${hhMonthly>0?('（月'+yen(hhMonthly)+'円）'):''}／親負担 計約${yen(parentTotal)}円</div></div>
-    <div class="rc"><div class="k">教育費のピーク年 と 教育期間</div><div class="v" style="font-size:18px;">${peak.v>0?('今から'+peak.i+'年後'):'—'}</div><div class="note">${peak.v>0?('ピーク 約'+yen(peak.v)+'円/年'):'—'}${eduEndYears>0?('<br>教育期：今から <b>'+firstEnterYears+'年後</b>（はじめ）〜 <b>'+eduEndYears+'年後</b>（終わり）'):''}</div></div>
+    <div class="rc"><div class="k">教育費のピーク年 と 教育期間</div><div class="v" style="font-size:18px;">${peak.v>0?('今から'+peak.i+'年後'):'—'}</div>${eduEndYears>0?('<div class="v2">教育期：今から <b>'+firstEnterYears+'年後</b> 〜 <b>'+eduEndYears+'年後</b></div>'):''}<div class="note note-keep">${peak.v>0?('ピーク 約'+yen(peak.v)+'円/年'):'—'}</div></div>
     <div class="rc"><div class="k">教育が終わる頃の親の年齢</div><div class="v" style="font-size:18px;${fatherEnd>=60?'color:var(--loss);':''}">父${fatherEnd}歳 / 母${motherEnd}歳</div><div class="note">末子卒業まで約${eduEndYears}年後</div></div>
   </div>`;
 
