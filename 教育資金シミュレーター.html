@@ -297,15 +297,13 @@
           <div class="field ff"><label class="lab">教育期に家計から出せる月額<small style="font-weight:400;color:var(--ink-soft);">※世帯・固定（子が増えても一定）</small></label><input type="text" inputmode="numeric" class="yen" id="hhMonthly" value="" placeholder="0"></div>
           <div class="field ff"><label class="lab">積立の方式</label><select id="finishTiming"><option value="each" selected>各年度まで積立（都度）</option><option value="first">入学初年までに完了（理想）</option></select></div>
         </div>
-        <div class="grp gtight" id="lodgingGrp" style="margin-top:10px;">下宿の費用<small style="font-weight:400;color:var(--ink-soft);">※下宿のお子さまがいる場合のみ</small></div>
-        <div class="fieldwrap" id="lodgingWrap">
-          <div class="field ff"><label class="lab">家賃(月)<small style="font-weight:400;color:var(--ink-soft);">※既定8万</small></label><input type="text" inputmode="numeric" class="yen" id="rentM" value="" placeholder="80,000"></div>
-          <div class="field ff"><label class="lab">生活費(月)<small style="font-weight:400;color:var(--ink-soft);">※既定10万</small></label><input type="text" inputmode="numeric" class="yen" id="livingM" value="" placeholder="100,000"></div>
-          <div class="field ff"><label class="lab">敷金・礼金等<small style="font-weight:400;color:var(--ink-soft);">※既定40万(初年度)</small></label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
-        </div>
         <details class="advbox" style="margin-top:10px;">
-          <summary>＋ 詳細（奨学金の返済・利率／利回り・開始遅延）</summary>
+          <summary>＋ 詳細（下宿の費用・きょうだい同居／奨学金の利率／利回り・開始遅延）</summary>
           <div class="fieldwrap" style="margin-top:6px;">
+            <div class="field ff lodging-f"><label class="lab">家賃(月)<small style="font-weight:400;color:var(--ink-soft);">※下宿・既定8万</small></label><input type="text" inputmode="numeric" class="yen" id="rentM" value="" placeholder="80,000"></div>
+            <div class="field ff lodging-f"><label class="lab">生活費(月)<small style="font-weight:400;color:var(--ink-soft);">※下宿・既定10万</small></label><input type="text" inputmode="numeric" class="yen" id="livingM" value="" placeholder="100,000"></div>
+            <div class="field ff lodging-f"><label class="lab">敷金・礼金等<small style="font-weight:400;color:var(--ink-soft);">※下宿・既定40万(初年度)</small></label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
+            <div class="field ff lodging-f"><label class="lab">きょうだい同居</label><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;padding:5px 2px;"><input type="checkbox" id="shareRent" style="cursor:pointer;">同じ下宿に同居（家賃は1軒分）</label></div>
             <div class="field ff"><label class="lab">奨学金利率(年%)<small style="font-weight:400;color:var(--ink-soft);">※返還年数・月額はJASSO制度で自動計算。第二種相当=1.9%／第一種は0</small></label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="1.9" step="0.1"></div>
             <div class="field ff"><label class="lab">利回り(年%)<small style="font-weight:400;color:var(--ink-soft);">※未入力=0%</small></label><input type="text" inputmode="decimal" id="rate" value="" placeholder="0" step="0.1"></div>
             <div class="field ff"><label class="lab">開始遅延の比較（5年目を変更）</label><select id="delay4"><option value="5" selected>5年後</option><option value="7">7年後</option><option value="10">10年後</option><option value="15">15年後</option></select></div>
@@ -446,6 +444,13 @@ document.querySelectorAll('input.yen').forEach(attachAmount);
 ['fatherAge','motherAge'].forEach(id=>attachClear(document.getElementById(id)));
 addChild({course:'shiri',live:'away'});
 addChild({course:'shiri',live:'away'});
+// クリア時：子リストと親年齢も初期状態へ（FPコアの自動保存対象外のため個別にリセット）
+window.__fpClearExtra=function(){
+  document.getElementById('childList').innerHTML='';
+  addChild({course:'shiri',live:'away'}); addChild({course:'shiri',live:'away'});
+  const fa=document.getElementById('fatherAge'), ma=document.getElementById('motherAge');
+  if(fa){fa.value='40';fa.removeAttribute('data-fpt');} if(ma){ma.value='38';ma.removeAttribute('data-fpt');}
+};
 
 /* ===== 計算 ===== */
 function _pv(e){return (e&&String(e.value).trim()!=="")?e.value:((e&&e.placeholder)||"");}
@@ -551,8 +556,7 @@ function syncRepayField(){
 // 下宿の費用欄は「下宿のお子さまがいる場合のみ」表示（自宅のみなら非表示）。下宿なら既定値を黒字（有効）で表示
 function syncLodging(){
   const anyAway=[].some.call(document.querySelectorAll('.c-plan'),s=>String(s.value).split('|')[1]==='away');
-  const g=document.getElementById('lodgingGrp'), w=document.getElementById('lodgingWrap');
-  const d=anyAway?'':'none'; if(g)g.style.display=d; if(w)w.style.display=d;
+  document.querySelectorAll('.lodging-f').forEach(el=>{ el.style.display=anyAway?'':'none'; });
   ['rentM','livingM','initCost'].forEach(id=>{ const e=document.getElementById(id); if(!e)return;
     if(anyAway){ if(String(e.value).trim()==='') e.value=e.placeholder; e.setAttribute('data-fpt','1'); }
     else { e.removeAttribute('data-fpt'); }
@@ -568,19 +572,23 @@ function simulate(){
   const rate=(parseFloat(document.getElementById('rate').value)||0)/100;
   const hhMonthly=num(document.getElementById('hhMonthly'));   // 教育期に家計から出せる月額（世帯・固定。子が増えても一定）
   const rentM=num(document.getElementById('rentM'));           // 下宿の家賃（月・既定8万）
-  const livingM=num(document.getElementById('livingM'));       // 下宿の生活費（月・既定8万）
-  const shiokuri=(rentM+livingM)*12;                           // 下宿の年間生活費（家賃＋生活費）
+  const livingM=num(document.getElementById('livingM'));       // 下宿の生活費（月・既定10万）
   const initCost=num(document.getElementById('initCost'));
+  const shareRent=!!(document.getElementById('shareRent')&&document.getElementById('shareRent').checked); // きょうだい同居＝家賃/敷金は1軒分
   const fatherAge=parseFloat(document.getElementById('fatherAge').value)||0;
   const motherAge=parseFloat(document.getElementById('motherAge').value)||0;
   const loanRate=(parseFloat(_pv(document.getElementById('loanRate')))||0)/100; // 空欄=既定1.9%（JASSO第二種 相当）
   const finishMode=document.getElementById('finishTiming').value||'each'; // 'each'=各年度まで／'first'=入学初年までに完了
   const children=readChildren();
 
+  let awaySeen=0;
   const results=children.map(ch=>{
     const co=COURSES[ch.course];
     const away=ch.live==='away';
-    const gakuhi=co.nyu+co.year*co.years, soufu=away?shiokuri*co.years:0, shoki=away?initCost:0;
+    let myRent=rentM, myShoki=initCost;
+    if(away){ awaySeen++; if(shareRent && awaySeen>1){ myRent=0; myShoki=0; } } // きょうだい同居：2人目以降の下宿は家賃・敷金0（1軒分）
+    const shiokuriMy=(myRent+livingM)*12;                     // この子の年間の下宿費用（家賃＋生活費）
+    const gakuhi=co.nyu+co.year*co.years, soufu=away?shiokuriMy*co.years:0, shoki=away?myShoki:0;
     const totalCost=gakuhi+soufu+shoki;
     const scholarTotal=ch.scholar*12*co.years;
     const parentBurden=Math.max(0,totalCost-scholarTotal);  // 親が負担する分（家計＋貯蓄。奨学金は本人が卒業後返済）
@@ -588,7 +596,7 @@ function simulate(){
     const yearsToSave=yearsToEnter;                          // 表示・ピーク用（入学まで）
     // 年度別の費用（L字：入学金＋敷金は初年度）と、奨学金差引後の親負担（年度別）
     const costY=[], parentCostY=[];
-    for(let k=0;k<co.years;k++){ let c=co.year+(away?shiokuri:0); if(k===0)c+=co.nyu+shoki; costY.push(c); parentCostY.push(Math.max(0,c-ch.scholar*12)); }
+    for(let k=0;k<co.years;k++){ let c=co.year+(away?shiokuriMy:0); if(k===0)c+=co.nyu+shoki; costY.push(c); parentCostY.push(Math.max(0,c-ch.scholar*12)); }
     const gradYears=(ENTER_AGE-ch.age)+co.years;            // 卒業までの相対年数
     // 奨学金（貸与）の卒業後返済：返還年数はJASSOの制度（貸与総額÷割賦基礎額の切捨）、月額は元利均等で自動計算
     const borrowed=scholarTotal;
@@ -995,7 +1003,8 @@ simulate(); // 初期表示
 /* ===== FPコア v2（全ツール共通：トップ/設定(単位・自動保存・提案者名)/自動保存/JSON/PDF・A4印刷/全角） ===== */
 window.FP=(function(){
   var KEY='',RECALC=null,DEFAULTS={},obs=null,converting=false,SKEY='fp:settings';
-  function els(){return Array.prototype.slice.call(document.querySelectorAll('input[id],select[id],textarea[id]')).filter(function(e){return e.id!=='fpLoadInput'&&e.id!=='fpPresenter'&&e.id!=='fatherAge'&&e.id!=='motherAge';});}
+  var __noSave={fpLoadInput:1,fpPresenter:1,fatherAge:1,motherAge:1,rentM:1,livingM:1,initCost:1,shareRent:1}; // 常にデフォルト（自動保存/復元しない）
+  function els(){return Array.prototype.slice.call(document.querySelectorAll('input[id],select[id],textarea[id]')).filter(function(e){return !__noSave[e.id];});}
   function ser(){var o={};els().forEach(function(e){if(e.type==='checkbox'){o[e.id]=e.checked;}else if(e.classList&&e.classList.contains('yen')){var d=String(e.value).replace(/[^\d.\-]/g,'');o[e.id]=(d===''?'':String(Math.round(parseFloat(d)*(window.__fpU==='man'?10000:1))));}else{o[e.id]=e.value;}});return o;}
   function resx(o){els().forEach(function(e){if(Object.prototype.hasOwnProperty.call(o,e.id)){if(e.type==='checkbox'){e.checked=!!o[e.id];}else if(e.classList&&e.classList.contains('yen')){var raw=String(o[e.id]).replace(/,/g,'');if(raw===''||raw==='null'||isNaN(Number(raw))){e.value='';}else{e.value=fpFmt(Number(raw)/(window.__fpU==='man'?10000:1));}}else{e.value=o[e.id];}}});}
   function getS(){try{return JSON.parse(localStorage.getItem(SKEY))||{};}catch(e){return {};}}
@@ -1003,7 +1012,7 @@ window.FP=(function(){
   function settings(){var s=getS();return {unit:s.unit==='man'?'man':'yen',autosave:s.autosave!==false,presenter:s.presenter||''};}
   function save(){if(!settings().autosave)return;try{localStorage.setItem('fp:'+KEY,JSON.stringify(ser()));}catch(x){}}
   function load(){try{var s=localStorage.getItem('fp:'+KEY);if(s){resx(JSON.parse(s));return true;}}catch(x){}return false;}
-  function clearAll(){if(!window.confirm('入力内容を初期状態に戻します。よろしいですか？'))return;resx(DEFAULTS);els().forEach(function(e){e.removeAttribute('data-fpt');});try{localStorage.removeItem('fp:'+KEY);}catch(x){}if(typeof STRUCT_KEY!=='undefined'){try{STRUCT_KEY=null;}catch(e){}}if(RECALC)RECALC();afterRender();}
+  function clearAll(){if(!window.confirm('入力内容を初期状態に戻します。よろしいですか？'))return;resx(DEFAULTS);els().forEach(function(e){e.removeAttribute('data-fpt');});try{localStorage.removeItem('fp:'+KEY);}catch(x){}if(typeof STRUCT_KEY!=='undefined'){try{STRUCT_KEY=null;}catch(e){}}if(window.__fpClearExtra){try{window.__fpClearExtra();}catch(e){}}if(RECALC)RECALC();afterRender();}
   function dl(name,text,mime){var b=new Blob([text],{type:mime});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);}
   function payload(){return JSON.stringify({tool:KEY,savedAt:new Date().toISOString(),inputs:ser()},null,2);}
   function saveFile(){var name=KEY+'_'+new Date().toISOString().slice(0,10)+'.json';var data=payload();if(window.showSaveFilePicker){window.showSaveFilePicker({suggestedName:name,types:[{description:'FPシミュレーター データ',accept:{'application/json':['.json']}}]}).then(function(h){return h.createWritable();}).then(function(w){return w.write(data).then(function(){return w.close();});}).catch(function(){});}else{dl(name,data,'application/json');}}
