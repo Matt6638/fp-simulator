@@ -745,6 +745,8 @@ function render(R){
   html+=`</div></div>`;
   // 家計と貯蓄の内訳（教育期の親負担をどう賄うか）
   html+=`<div style="padding:0 6px 2px;"><div class="info" style="font-size:11.5px;">教育期の<b>親の負担 約${yen(parentTotal)}円</b>を、<b>家計から 約${yen(householdTotal)}円</b>（${hhMonthly>0?('月'+yen(hhMonthly)+'円×教育期・子が増えても一定'):'家計負担 未入力'}）＋<b>貯蓄から 約${yen(savTarget)}円</b>で用意。貯蓄のうち<b>すでに約${yen(savedTotal)}円 準備済み</b>、<b>残り約${yen(contribTarget)}円</b>を<b>今から月 ${yen(householdMonthly)}円</b>の積立で準備します（不足分は貯めた貯蓄から取り崩し）。</div></div>`;
+  // 教育期の毎月支出（クリックで横棒グラフ表示）
+  html+=`<details class="spend-reveal" style="margin:2px 6px 4px;"><summary style="cursor:pointer;list-style:none;font-weight:700;color:var(--brass-deep);font-size:12.5px;padding:6px 8px;background:rgba(154,123,79,.08);border:1px solid var(--rule);border-radius:8px;">▸ 教育期は毎月いくら出ていく？（クリックで表示）</summary><div style="padding:6px 2px 2px;">${monthlySpendChart(R)}</div></details>`;
 
   // 奨学金の返済 ＋ ワンポイント（2カラム）
   html+=`<div class="rgrid2" style="margin-top:4px;"><div class="rcol">`;
@@ -791,6 +793,34 @@ function render(R){
     mp.addEventListener('input',function(){ var v=String(this.value).replace(/,/g,''); SIM_MONTHLY_PAY=(v.trim()==='')?SIM_MONTHLY_PAY:(parseFloat(v)||0); updateBonusOut(); });
     mp.addEventListener('blur',function(){ var v=String(this.value).replace(/,/g,''); if(v.trim()!=='')SIM_MONTHLY_PAY=parseFloat(v)||0; updateBonusOut(); });
   })();
+}
+
+/* 教育期に親が毎月出す額（横棒グラフ）：各年の 親負担/月 を「家計から＋貯蓄取り崩し」で積み上げ表示 */
+function monthlySpendChart(R){
+  const {N,yearlyFull,yearlyParent,householdCoverY,fromSav}=R;
+  const years=[]; for(let y=0;y<=N;y++){ if(yearlyFull[y]>0) years.push(y); }
+  if(!years.length) return '<div class="hint" style="padding:8px;">お子さまの年齢・進路を入れると表示されます。</div>';
+  const man=v=>Math.round(v/10000);
+  const W=1000, rowH=32, padL=88, padR=112, padT=8, padB=6;
+  const H=padT+years.length*rowH+padB;
+  const barX=padL, barW=W-padL-padR;
+  const maxP=Math.max.apply(null, years.map(y=>yearlyParent[y]/12)) || 1;
+  const X=v=>(v/maxP)*barW;
+  let g=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">`;
+  years.forEach((y,i)=>{
+    const cy=padT+i*rowH+rowH/2;
+    const hhM=householdCoverY[y]/12, savM=fromSav[y]/12, totM=yearlyParent[y]/12;
+    const wHh=X(hhM), wSav=X(savM);
+    g+=`<text x="4" y="${(cy+4).toFixed(1)}" font-size="12" fill="#2a2a2a" font-weight="600">${y}年後</text>`;
+    g+=`<line x1="${barX}" y1="${cy.toFixed(1)}" x2="${(barX+barW).toFixed(1)}" y2="${cy.toFixed(1)}" stroke="#efe9db"/>`;
+    g+=`<rect x="${barX}" y="${(cy-9).toFixed(1)}" width="${Math.max(0,wHh).toFixed(1)}" height="18" fill="#9a7b4f" rx="2"/>`;
+    g+=`<rect x="${(barX+wHh).toFixed(1)}" y="${(cy-9).toFixed(1)}" width="${Math.max(0,wSav).toFixed(1)}" height="18" fill="#2f6b4f" rx="2"/>`;
+    if(wHh>42) g+=`<text x="${(barX+5).toFixed(1)}" y="${(cy+3.5).toFixed(1)}" font-size="9.5" fill="#fff" font-weight="600">家計${man(hhM)}万</text>`;
+    if(wSav>62) g+=`<text x="${(barX+wHh+5).toFixed(1)}" y="${(cy+3.5).toFixed(1)}" font-size="9.5" fill="#fff" font-weight="600">貯蓄取崩 ${man(savM)}万</text>`;
+    g+=`<text x="${(W-padR+6).toFixed(1)}" y="${(cy+4).toFixed(1)}" font-size="12" fill="#2a2a2a" font-weight="700">月${man(totM)}万</text>`;
+  });
+  g+='</svg>';
+  return `<div class="chartwrap" style="padding:2px 8px;">${g}</div><div class="legend"><span><i style="background:#9a7b4f;"></i>家計から（収入）</span><span><i style="background:#2f6b4f;"></i>貯蓄から取り崩し</span><span>横棒＝その年に親が毎月出す額（教育費−奨学金）・右端＝月あたり合計。事前の積立が「貯蓄取り崩し」部分を支えます</span></div>`;
 }
 
 /* 家族の年齢＋教育費のかかる年度（ガント風タイムライン。子ごと色分け・積み上げ・金額・累計線） */
