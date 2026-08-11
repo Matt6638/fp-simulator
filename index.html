@@ -218,7 +218,7 @@ window.FPS=(function(){
 </script>
 <script>
 window.HUB=(function(){
-  var MAP={"教育資金シミュレーター.html":"kyoiku","遺族年金シミュレーター.html":"izoku","相続税シミュレーター.html":"souzokuzei","相続シミュレーター.html":"seiho","贈与税シミュレーター.html":"gift","リタイア後所得シミュレーター.html":"retire","妻の収入シミュレーター.html":"tsuma","法人活用シミュレーター.html":"houjin","役員報酬シミュレーター.html":"yakuin","退職金シミュレーター.html":"taishoku","保険逆算シミュレーター.html":"hokengs"};
+  var MAP={"教育資金シミュレーター.html":"kyoiku","遺族年金シミュレーター.html":"izoku","相続税シミュレーター.html":"souzokuzei","相続シミュレーター.html":"seiho","贈与税シミュレーター.html":"gift","リタイア後所得シミュレーター.html":"retire","妻の収入シミュレーター.html":"tsuma","法人活用シミュレーター.html":"houjin","役員報酬シミュレーター.html":"yakuin","退職金シミュレーター.html":"taishoku","保険逆算シミュレーター.html":"hokengs","老後資金シミュレーター.html":"rogo"};
   function hasData(key){try{var s=localStorage.getItem("fp:"+key);if(!s)return false;var o=JSON.parse(s);for(var k in o){var v=o[k];if(typeof v==="string"){var n=parseFloat(v.replace(/,/g,""));if(!isNaN(n)&&n>0)return true;}}return false;}catch(e){return false;}}
   function refresh(){document.querySelectorAll("a.card").forEach(function(c){var href=c.getAttribute("href");var key=MAP[href];var st=c.querySelector(".stat");if(!st){st=document.createElement("span");st.className="stat";c.appendChild(st);}if(key&&hasData(key)){st.textContent="入力あり";st.className="stat on";}else{st.textContent="";st.className="stat";}});}
   function collect(){var o={};Object.keys(MAP).forEach(function(h){var v=localStorage.getItem("fp:"+MAP[h]);if(v)o[MAP[h]]=v;});return o;}

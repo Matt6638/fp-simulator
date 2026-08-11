@@ -231,6 +231,31 @@
         </div>
       </details>
 
+      <details class="sec">
+        <summary><span class="ic">⑥</span>変額年金（プルデンシャル）<span class="ar">▸</span></summary>
+        <div class="sec-body">
+          <label class="chk"><input type="checkbox" id="vaUse"> 変額年金（年金型・10年保証期間付終身年金）を老後資金に組み込む</label>
+          <div class="hint">プルデンシャル「変額保険(年金型)」の設計書（50歳・月254,640円・15年払込）の実データから、本商品のコスト構造（特別勘定充当率・運用関係費用）を逆算してモデル化。特別勘定の運用実績で積立金・年金額が変動し、<b>最低保証はありません</b>。契約年齢・受取開始年齢・保険料を変えると、それに応じて積立金・年金額も概算で変動します（他年齢の設計書がなくても算出可）。</div>
+          <div class="row">
+            <div class="f wide"><label>基準の指定</label><select id="vaBasis" style="width:230px;"><option value="premium" selected>月払保険料で指定</option><option value="annuity">基本年金月額で指定（保険料を年齢に応じ自動計算）</option></select></div>
+            <div class="f va-prem"><label>月払保険料</label><div class="inline"><input type="text" inputmode="numeric" id="vaPremium" value="254640"><span class="unit">円</span></div></div>
+            <div class="f va-ann"><label>基本年金月額（目標）</label><div class="inline"><input type="text" inputmode="numeric" id="vaTargetAnnuity" value="20"><span class="unit">万円</span></div></div>
+          </div>
+          <div class="row">
+            <div class="f"><label>契約年齢</label><div class="inline"><input type="text" inputmode="numeric" id="vaEntryAge" value="50"><span class="unit">歳</span></div></div>
+            <div class="f"><label>年金受取 開始年齢</label><div class="inline"><input type="text" inputmode="numeric" id="vaStartAge" value="65"><span class="unit">歳</span></div></div>
+          </div>
+          <div class="sub">運用予測（利回りを選択）</div>
+          <div class="row">
+            <div class="f"><label>年金開始<b>まで</b>の利回り</label><select id="vaAccRate"><option value="0">0%</option><option value="3.5" selected>3.5%（設計書基準）</option><option value="7">7%</option><option value="10">10%</option><option value="13">13%</option></select></div>
+            <div class="f"><label>受取方法</label><select id="vaRecvType"><option value="pension" selected>終身年金（変額・10年保証）</option><option value="lump">一時受取</option></select></div>
+            <div class="f va-pen"><label>年金開始<b>後</b>の利回り</label><select id="vaPostRate"><option value="0">マネー型 0%（保全・緊急避難）</option><option value="3.5" selected>3.5%</option><option value="7">7%</option><option value="10">10%</option><option value="13">13%</option></select></div>
+          </div>
+          <div class="hint">「年金開始<b>まで</b>の利回り」で受取開始時の積立金が決まり、「年金開始<b>後</b>の利回り」で受取中の年金額の増減が決まります。<b>マネー型</b>は特別勘定内の避難先で、増えも減りもしない実質0%運用です。</div>
+          <div id="vaCalc" class="combo-note" style="display:none;"></div>
+        </div>
+      </details>
+
     </div>
 
     <!-- ===== 結果 ===== -->
@@ -290,6 +315,51 @@ function blendedAccRate(methods){
   return sumM>0? sumMR/sumM : 0;
 }
 
+/* ===== 変額年金（プルデンシャル）モデル =====
+   設計書実データ（0%=40,740,000 / 3.5%=53,397,000 / 7.0%=70,811,000）から逆算した係数。
+   AV(円) = 充当率 × 月払保険料 × Σ((1+(r-ドラッグ)/12)^k)。0%・7%を誤差0で再現。 */
+var VA_ALPHA=0.9598, VA_DRAG=0.0105;
+function vaAccumFactor(months, ratePct){ // AV(円) = 月払保険料 × この係数
+  var i=(ratePct/100 - VA_DRAG)/12, n=Math.max(0,months);
+  var S=(Math.abs(i)<1e-12)? n : ((Math.pow(1+i,n)-1)/i);
+  return VA_ALPHA*S;
+}
+// 受取開始年齢別 年金係数（設計書p5＝3.5%列: 年額/積立金）。55歳3.425%→65歳4.495%を線形化。
+function vaFixedFactor(startAge){ return 0.03425 + (startAge-55)*0.001070; } // 定額終身: 年額/積立金
+function vaVarFactor(startAge){ return vaFixedFactor(startAge)*1.4025; }        // 変額(特別勘定)終身 初年度: 年額/積立金（65歳で6.30%）
+function computeVA(){
+  if(!chk('vaUse')) return null;
+  var entry=Math.round(nv('vaEntryAge')), start=Math.round(nv('vaStartAge'));
+  var months=Math.max(0,(start-entry)*12);
+  var accRate=parseFloat(sv('vaAccRate'))||0;
+  var basis=sv('vaBasis');
+  var fixFac=vaFixedFactor(start), varFac=vaVarFactor(start);
+  var premiumMonthly; // 円/月
+  if(basis==='annuity'){
+    var targetAnnual=nv('vaTargetAnnuity')*10000*12; // 基本年金月額(万)→年額(円)
+    var f35=vaAccumFactor(months,3.5); // 設計書基準3.5%で必要保険料を逆算（定額換算）
+    premiumMonthly=(fixFac*f35)>0? targetAnnual/(fixFac*f35) : 0;
+  } else {
+    premiumMonthly=nv('vaPremium');
+  }
+  var AV_man=(premiumMonthly*vaAccumFactor(months,accRate))/10000; // 受取開始時の積立金(万)
+  var paid_man=(premiumMonthly*months)/10000;
+  return {entry:entry, start:start, months:months, accRate:accRate, basis:basis,
+    premiumMonthly:premiumMonthly, AV_man:AV_man, paid_man:paid_man,
+    recvType:sv('vaRecvType'), postRate:(parseFloat(sv('vaPostRate'))||0),
+    pensionBaseAnnual_man:AV_man*varFac,           // 変額終身 初年度 年額(万)
+    impliedAnnuityMonthly_man:AV_man*fixFac/12,    // 定額換算の基本年金月額(万・参考)
+    fixFac:fixFac, varFac:varFac};
+}
+function syncVA(){
+  var on=chk('vaUse');
+  var byAnn=sv('vaBasis')==='annuity';
+  document.querySelectorAll('.va-prem').forEach(function(e){e.style.display=(on&&!byAnn)?'':'none';});
+  document.querySelectorAll('.va-ann').forEach(function(e){e.style.display=(on&&byAnn)?'':'none';});
+  var isPen=sv('vaRecvType')==='pension';
+  document.querySelectorAll('.va-pen').forEach(function(e){e.style.display=(on&&isPen)?'':'none';});
+}
+
 /* ===== 住まい種別で表示切替 ===== */
 function syncHousing(){
   var own=sv('housingType')==='own';
@@ -325,6 +395,7 @@ function runSim(opt){
   var repairCycle=Math.round(nv('repairCycle')), repairCost=nv('repairCost');
   var carUse=chk('carUse'), carCycle=Math.round(nv('carCycle')), carCost=nv('carCost');
   var homeUse=chk('homeUse'), homeAge=Math.round(nv('homeAge')), homeLump=nv('homeLump'), homeMonthly=nv('homeMonthly');
+  var va=computeVA(); // 変額年金（null＝未使用）
 
   // 公的年金の在職老齢調整（簡易・2025）
   function pensionAt(age, working){
@@ -342,8 +413,8 @@ function runSim(opt){
 
   var bal=assetsNow;
   var series=[]; // {age,bal,working}
-  var tot={contrib:0, growth:0, pension:0, retire:0, inherit:0, ins:0, priv:0,
-           living:0, housing:0, home:0, car:0, repair:0, reserve:0, gift:0};
+  var tot={contrib:0, growth:0, pension:0, retire:0, inherit:0, ins:0, priv:0, va:0,
+           living:0, housing:0, home:0, car:0, repair:0, reserve:0, gift:0, vaPrem:0};
   var shortAge=null;
 
   for(var y=ageNow; y<=endAge; y++){
@@ -362,6 +433,17 @@ function runSim(opt){
     if(y>=privAge && (privYears===0 || y<privAge+privYears)){ inflow+=privAnnual; tot.priv+=privAnnual; }
     if(inheritUse && y===inheritAge){ inflow+=inheritAmount; tot.inherit+=inheritAmount; }
     if(y===insRecvAge && insRecvAmount>0){ inflow+=insRecvAmount; tot.ins+=insRecvAmount; }
+    // 変額年金
+    if(va){
+      if(y===va.start){
+        if(va.recvType==='lump'){ inflow+=va.AV_man; tot.va+=va.AV_man; }        // 一時受取→資産へ
+      }
+      if(va.recvType==='pension' && y>=va.start){
+        var yr=y-va.start;
+        var an=va.pensionBaseAnnual_man*Math.pow(1+(va.postRate/100-0.035), yr);  // 受取中は3.5%超過分だけ増減（マネー型0%は毎年-3.5%）
+        an=Math.max(0,an); inflow+=an; tot.va+=an;
+      }
+    }
 
     // 支出（就労終了後の生活・住居・イベント）
     var outflow=0;
@@ -377,6 +459,8 @@ function runSim(opt){
     }
     // 暦年贈与（全期間）
     if(giftUse && y>=giftStart && y<=giftEnd){ outflow+=giftAnnual; tot.gift+=giftAnnual; }
+    // 変額年金の保険料：就労中は給料から（資産に影響なし）、就労終了後も払込中なら資産から支出
+    if(va && !working && y>=va.entry && y<va.start){ var vpr=va.premiumMonthly*12/10000; outflow+=vpr; tot.vaPrem+=vpr; }
 
     bal += inflow - outflow;
     if(shortAge===null && bal<0) shortAge=y;
@@ -388,7 +472,7 @@ function runSim(opt){
 
   return {series:series, tot:tot, demand:demand, ratio:ratio, shortAge:shortAge,
     endBal:series[series.length-1].bal, ageNow:ageNow, retireAge:retireAge, endAge:endAge,
-    pensionAge:pensionAge, homeUse:homeUse, homeAge:homeAge, accRate:accRate, monthlyTotal:monthlyTotal};
+    pensionAge:pensionAge, homeUse:homeUse, homeAge:homeAge, accRate:accRate, monthlyTotal:monthlyTotal, va:va};
 }
 
 /* ===== 資産残高グラフ（SVG） ===== */
@@ -437,6 +521,7 @@ function balanceChart(R, opts){
 /* ===== 描画 ===== */
 function simulate(){
   syncHousing();
+  syncVA();
   var methods=readMethods();
   // 現役利回りの自動表示（未入力なら加重平均をプレースホルダ的に表示）
   var accEl=document.getElementById('accRate');
@@ -474,6 +559,21 @@ function simulate(){
     html+='<div class="combo-note">💡 <b>複数併用の効果</b>：'+comboMsg+'（現役期の想定利回り '+(Math.round(R.accRate*1000)/10)+'%）</div>';
   }
 
+  // 変額年金サマリー
+  var vaEcho='';
+  if(R.va){
+    var vi=R.va;
+    var recvTxt = vi.recvType==='lump'
+      ? ('一時受取 約<b>'+man(vi.AV_man)+'</b>')
+      : ('終身年金 初年度 約<b>月'+man(vi.pensionBaseAnnual_man/12)+'</b>（年'+man(vi.pensionBaseAnnual_man)+'）'+(vi.postRate===0?'／受取中はマネー型0%（毎年約-3.5%）':'／受取中の利回り'+vi.postRate+'%'));
+    var basisTxt = vi.basis==='annuity' ? ('基本年金月額'+man(nv('vaTargetAnnuity'))+'目標→保険料 約'+manNum(Math.round(vi.premiumMonthly))+'円/月') : ('保険料 '+manNum(Math.round(vi.premiumMonthly))+'円/月');
+    vaEcho='🏦 <b>変額年金</b>（'+vi.entry+'歳契約→'+vi.start+'歳受取・'+basisTxt+'）<br>'
+      +'年金開始までの利回り<b>'+vi.accRate+'%</b>で '+vi.start+'歳の積立金 約<b>'+man(vi.AV_man)+'</b>（払込 約'+man(vi.paid_man)+'・'+(vi.AV_man/Math.max(1,vi.paid_man)).toFixed(2)+'倍）→ '+recvTxt;
+    html+='<div class="combo-note">'+vaEcho+'</div>';
+  }
+  var vaCalcEl=document.getElementById('vaCalc');
+  if(vaCalcEl){ if(R.va){ vaCalcEl.style.display=''; vaCalcEl.innerHTML=vaEcho; } else { vaCalcEl.style.display='none'; } }
+
   // グラフ
   html+='<div class="chart-h">資産残高の推移（何歳でショートするか）</div>';
   html+=balanceChart(R);
@@ -483,7 +583,9 @@ function simulate(){
   var t=R.tot;
   html+='<table class="bd"><thead><tr><th>収入・原資（生涯累計）</th><th style="text-align:right;">金額</th><th>支出（生涯累計）</th><th style="text-align:right;">金額</th></tr></thead><tbody>';
   var inRows=[['現在の金融資産',nv('assetsNow')],['積立の元本',t.contrib],['運用益',t.growth],['公的年金',t.pension],['企業・個人年金',t.priv],['退職金',t.retire],['終身保険 受取',t.ins],['相続',t.inherit]];
+  if(t.va>0) inRows.push(['変額年金 受取',t.va]);
   var exRows=[['基本生活費',t.living],['住居費（家賃・ローン）',t.housing],['老人ホーム',t.home],['車の買い替え',t.car],['自宅の修繕',t.repair],['予備・医療介護',t.reserve],['暦年贈与',t.gift]];
+  if(t.vaPrem>0) exRows.push(['変額年金 保険料（退職後払込分）',t.vaPrem]);
   var maxR=Math.max(inRows.length,exRows.length);
   var inSum=inRows.reduce(function(s,r){return s+r[1];},0);
   for(var i=0;i<maxR;i++){
@@ -510,8 +612,9 @@ var FIELD_IDS=['clientName','ageNow','retireAge','endAge','assetsNow','retRate',
  'pensionAge','pensionAnnual','kisoMonthly','wageMonthly','privPensionAge','privPensionAnnual','privPensionYears',
  'retireLump','insRecvAge','insRecvAmount','inheritAge','inheritAmount','giftStartAge','giftEndAge','giftAnnual',
  'livingRetire','reserveM','housingType','mortgage','payoffAge','rent','repairCycle','repairCost','carCycle','carCost',
- 'homeAge','homeLump','homeMonthly'];
-var CHK_IDS=['inheritUse','giftUse','carUse','homeUse'];
+ 'homeAge','homeLump','homeMonthly',
+ 'vaBasis','vaPremium','vaTargetAnnuity','vaEntryAge','vaStartAge','vaAccRate','vaRecvType','vaPostRate'];
+var CHK_IDS=['inheritUse','giftUse','carUse','homeUse','vaUse'];
 function clientSei(){var e=document.getElementById('clientName');return e?((e.value||'').trim().replace(/[\\\/:*?"<>|]/g,'')):'';}
 function collectState(){
   var o={tool:'rogo',v:1};
