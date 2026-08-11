@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>老後資金 積立シミュレーター</title>
+<style>
+  :root{--ink:#1b2a4a;--ink-soft:#46506a;--paper:#f7f5ef;--surface:#fff;--brass:#9a7b4f;--brass-deep:#7d6240;--rule:#e3ddcf;--rule-soft:#eee9dd;--credit:#2f6b4f;--loss:#9b3b3b;--shadow:0 1px 2px rgba(27,42,74,.05),0 8px 28px rgba(27,42,74,.07);--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--gothic:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;--mincho:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;}
+  *{box-sizing:border-box;}html,body{margin:0;padding:0;}
+  body{font-family:var(--gothic);color:var(--ink);background:var(--paper);line-height:1.6;-webkit-text-size-adjust:100%;}
+  a{color:var(--brass-deep);}
+  .wrap{max-width:1180px;margin:0 auto;padding:14px 16px 60px;}
+  /* ヘッダー／ツールバー */
+  .topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:2px solid var(--brass);padding-bottom:10px;margin-bottom:14px;}
+  .topbar .home{font-size:12px;text-decoration:none;color:var(--brass-deep);border:1px solid var(--rule);border-radius:7px;padding:6px 10px;background:#fff;white-space:nowrap;}
+  .brand{font-family:var(--mincho);font-size:21px;font-weight:600;letter-spacing:.03em;margin:0;flex:1;min-width:200px;}
+  .brand small{display:block;font-family:var(--gothic);font-size:11px;color:var(--ink-soft);letter-spacing:0;font-weight:400;margin-top:1px;}
+  .tbtn{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-soft);background:#fcfbf8;border:1px solid var(--rule);border-radius:7px;padding:7px 12px;cursor:pointer;white-space:nowrap;}
+  .tbtn:hover{border-color:var(--brass);}
+  .tbtn.pdf{background:var(--brass);color:#fff;border-color:var(--brass-deep);}
+  .client-field{display:flex;flex-direction:column;gap:2px;background:#fffdf8;border:1px dashed var(--brass);border-radius:7px;padding:4px 8px;}
+  .client-field label{font-size:9px;color:var(--brass-deep);font-weight:600;}
+  .client-field .cf-in{display:flex;align-items:center;gap:3px;}
+  .client-field input{width:100px;border:none;border-bottom:1px solid var(--rule);background:transparent;font-family:var(--mincho);font-size:13px;color:var(--ink);padding:1px 2px;}
+  .client-field input:focus{outline:none;border-bottom-color:var(--brass);}
+  .client-field em{font-style:normal;font-size:11px;color:var(--ink-soft);}
+  .stamp{font-size:9px;color:var(--ink-soft);white-space:pre;text-align:center;line-height:1.25;}
+  /* レイアウト */
+  .grid{display:flex;gap:18px;align-items:flex-start;}
+  .col-in{flex:1 1 460px;min-width:0;}
+  .col-out{flex:1 1 460px;min-width:0;position:sticky;top:10px;}
+  @media(max-width:880px){.grid{flex-direction:column;}.col-out{position:static;width:100%;}}
+  /* 入力セクション */
+  details.sec{background:var(--surface);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);margin-bottom:10px;overflow:hidden;}
+  details.sec>summary{list-style:none;cursor:pointer;padding:11px 14px;font-family:var(--mincho);font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;background:linear-gradient(180deg,#fff,#fcfbf6);}
+  details.sec>summary::-webkit-details-marker{display:none;}
+  details.sec>summary .ic{width:22px;height:22px;flex:0 0 auto;border-radius:6px;background:var(--paper);border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--brass-deep);}
+  details.sec>summary .ar{margin-left:auto;color:#b7b09a;font-size:12px;transition:transform .15s;}
+  details.sec[open]>summary .ar{transform:rotate(90deg);}
+  .sec-body{padding:6px 14px 14px;}
+  .row{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;}
+  .f{display:flex;flex-direction:column;gap:3px;margin-bottom:6px;}
+  .f label{font-size:11.5px;color:var(--ink-soft);font-weight:600;}
+  .f label small{font-weight:400;color:#8a8470;}
+  .f input[type=text],.f input[type=number],.f select{font-family:var(--mono);font-size:14px;color:var(--ink);background:#fff;border:1px solid var(--rule);border-radius:7px;padding:7px 9px;text-align:right;width:120px;}
+  .f select{font-family:var(--gothic);text-align:left;}
+  .f .unit{font-size:11px;color:var(--ink-soft);}
+  .f.wide input{width:150px;}
+  .inline{display:flex;align-items:center;gap:5px;}
+  .chk{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink);cursor:pointer;user-select:none;}
+  .hint{font-size:11px;color:var(--ink-soft);background:var(--paper);border-left:3px solid var(--brass);border-radius:5px;padding:6px 9px;margin:4px 0;}
+  .sub{font-size:12px;color:var(--brass-deep);font-weight:700;margin:8px 0 3px;border-bottom:1px dotted var(--rule);padding-bottom:2px;}
+  /* 積立方法テーブル */
+  table.methods{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px;}
+  table.methods th{text-align:left;color:var(--ink-soft);font-weight:600;font-size:11px;padding:2px 4px;}
+  table.methods td{padding:2px 4px;}
+  table.methods input{width:100%;font-family:var(--mono);font-size:13px;border:1px solid var(--rule);border-radius:6px;padding:5px 6px;text-align:right;}
+  table.methods input.mname{text-align:left;font-family:var(--gothic);}
+  table.methods td.rm{width:26px;text-align:center;}
+  .mrm{border:none;background:none;color:var(--loss);cursor:pointer;font-size:15px;line-height:1;}
+  .addm{margin-top:6px;font-size:12px;color:var(--brass-deep);background:#fff;border:1px dashed var(--brass);border-radius:7px;padding:6px 10px;cursor:pointer;}
+  /* 結果 */
+  .out{background:var(--surface);border:1px solid var(--rule);border-radius:12px;box-shadow:var(--shadow);padding:16px;}
+  .gauge-card{text-align:center;padding:6px 0 10px;border-bottom:1px solid var(--rule-soft);margin-bottom:10px;}
+  .gauge-lab{font-size:12px;color:var(--ink-soft);}
+  .gauge-val{font-family:var(--mincho);font-size:46px;font-weight:700;line-height:1.05;}
+  .gauge-val small{font-size:20px;}
+  .gauge-bar{height:12px;border-radius:8px;background:#eee6d6;overflow:hidden;margin:8px auto 4px;max-width:360px;}
+  .gauge-fill{height:100%;border-radius:8px;transition:width .3s;}
+  .verdict{font-size:13px;font-weight:700;margin-top:4px;}
+  .ok{color:var(--credit);} .warn{color:var(--brass-deep);} .bad{color:var(--loss);}
+  .short-note{font-size:13px;background:#fbecec;border:1px solid #e6c9c9;border-radius:8px;padding:8px 11px;color:var(--loss);margin:8px 0;font-weight:600;}
+  .surplus-note{font-size:13px;background:#eaf3ec;border:1px solid #c6e0cd;border-radius:8px;padding:8px 11px;color:var(--credit);margin:8px 0;font-weight:600;}
+  .chart-h{font-size:12.5px;color:var(--brass-deep);font-weight:700;margin:10px 0 2px;}
+  .chartwrap svg{width:100%;height:auto;display:block;}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;font-size:10.5px;color:var(--ink-soft);margin-top:4px;}
+  .legend i{display:inline-block;width:12px;height:10px;border-radius:2px;margin-right:3px;vertical-align:middle;}
+  table.bd{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px;}
+  table.bd th{background:var(--ink);color:#fff;text-align:left;padding:5px 8px;font-weight:600;font-size:11.5px;}
+  table.bd td{border-bottom:1px solid var(--rule);padding:5px 8px;}
+  table.bd td.n{text-align:right;font-family:var(--mono);}
+  table.bd tr.tot td{border-top:2px solid var(--brass);font-weight:700;background:var(--paper);}
+  table.bd .in{color:var(--credit);} table.bd .ex{color:var(--loss);}
+  .note-list{font-size:11px;color:var(--ink-soft);margin:10px 0 0;padding-left:1.1em;}
+  .note-list li{margin:2px 0;}
+  .combo-note{font-size:12px;background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:8px 11px;margin:8px 0;}
+  footer{margin-top:26px;font-size:10.5px;color:var(--ink-soft);border-top:1px solid var(--rule);padding-top:10px;}
+  /* PDF */
+  #reportView{display:none;}
+  @media print{ body{background:#fff;} .wrap>.grid,.topbar,footer{display:none!important;} #reportView{display:block!important;} @page{size:A4 landscape;margin:8mm;} }
+  #reportView .rp-h{font-family:var(--mincho);font-size:20px;border-bottom:2px solid var(--brass);padding-bottom:5px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-end;}
+  #reportView .rp-sub{font-size:11px;color:var(--ink-soft);}
+</style>
+<script src="config.js"></script>
+<script>if((window.FP_SB_URL||"").indexOf("http")===0)document.documentElement.style.visibility="hidden";</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="fp-auth.js"></script>
+<script>document.addEventListener("DOMContentLoaded",function(){if(window.FPAuth&&FPAuth.guard)FPAuth.guard().then(function(u){if(u&&FPAuth.logEvent)FPAuth.logEvent();});});</script>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="home" href="index.html">← 一覧</a>
+    <h1 class="brand">老後資金 積立シミュレーター<small>必要資金の算定 ／ 積立方法の比較 ／ 何歳でショートするかを可視化（叩き台）</small></h1>
+    <span class="client-field"><label>お客様の姓</label><span class="cf-in"><input type="text" id="clientName" placeholder="例：山田"><em>様</em></span></span>
+    <button class="tbtn" onclick="clearAll()">クリア</button>
+    <button class="tbtn" onclick="saveFile()">保存</button>
+    <button class="tbtn" onclick="document.getElementById('loadInput').click()">読込</button>
+    <button class="tbtn pdf" onclick="printReport()">PDF・共有</button>
+    <input type="file" id="loadInput" accept="application/json" style="display:none">
+    <span class="stamp" id="stamp"></span>
+  </div>
+
+  <div class="grid">
+    <!-- ===== 入力 ===== -->
+    <div class="col-in">
+
+      <details class="sec" open>
+        <summary><span class="ic">①</span>基本（年齢・期間・資産）<span class="ar">▸</span></summary>
+        <div class="sec-body">
+          <div class="row">
+            <div class="f"><label>現在の年齢</label><div class="inline"><input type="text" inputmode="numeric" id="ageNow" value="50"><span class="unit">歳</span></div></div>
+            <div class="f"><label>働く年齢（就労終了）</label><div class="inline"><input type="text" inputmode="numeric" id="retireAge" value="65"><span class="unit">歳まで</span></div></div>
+            <div class="f"><label>資金が必要な年齢<small>（寿命想定）</small></label><div class="inline"><input type="text" inputmode="numeric" id="endAge" value="95"><span class="unit">歳まで</span></div></div>
+          </div>
+          <div class="row">
+            <div class="f"><label>現在の金融資産<small>（預貯金・投資合計）</small></label><div class="inline"><input type="text" inputmode="numeric" id="assetsNow" value="1000"><span class="unit">万円</span></div></div>
+            <div class="f"><label>退職後の運用利回り</label><div class="inline"><input type="text" inputmode="decimal" id="retRate" value="3"><span class="unit">%／年</span></div></div>
+          </div>
+          <div class="hint">「働く年齢」まではお給料で生活し、下の②の積立が資産に積み上がります。就労終了後は、年金・退職金・資産の取り崩しで⑤の支出をまかないます。</div>
+        </div>
+      </details>
+
+      <details class="sec" open>
+        <summary><span class="ic">②</span>積立方法（複数併用）<span class="ar">▸</span></summary>
+        <div class="sec-body">
+          <div class="hint">現金だけでなく複数の手段を組み合わせると、同じ積立額でも将来の資産が大きく変わります。手段ごとに毎月の積立額と想定利回りを入れてください。</div>
+          <table class="methods"><thead><tr><th>手段</th><th style="width:88px;">月額(万)</th><th style="width:78px;">利回り%</th><th class="rm"></th></tr></thead><tbody id="methodBody"></tbody></table>
+          <button class="addm" onclick="addMethod()">＋ 積立手段を追加</button>
+          <div class="row" style="margin-top:8px;">
+            <div class="f"><label>現役期の想定利回り<small>（自動＝加重平均）</small></label><div class="inline"><input type="text" inputmode="decimal" id="accRate" value=""><span class="unit">%／年</span></div></div>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec">
+        <summary><span class="ic">③</span>年金・在職老齢年金<span class="ar">▸</span></summary>
+        <div class="sec-body">
+          <div class="sub">公的年金</div>
+          <div class="row">
+            <div class="f"><label>受給開始年齢</label><div class="inline"><input type="text" inputmode="numeric" id="pensionAge" value="65"><span class="unit">歳</span></div></div>
+            <div class="f"><label>年金 合計<small>（世帯・年額）</small></label><div class="inline"><input type="text" inputmode="numeric" id="pensionAnnual" value="200"><span class="unit">万円</span></div></div>
+            <div class="f"><label>うち基礎年金<small>（月額）</small></label><div class="inline"><input type="text" inputmode="decimal" id="kisoMonthly" value="6.8"><span class="unit">万円</span></div></div>
+          </div>
+          <div class="sub">在職老齢年金（働きながら受給する場合の調整）</div>
+          <div class="row">
+            <div class="f"><label>就労中の月給相当<small>（総報酬月額相当）</small></label><div class="inline"><input type="text" inputmode="numeric" id="wageMonthly" value="30"><span class="unit">万円</span></div></div>
+          </div>
+          <div class="hint">受給開始が就労終了より早いと、厚生年金の一部が止まる場合があります（2025年度：基本月額＋総報酬月額相当額が51万円超で超過分の1/2を停止）。基礎年金は対象外です。</div>
+          <div class="sub">企業年金・個人年金（任意）</div>
+          <div class="row">
+            <div class="f"><label>開始年齢</label><div class="inline"><input type="text" inputmode="numeric" id="privPensionAge" value="65"><span class="unit">歳</span></div></div>
+            <div class="f"><label>年額</label><div class="inline"><input type="text" inputmode="numeric" id="privPensionAnnual" value="0"><span class="unit">万円</span></div></div>
+            <div class="f"><label>受給年数<small>（0＝終身）</small></label><div class="inline"><input type="text" inputmode="numeric" id="privPensionYears" value="0"><span class="unit">年</span></div></div>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec">
+        <summary><span class="ic">④</span>退職金・保険・相続・贈与<span class="ar">▸</span></summary>
+        <div class="sec-body">
+          <div class="sub">退職金</div>
+          <div class="row">
+            <div class="f"><label>退職金<small>（就労終了時に受取）</small></label><div class="inline"><input type="text" inputmode="numeric" id="retireLump" value="1500"><span class="unit">万円</span></div></div>
+            <div class="hint" style="flex:1;min-width:180px;">退職金は就労終了時に資産へ加算され、以後は「退職後の運用利回り」で運用します。</div>
+          </div>
+          <div class="sub">終身保険（受取）</div>
+          <div class="row">
+            <div class="f"><label>受取年齢</label><div class="inline"><input type="text" inputmode="numeric" id="insRecvAge" value="65"><span class="unit">歳</span></div></div>
+            <div class="f"><label>受取額<small>（満期・解約返戻等）</small></label><div class="inline"><input type="text" inputmode="numeric" id="insRecvAmount" value="0"><span class="unit">万円</span></div></div>
+          </div>
+          <div class="sub">相続（受け取る見込み）</div>
+          <div class="row">
+            <label class="chk"><input type="checkbox" id="inheritUse"> 相続を見込む</label>
+            <div class="f"><label>受取年齢</label><div class="inline"><input type="text" inputmode="numeric" id="inheritAge" value="80"><span class="unit">歳</span></div></div>
+            <div class="f"><label>受取額</label><div class="inline"><input type="text" inputmode="numeric" id="inheritAmount" value="0"><span class="unit">万円</span></div></div>
+          </div>
+          <div class="sub">暦年贈与（生前に子や孫へ渡す＝支出）</div>
+          <div class="row">
+            <label class="chk"><input type="checkbox" id="giftUse"> 暦年贈与をする</label>
+            <div class="f"><label>開始〜終了年齢</label><div class="inline"><input type="text" inputmode="numeric" id="giftStartAge" value="65" style="width:66px;"><span class="unit">〜</span><input type="text" inputmode="numeric" id="giftEndAge" value="80" style="width:66px;"><span class="unit">歳</span></div></div>
+            <div class="f"><label>年間の贈与額</label><div class="inline"><input type="text" inputmode="numeric" id="giftAnnual" value="110"><span class="unit">万円</span></div></div>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec">
+        <summary><span class="ic">⑤</span>老後の必要経費<span class="ar">▸</span></summary>
+        <div class="sec-body">
+          <div class="sub">基本生活費</div>
+          <div class="row">
+            <div class="f"><label>老後の基本生活費<small>（月・世帯）</small></label><div class="inline"><input type="text" inputmode="numeric" id="livingRetire" value="24"><span class="unit">万円</span></div></div>
+            <div class="f"><label>予備・医療介護<small>（月）</small></label><div class="inline"><input type="text" inputmode="numeric" id="reserveM" value="3"><span class="unit">万円</span></div></div>
+          </div>
+          <div class="sub">住居（不動産・住宅ローン／家賃）</div>
+          <div class="row">
+            <div class="f"><label>住まい</label><select id="housingType"><option value="own">持ち家</option><option value="rent">賃貸</option></select></div>
+            <div class="f own-only"><label>住宅ローン<small>（月返済）</small></label><div class="inline"><input type="text" inputmode="numeric" id="mortgage" value="0"><span class="unit">万円</span></div></div>
+            <div class="f own-only"><label>ローン完済年齢</label><div class="inline"><input type="text" inputmode="numeric" id="payoffAge" value="65"><span class="unit">歳</span></div></div>
+            <div class="f rent-only"><label>家賃<small>（月）</small></label><div class="inline"><input type="text" inputmode="numeric" id="rent" value="10"><span class="unit">万円</span></div></div>
+          </div>
+          <div class="row own-only">
+            <div class="f"><label>自宅の修繕<small>（周期）</small></label><div class="inline"><input type="text" inputmode="numeric" id="repairCycle" value="15"><span class="unit">年ごと</span></div></div>
+            <div class="f"><label>1回あたり修繕費</label><div class="inline"><input type="text" inputmode="numeric" id="repairCost" value="150"><span class="unit">万円</span></div></div>
+          </div>
+          <div class="sub">車の買い替え</div>
+          <div class="row">
+            <label class="chk"><input type="checkbox" id="carUse" checked> 車を保有</label>
+            <div class="f"><label>買い替え周期</label><div class="inline"><input type="text" inputmode="numeric" id="carCycle" value="8"><span class="unit">年ごと</span></div></div>
+            <div class="f"><label>1回あたり</label><div class="inline"><input type="text" inputmode="numeric" id="carCost" value="250"><span class="unit">万円</span></div></div>
+          </div>
+          <div class="sub">老人ホーム（入居）</div>
+          <div class="row">
+            <label class="chk"><input type="checkbox" id="homeUse"> 入居を見込む</label>
+            <div class="f"><label>入居年齢</label><div class="inline"><input type="text" inputmode="numeric" id="homeAge" value="85"><span class="unit">歳</span></div></div>
+            <div class="f"><label>入居一時金</label><div class="inline"><input type="text" inputmode="numeric" id="homeLump" value="500"><span class="unit">万円</span></div></div>
+            <div class="f"><label>月額利用料</label><div class="inline"><input type="text" inputmode="numeric" id="homeMonthly" value="22"><span class="unit">万円</span></div></div>
+          </div>
+          <div class="hint">入居後は「基本生活費・家賃」に代えて老人ホームの月額利用料で計算します（一時金は入居年に計上）。</div>
+        </div>
+      </details>
+
+    </div>
+
+    <!-- ===== 結果 ===== -->
+    <div class="col-out">
+      <div class="out" id="out"></div>
+    </div>
+  </div>
+
+  <footer>
+    ※本ツールは2026年時点の制度・一般的な目安に基づく<b>概算の叩き台</b>です。物価上昇（インフレ）・税・社会保険料の詳細、在職老齢年金の厳密判定、不動産価格変動などは簡略化しています。実際の判断は年金事務所・税理士・FP等にご確認ください。
+  </footer>
+</div>
+
+<div id="reportView"></div>
+
+<script>
+/* ===== ユーティリティ ===== */
+function zen2han(s){return String(s==null?'':s).replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);}).replace(/[．]/g,'.').replace(/[，、]/g,',').replace(/[－ー−―]/g,'-');}
+function nv(id){var e=document.getElementById(id);if(!e)return 0;var v=parseFloat(zen2han(e.value).replace(/[^\d.\-]/g,''));return isNaN(v)?0:v;}
+function sv(id){var e=document.getElementById(id);return e?e.value:'';}
+function chk(id){var e=document.getElementById(id);return !!(e&&e.checked);}
+function man(v){ // v は万円
+  var a=Math.round(v);
+  if(Math.abs(a)>=10000){ var oku=a/10000; return (Math.round(oku*100)/100).toLocaleString('ja-JP')+'億円'; }
+  return a.toLocaleString('ja-JP')+'万円';
+}
+function manNum(v){return Math.round(v).toLocaleString('ja-JP');}
+
+/* ===== 積立方法テーブル ===== */
+var DEFAULT_METHODS=[
+  {name:'預金・現金',   m:3, r:0},
+  {name:'つみたてNISA', m:3, r:5},
+  {name:'iDeCo',        m:2, r:3},
+  {name:'終身保険',     m:1, r:1}
+];
+function methodRow(d){
+  var tr=document.createElement('tr');
+  tr.innerHTML='<td><input class="mname" type="text" value="'+(d.name||'')+'"></td>'
+   +'<td><input class="mm" type="text" inputmode="decimal" value="'+(d.m||0)+'"></td>'
+   +'<td><input class="mr" type="text" inputmode="decimal" value="'+(d.r||0)+'"></td>'
+   +'<td class="rm"><button class="mrm" title="削除" onclick="this.closest(\'tr\').remove();simulate();">×</button></td>';
+  return tr;
+}
+function addMethod(){document.getElementById('methodBody').appendChild(methodRow({name:'',m:0,r:0}));simulate();}
+function readMethods(){
+  var out=[];
+  document.querySelectorAll('#methodBody tr').forEach(function(tr){
+    var name=tr.querySelector('.mname').value;
+    var m=parseFloat(zen2han(tr.querySelector('.mm').value).replace(/[^\d.\-]/g,''))||0;
+    var r=parseFloat(zen2han(tr.querySelector('.mr').value).replace(/[^\d.\-]/g,''))||0;
+    out.push({name:name,m:m,r:r});
+  });
+  return out;
+}
+function blendedAccRate(methods){
+  var sumM=0,sumMR=0; methods.forEach(function(m){sumM+=m.m;sumMR+=m.m*m.r;});
+  return sumM>0? sumMR/sumM : 0;
+}
+
+/* ===== 住まい種別で表示切替 ===== */
+function syncHousing(){
+  var own=sv('housingType')==='own';
+  document.querySelectorAll('.own-only').forEach(function(e){e.style.display=own?'':'none';});
+  document.querySelectorAll('.rent-only').forEach(function(e){e.style.display=own?'none':'';});
+}
+
+/* ===== シミュレーション本体 =====
+   単位：金額はすべて「万円」。年次ループで資産残高を追う。 */
+function runSim(opt){
+  opt=opt||{};
+  var ageNow=Math.round(nv('ageNow')), retireAge=Math.round(nv('retireAge')), endAge=Math.round(nv('endAge'));
+  if(endAge<ageNow) endAge=ageNow;
+  var assetsNow=nv('assetsNow');
+  var retRate=nv('retRate')/100;
+  var methods=readMethods();
+  var accRate=(sv('accRate')!==''? nv('accRate') : blendedAccRate(methods))/100;
+  if(opt.cashOnly){ accRate=0; } // 現金のみ比較用（積立額は同じ・利回り0）
+  var monthlyTotal=methods.reduce(function(s,m){return s+m.m;},0); // 万円/月
+
+  var pensionAge=Math.round(nv('pensionAge')), pensionAnnual=nv('pensionAnnual'), kisoM=nv('kisoMonthly');
+  var wageM=nv('wageMonthly');
+  var privAge=Math.round(nv('privPensionAge')), privAnnual=nv('privPensionAnnual'), privYears=Math.round(nv('privPensionYears'));
+  var retireLump=nv('retireLump');
+  var insRecvAge=Math.round(nv('insRecvAge')), insRecvAmount=nv('insRecvAmount');
+  var inheritUse=chk('inheritUse'), inheritAge=Math.round(nv('inheritAge')), inheritAmount=nv('inheritAmount');
+  var giftUse=chk('giftUse'), giftStart=Math.round(nv('giftStartAge')), giftEnd=Math.round(nv('giftEndAge')), giftAnnual=nv('giftAnnual');
+
+  var livingRetire=nv('livingRetire'), reserveM=nv('reserveM');
+  var housingOwn=sv('housingType')==='own';
+  var mortgage=nv('mortgage'), payoffAge=Math.round(nv('payoffAge'));
+  var rent=nv('rent');
+  var repairCycle=Math.round(nv('repairCycle')), repairCost=nv('repairCost');
+  var carUse=chk('carUse'), carCycle=Math.round(nv('carCycle')), carCost=nv('carCost');
+  var homeUse=chk('homeUse'), homeAge=Math.round(nv('homeAge')), homeLump=nv('homeLump'), homeMonthly=nv('homeMonthly');
+
+  // 公的年金の在職老齢調整（簡易・2025）
+  function pensionAt(age, working){
+    if(age<pensionAge) return 0;
+    var full=pensionAnnual;
+    if(working){
+      var basicMonthly=Math.max(0, pensionAnnual/12 - kisoM); // 厚生部分（月）
+      var sum=basicMonthly+wageM;
+      var cut= sum>51 ? (sum-51)/2 : 0;
+      cut=Math.min(cut, basicMonthly);
+      full = pensionAnnual - cut*12;
+    }
+    return full;
+  }
+
+  var bal=assetsNow;
+  var series=[]; // {age,bal,working}
+  var tot={contrib:0, growth:0, pension:0, retire:0, inherit:0, ins:0, priv:0,
+           living:0, housing:0, home:0, car:0, repair:0, reserve:0, gift:0};
+  var shortAge=null;
+
+  for(var y=ageNow; y<=endAge; y++){
+    var working = y < retireAge;
+    // 運用（前年残高に対して。マイナス残高には利回りを付けない＝取り崩し・借入は運用しない）
+    var rate = working? accRate : retRate;
+    var g = Math.max(0,bal)*rate; bal += g; tot.growth+=g;
+    // 就労終了時に退職金を加算
+    if(y===retireAge){ bal+=retireLump; tot.retire+=retireLump; }
+    // 積立（就労中）
+    if(working){ var c=monthlyTotal*12; bal+=c; tot.contrib+=c; }
+
+    // 収入
+    var inflow=0;
+    var p=pensionAt(y,working); if(p>0){ inflow+=p; tot.pension+=p; }
+    if(y>=privAge && (privYears===0 || y<privAge+privYears)){ inflow+=privAnnual; tot.priv+=privAnnual; }
+    if(inheritUse && y===inheritAge){ inflow+=inheritAmount; tot.inherit+=inheritAmount; }
+    if(y===insRecvAge && insRecvAmount>0){ inflow+=insRecvAmount; tot.ins+=insRecvAmount; }
+
+    // 支出（就労終了後の生活・住居・イベント）
+    var outflow=0;
+    var inHome = homeUse && y>=homeAge;
+    if(!working){
+      if(inHome){ outflow+=homeMonthly*12; tot.home+=homeMonthly*12; if(y===homeAge){ outflow+=homeLump; tot.home+=homeLump; } }
+      else { outflow+=livingRetire*12; tot.living+=livingRetire*12;
+             if(!housingOwn){ outflow+=rent*12; tot.housing+=rent*12; } }
+      outflow+=reserveM*12; tot.reserve+=reserveM*12;
+      if(housingOwn && y<payoffAge){ outflow+=mortgage*12; tot.housing+=mortgage*12; }
+      if(housingOwn && !inHome && repairCycle>0 && (y-ageNow)>0 && (y-ageNow)%repairCycle===0){ outflow+=repairCost; tot.repair+=repairCost; }
+      if(carUse && carCycle>0 && (y-ageNow)>0 && (y-ageNow)%carCycle===0){ outflow+=carCost; tot.car+=carCost; }
+    }
+    // 暦年贈与（全期間）
+    if(giftUse && y>=giftStart && y<=giftEnd){ outflow+=giftAnnual; tot.gift+=giftAnnual; }
+
+    bal += inflow - outflow;
+    if(shortAge===null && bal<0) shortAge=y;
+    series.push({age:y, bal:bal, working:working, inHome:inHome});
+  }
+
+  var demand=tot.living+tot.housing+tot.home+tot.car+tot.repair+tot.reserve+tot.gift;
+  var ratio = demand>0 ? Math.round((demand+series[series.length-1].bal)/demand*100) : 999;
+
+  return {series:series, tot:tot, demand:demand, ratio:ratio, shortAge:shortAge,
+    endBal:series[series.length-1].bal, ageNow:ageNow, retireAge:retireAge, endAge:endAge,
+    pensionAge:pensionAge, homeUse:homeUse, homeAge:homeAge, accRate:accRate, monthlyTotal:monthlyTotal};
+}
+
+/* ===== 資産残高グラフ（SVG） ===== */
+function balanceChart(R, opts){
+  var s=R.series; if(!s.length) return '';
+  var W=1000, padL=64, padR=20, padT=16, padB=30, H=(opts&&opts.report?300:260);
+  var plotW=W-padL-padR, plotH=H-padT-padB;
+  var minB=0, maxB=1;
+  s.forEach(function(d){ if(d.bal>maxB)maxB=d.bal; if(d.bal<minB)minB=d.bal; });
+  maxB*=1.08; if(minB<0) minB*=1.1;
+  var a0=R.ageNow, a1=R.endAge;
+  var X=function(age){ return padL + (age-a0)/Math.max(1,(a1-a0))*plotW; };
+  var Y=function(v){ return padT + (maxB-v)/(maxB-minB)*plotH; };
+  var g='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">';
+  // 0円ライン
+  var y0=Y(0);
+  g+='<line x1="'+padL+'" y1="'+y0.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+y0.toFixed(1)+'" stroke="#d8cfb8"/>';
+  // Y軸の目盛（0, max, min）
+  [maxB, (maxB+minB)/2, minB].forEach(function(v){ var yy=Y(v); g+='<text x="'+(padL-6)+'" y="'+(yy+3).toFixed(1)+'" font-size="10" fill="#8a8470" text-anchor="end">'+man(v).replace('円','')+'</text><line x1="'+padL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+yy.toFixed(1)+'" stroke="#f2ecdd"/>'; });
+  // フェーズ境界（就労終了・年金開始・ホーム）
+  function vline(age,label,color){ if(age<a0||age>a1)return; var x=X(age); g+='<line x1="'+x.toFixed(1)+'" y1="'+padT+'" x2="'+x.toFixed(1)+'" y2="'+(H-padB)+'" stroke="'+color+'" stroke-width="1" stroke-dasharray="3 3" opacity="0.7"/><text x="'+x.toFixed(1)+'" y="'+(padT+9)+'" font-size="9.5" fill="'+color+'" text-anchor="middle">'+label+'</text>'; }
+  vline(R.retireAge,'就労終了','#9a7b4f');
+  vline(R.pensionAge,'年金開始','#2f6b4f');
+  if(R.homeUse) vline(R.homeAge,'ホーム','#7a6ea0');
+  // エリア＋線
+  var dLine='', dArea='';
+  s.forEach(function(d,i){ var x=X(d.age), y=Y(d.bal); dLine+=(i===0?'M':'L')+x.toFixed(1)+' '+y.toFixed(1)+' '; });
+  dArea='M'+X(a0).toFixed(1)+' '+y0.toFixed(1)+' '+ s.map(function(d){return 'L'+X(d.age).toFixed(1)+' '+Y(d.bal).toFixed(1);}).join(' ') +' L'+X(a1).toFixed(1)+' '+y0.toFixed(1)+' Z';
+  g+='<path d="'+dArea+'" fill="#2f6b4f" opacity="0.08"/>';
+  g+='<path d="'+dLine+'" fill="none" stroke="#2f6b4f" stroke-width="2.2"/>';
+  // マイナス部分を赤で
+  if(R.shortAge!==null){
+    var negLine=''; var started=false;
+    s.forEach(function(d){ if(d.bal<0){ var x=X(d.age),y=Y(d.bal); negLine+=(started?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)+' '; started=true; } });
+    if(negLine) g+='<path d="'+negLine+'" fill="none" stroke="#9b3b3b" stroke-width="2.6"/>';
+    var sx=X(R.shortAge), sy=Y(0);
+    g+='<circle cx="'+sx.toFixed(1)+'" cy="'+sy.toFixed(1)+'" r="4.5" fill="#9b3b3b"/>';
+    g+='<text x="'+sx.toFixed(1)+'" y="'+(sy-9).toFixed(1)+'" font-size="11" fill="#9b3b3b" text-anchor="middle" font-weight="700">'+R.shortAge+'歳でショート</text>';
+  }
+  // X軸（年齢）
+  for(var age=a0; age<=a1; age+=5){ var x=X(age); g+='<text x="'+x.toFixed(1)+'" y="'+(H-padB+16)+'" font-size="10" fill="#8a8470" text-anchor="middle">'+age+'歳</text>'; }
+  g+='</svg>';
+  return '<div class="chartwrap">'+g+'</div>';
+}
+
+/* ===== 描画 ===== */
+function simulate(){
+  syncHousing();
+  var methods=readMethods();
+  // 現役利回りの自動表示（未入力なら加重平均をプレースホルダ的に表示）
+  var accEl=document.getElementById('accRate');
+  if(accEl && accEl.value==='') accEl.placeholder=(Math.round(blendedAccRate(methods)*100)/100)+'';
+
+  var R=runSim();
+  var out=document.getElementById('out');
+  var ratio=R.ratio;
+  var cls = ratio>=110?'ok' : (ratio>=100?'warn':'bad');
+  var col = ratio>=110?'#2f6b4f' : (ratio>=100?'#9a7b4f':'#9b3b3b');
+  var fillW=Math.max(4,Math.min(100,ratio));
+  var verdict = R.shortAge!==null ? (R.shortAge+'歳で資金がショートします') : (ratio>=110?'資金に余裕があります':'ほぼ均衡（余裕は小さめ）');
+
+  var html='';
+  html+='<div class="gauge-card"><div class="gauge-lab">老後資金の余裕度（利用可能資金 ÷ 必要資金）</div>'
+    +'<div class="gauge-val" style="color:'+col+'">'+(ratio>=999?'—':ratio)+'<small> %</small></div>'
+    +'<div class="gauge-bar"><div class="gauge-fill" style="width:'+fillW+'%;background:'+col+'"></div></div>'
+    +'<div class="verdict '+cls+'">'+verdict+'</div></div>';
+
+  if(R.shortAge!==null){
+    var gap=Math.abs(R.endBal);
+    html+='<div class="short-note">⚠ '+R.shortAge+'歳で資産が底をつきます。'+R.endAge+'歳まで不足なく過ごすには、積立額の増額・利回り改善・就労延長・支出見直しのいずれかが必要です（'+R.endAge+'歳時点で約'+man(gap)+'の不足）。</div>';
+  } else {
+    html+='<div class="surplus-note">✓ '+R.endAge+'歳まで資金は不足しません（'+R.endAge+'歳時点の残高 約'+man(R.endBal)+'）。</div>';
+  }
+
+  // 複数併用の効果（現金のみ比較）
+  var cash=runSim({cashOnly:true});
+  var diff=R.endBal-cash.endBal;
+  var comboMsg;
+  if(R.monthlyTotal>0){
+    if(cash.shortAge!==null && R.shortAge===null){ comboMsg='現金だけの積立（利回り0%）では<b>'+cash.shortAge+'歳でショート</b>しますが、運用を組み合わせると'+R.endAge+'歳まで持ちこたえます。'; }
+    else if(cash.shortAge!==null && R.shortAge!==null){ comboMsg='現金だけなら'+cash.shortAge+'歳、運用併用で'+R.shortAge+'歳までと、<b>'+(R.shortAge-cash.shortAge)+'年</b>先延ばしできます。'; }
+    else { comboMsg='運用を組み合わせることで、現金だけの場合より<b>'+man(Math.max(0,diff))+'</b>多く'+R.endAge+'歳時点の資産を残せます。'; }
+    html+='<div class="combo-note">💡 <b>複数併用の効果</b>：'+comboMsg+'（現役期の想定利回り '+(Math.round(R.accRate*1000)/10)+'%）</div>';
+  }
+
+  // グラフ
+  html+='<div class="chart-h">資産残高の推移（何歳でショートするか）</div>';
+  html+=balanceChart(R);
+  html+='<div class="legend"><span><i style="background:#2f6b4f"></i>資産残高</span><span><i style="background:#9b3b3b"></i>不足（マイナス）</span><span>点線＝就労終了／年金開始／ホーム入居</span></div>';
+
+  // 内訳
+  var t=R.tot;
+  html+='<table class="bd"><thead><tr><th>収入・原資（生涯累計）</th><th style="text-align:right;">金額</th><th>支出（生涯累計）</th><th style="text-align:right;">金額</th></tr></thead><tbody>';
+  var inRows=[['現在の金融資産',nv('assetsNow')],['積立の元本',t.contrib],['運用益',t.growth],['公的年金',t.pension],['企業・個人年金',t.priv],['退職金',t.retire],['終身保険 受取',t.ins],['相続',t.inherit]];
+  var exRows=[['基本生活費',t.living],['住居費（家賃・ローン）',t.housing],['老人ホーム',t.home],['車の買い替え',t.car],['自宅の修繕',t.repair],['予備・医療介護',t.reserve],['暦年贈与',t.gift]];
+  var maxR=Math.max(inRows.length,exRows.length);
+  var inSum=inRows.reduce(function(s,r){return s+r[1];},0);
+  for(var i=0;i<maxR;i++){
+    var ir=inRows[i], er=exRows[i];
+    html+='<tr>'
+      +(ir?'<td class="in">'+ir[0]+'</td><td class="n">'+(ir[1]?man(ir[1]):'—')+'</td>':'<td></td><td></td>')
+      +(er?'<td class="ex">'+er[0]+'</td><td class="n">'+(er[1]?man(er[1]):'—')+'</td>':'<td></td><td></td>')
+      +'</tr>';
+  }
+  html+='<tr class="tot"><td>収入・原資 合計</td><td class="n">'+man(inSum)+'</td><td>必要資金 合計</td><td class="n">'+man(R.demand)+'</td></tr>';
+  html+='</tbody></table>';
+
+  html+='<ul class="note-list">'
+    +'<li>「余裕度」＝（現在資産＋生涯の収入・運用益）÷（老後の必要資金合計）。100%で均衡、110%以上で余裕とみなしています。</li>'
+    +'<li>就労中の生活費はお給料でまかなう前提（資産からは引きません）。就労終了後の生活・住居・イベント費を資産と年金で埋めます。</li>'
+    +'<li>物価上昇（インフレ）や税・社会保険料の変動、運用のブレは加味していません。金額はすべて現在価値の概算です。</li>'
+    +'</ul>';
+
+  out.innerHTML=html;
+}
+
+/* ===== 保存・読込・PDF ===== */
+var FIELD_IDS=['clientName','ageNow','retireAge','endAge','assetsNow','retRate','accRate',
+ 'pensionAge','pensionAnnual','kisoMonthly','wageMonthly','privPensionAge','privPensionAnnual','privPensionYears',
+ 'retireLump','insRecvAge','insRecvAmount','inheritAge','inheritAmount','giftStartAge','giftEndAge','giftAnnual',
+ 'livingRetire','reserveM','housingType','mortgage','payoffAge','rent','repairCycle','repairCost','carCycle','carCost',
+ 'homeAge','homeLump','homeMonthly'];
+var CHK_IDS=['inheritUse','giftUse','carUse','homeUse'];
+function clientSei(){var e=document.getElementById('clientName');return e?((e.value||'').trim().replace(/[\\\/:*?"<>|]/g,'')):'';}
+function collectState(){
+  var o={tool:'rogo',v:1};
+  FIELD_IDS.forEach(function(id){var e=document.getElementById(id);if(e)o[id]=e.value;});
+  CHK_IDS.forEach(function(id){o[id]=chk(id);});
+  o.methods=readMethods();
+  return o;
+}
+function applyState(o){
+  if(!o||typeof o!=='object')return false;
+  FIELD_IDS.forEach(function(id){if(o[id]!=null){var e=document.getElementById(id);if(e)e.value=o[id];}});
+  CHK_IDS.forEach(function(id){var e=document.getElementById(id);if(e&&o[id]!=null)e.checked=!!o[id];});
+  if(Array.isArray(o.methods)){var b=document.getElementById('methodBody');b.innerHTML='';o.methods.forEach(function(m){b.appendChild(methodRow(m));});}
+  simulate();return true;
+}
+function saveFile(){
+  try{
+    var d=new Date();
+    var ymd=String(d.getFullYear()).slice(-2)+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);
+    var name=ymd+'_'+clientSei()+'様_老後資金.json';
+    var blob=new Blob([JSON.stringify(collectState(),null,2)],{type:'application/json'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(url);},1500);
+  }catch(e){alert('保存に失敗しました：'+(e&&e.message?e.message:e));}
+}
+document.getElementById('loadInput').addEventListener('change',function(ev){
+  var f=ev.target.files[0];if(!f)return;var r=new FileReader();
+  r.onload=function(){try{var o=JSON.parse(r.result);if(!applyState(o))throw 0;}catch(x){alert('読み込みに失敗しました（このツールの保存ファイルを選んでください）。');}};
+  r.readAsText(f);ev.target.value='';
+});
+function clearAll(){
+  if(!confirm('入力内容を初期状態に戻します。よろしいですか？'))return;
+  location.reload();
+}
+function printReport(){
+  try{
+    var R=runSim();
+    var sei=clientSei(); var client=(sei?sei+' 様':'　　　　様');
+    var d=new Date(); var dateStr=d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
+    var ratio=R.ratio;
+    var t=R.tot;
+    var verdict = R.shortAge!==null ? (R.shortAge+'歳で資金がショート') : (R.endAge+'歳まで不足なし');
+    var h='<div class="rp-h"><div><b>老後資金プラン</b><div class="rp-sub">'+client+'　／　作成日 '+dateStr+'</div></div><div class="rp-sub">FP SIMULATION</div></div>';
+    h+='<div style="display:flex;gap:20px;align-items:center;margin-bottom:8px;"><div style="font-size:14px;">老後資金の余裕度</div><div style="font-family:var(--mincho);font-size:34px;font-weight:700;color:'+(R.shortAge!==null?'#9b3b3b':(ratio>=110?'#2f6b4f':'#9a7b4f'))+'">'+(ratio>=999?'—':ratio)+'%</div><div style="font-size:14px;font-weight:700;">'+verdict+'</div></div>';
+    h+=balanceChart(R,{report:true});
+    var inSum=nv('assetsNow')+t.contrib+t.growth+t.pension+t.priv+t.retire+t.ins+t.inherit;
+    h+='<table class="bd" style="margin-top:10px;"><thead><tr><th>収入・原資</th><th style="text-align:right">金額</th><th>支出</th><th style="text-align:right">金額</th></tr></thead><tbody>';
+    h+='<tr><td>現在資産＋積立＋運用益</td><td class="n">'+man(nv('assetsNow')+t.contrib+t.growth)+'</td><td>基本生活費</td><td class="n">'+man(t.living)+'</td></tr>';
+    h+='<tr><td>公的・企業年金</td><td class="n">'+man(t.pension+t.priv)+'</td><td>住居・修繕</td><td class="n">'+man(t.housing+t.repair)+'</td></tr>';
+    h+='<tr><td>退職金・保険・相続</td><td class="n">'+man(t.retire+t.ins+t.inherit)+'</td><td>老人ホーム・車・予備・贈与</td><td class="n">'+man(t.home+t.car+t.reserve+t.gift)+'</td></tr>';
+    h+='<tr class="tot"><td>合計</td><td class="n">'+man(inSum)+'</td><td>必要資金 合計</td><td class="n">'+man(R.demand)+'</td></tr>';
+    h+='</tbody></table>';
+    h+='<div style="font-size:9.5px;color:#8a8470;margin-top:8px;">概算の叩き台。インフレ・税・社会保険料の詳細、在職老齢年金の厳密判定等は簡略化しています。</div>';
+    document.getElementById('reportView').innerHTML=h;
+    setTimeout(function(){window.print();},120);
+  }catch(e){alert('PDFの作成に失敗しました：'+(e&&e.message?e.message:e));}
+}
+
+/* ===== 初期化 ===== */
+(function(){
+  var b=document.getElementById('methodBody');
+  DEFAULT_METHODS.forEach(function(m){b.appendChild(methodRow(m));});
+  document.addEventListener('input',function(e){ if(e.target && e.target.closest('.wrap')) simulate(); });
+  document.addEventListener('change',function(e){ if(e.target && e.target.closest('.wrap')) simulate(); });
+  var st=document.getElementById('stamp'); if(st){ var lm=document.lastModified||''; var m=lm.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})[ ,]+(\d{1,2}):(\d{2})/); st.textContent=m?('更新 '+m[1]+'/'+m[2]+'\n'+m[4]+':'+m[5]):''; }
+  simulate();
+})();
+</script>
+</body>
+</html>
