@@ -257,6 +257,41 @@
         </div>
       </details>
 
+      <details class="sec">
+        <summary><span class="ic">⑦</span>配偶者・世帯／死亡・遺族年金<span class="ar">▸</span></summary>
+        <div class="sec-body">
+          <label class="chk"><input type="checkbox" id="spouseUse"> 配偶者を含めて世帯で試算する</label>
+          <div class="hint">配偶者の年金・積立を世帯に合算し、どちらかが亡くなった後の<b>遺族年金</b>と<b>生活費の減少</b>を反映します。③の公的年金は「本人（世帯主）」として扱います。</div>
+          <div class="spouse-only">
+            <div class="sub">配偶者</div>
+            <div class="row">
+              <div class="f"><label>配偶者の現在年齢</label><div class="inline"><input type="text" inputmode="numeric" id="spouseAgeNow" value="48"><span class="unit">歳</span></div></div>
+              <div class="f"><label>就業区分<small>（遺族厚生の基礎）</small></label><select id="spouseJob"><option value="employee" selected>会社員（厚生年金）</option><option value="self">自営・専業（基礎のみ）</option></select></div>
+            </div>
+            <div class="sub">配偶者の公的年金・積立</div>
+            <div class="row">
+              <div class="f"><label>受給開始</label><div class="inline"><input type="text" inputmode="numeric" id="spousePensionAge" value="65"><span class="unit">歳</span></div></div>
+              <div class="f"><label>年金 年額</label><div class="inline"><input type="text" inputmode="numeric" id="spousePensionAnnual" value="90"><span class="unit">万円</span></div></div>
+              <div class="f"><label>うち基礎（月額）</label><div class="inline"><input type="text" inputmode="decimal" id="spouseKisoMonthly" value="6.8"><span class="unit">万円</span></div></div>
+            </div>
+            <div class="row">
+              <div class="f"><label>配偶者の積立（月額）</label><div class="inline"><input type="text" inputmode="decimal" id="spouseMonthly" value="0"><span class="unit">万円</span></div></div>
+            </div>
+          </div>
+          <div class="sub">死亡時期（空欄＝寿命まで生存）</div>
+          <div class="row">
+            <div class="f"><label>本人の死亡年齢</label><div class="inline"><input type="text" inputmode="numeric" id="honninDeathAge" value=""><span class="unit">歳</span></div></div>
+            <div class="f spouse-only"><label>配偶者の死亡年齢</label><div class="inline"><input type="text" inputmode="numeric" id="spouseDeathAge" value=""><span class="unit">歳</span></div></div>
+          </div>
+          <div class="sub">遺族年金の前提</div>
+          <div class="row">
+            <div class="f"><label>単身後の生活費係数</label><div class="inline"><input type="text" inputmode="decimal" id="singleRatio" value="0.7"><span class="unit">倍</span></div></div>
+            <div class="f"><label>遺族基礎年金<small>（18歳未満の子がいる時）</small></label><div class="inline"><input type="text" inputmode="numeric" id="izokuKiso" value="0"><span class="unit">万円/年</span></div></div>
+          </div>
+          <div class="hint">遺族厚生年金＝亡くなった方の老齢厚生年金の<b>3/4</b>（受け取る側に自分の厚生年金がある場合は差額を支給）。老齢基礎年金は各自の分。単身後の生活費は係数（既定0.7）で圧縮します。自営・専業は基礎のみで遺族厚生の対象外とします。変額年金は被保険者＝本人とし、受取開始前の本人死亡は死亡給付金（積立金と基本年金月額×10の大きい方）を資産へ計上します。</div>
+        </div>
+      </details>
+
     </div>
 
     <!-- ===== 結果 ===== -->
@@ -367,6 +402,10 @@ function syncHousing(){
   document.querySelectorAll('.own-only').forEach(function(e){e.style.display=own?'':'none';});
   document.querySelectorAll('.rent-only').forEach(function(e){e.style.display=own?'none':'';});
 }
+function syncSpouse(){
+  var on=chk('spouseUse');
+  document.querySelectorAll('.spouse-only').forEach(function(e){e.style.display=on?'':'none';});
+}
 
 /* ===== シミュレーション本体 =====
    単位：金額はすべて「万円」。年次ループで資産残高を追う。 */
@@ -398,6 +437,22 @@ function runSim(opt){
   var homeUse=chk('homeUse'), homeAge=Math.round(nv('homeAge')), homeLump=nv('homeLump'), homeMonthly=nv('homeMonthly');
   var va=computeVA(); // 変額年金（null＝未使用）
 
+  // 配偶者・世帯・死亡・遺族年金
+  var spouseUse=chk('spouseUse');
+  var spouseAgeNow=Math.round(nv('spouseAgeNow'));
+  var spouseJob=sv('spouseJob');
+  var spousePensionAge=Math.round(nv('spousePensionAge')), spousePensionAnnual=nv('spousePensionAnnual'), spouseKisoM=nv('spouseKisoMonthly');
+  var spouseMonthly=nv('spouseMonthly');
+  var honninDeathAge = (String(sv('honninDeathAge')).trim()==='')? null : Math.round(nv('honninDeathAge'));
+  var spouseDeathAge = (String(sv('spouseDeathAge')).trim()==='')? null : Math.round(nv('spouseDeathAge'));
+  var singleRatio=nv('singleRatio')||0.7, izokuKiso=nv('izokuKiso');
+  // 本人の年金内訳（③を本人＝世帯主として扱う）
+  var hKiso=kisoM*12, hKousei=Math.max(0, pensionAnnual - hKiso);
+  // 配偶者の年金内訳
+  var sKiso, sKousei;
+  if(spouseJob==='self'){ sKiso=spousePensionAnnual; sKousei=0; }
+  else { sKiso=spouseKisoM*12; sKousei=Math.max(0, spousePensionAnnual - sKiso); }
+
   // 公的年金の在職老齢調整（簡易・2025）
   function pensionAt(age, working){
     if(age<pensionAge) return 0;
@@ -414,54 +469,94 @@ function runSim(opt){
 
   var bal=assetsNow;
   var series=[]; // {age,bal,working}
-  var tot={contrib:0, growth:0, pension:0, retire:0, inherit:0, ins:0, priv:0, va:0,
+  var tot={contrib:0, growth:0, pension:0, survivor:0, retire:0, inherit:0, ins:0, priv:0, va:0,
            living:0, housing:0, home:0, car:0, repair:0, reserve:0, gift:0, vaPrem:0};
   var shortAge=null;
 
   for(var y=ageNow; y<=endAge; y++){
+    var spouseAge = spouseAgeNow + (y-ageNow);
+    var honninAlive = (honninDeathAge===null) || (y < honninDeathAge);
+    var spouseAlive = spouseUse && ((spouseDeathAge===null) || (spouseAge < spouseDeathAge));
+    // 全員死亡＝世帯消滅。以後は資産を据え置き（相続財産）
+    if(spouseUse ? (!honninAlive && !spouseAlive) : (!honninAlive)){
+      series.push({age:y, bal:bal, working:false, inHome:false, ended:true});
+      continue;
+    }
     var working = y < retireAge;
-    // 運用（前年残高に対して。マイナス残高には利回りを付けない＝取り崩し・借入は運用しない）
+    // 運用（前年残高に対して。マイナス残高には利回りを付けない）
     var rate = working? accRate : retRate;
     var g = Math.max(0,bal)*rate; bal += g; tot.growth+=g;
     // 就労終了時に退職金を加算
     if(y===retireAge){ bal+=retireLump; tot.retire+=retireLump; }
-    // 積立（就労中）
-    if(working){ var c=monthlyTotal*12; bal+=c; tot.contrib+=c; }
+    // 積立（就労中）：本人＋配偶者
+    if(working){ var c=(monthlyTotal + (spouseUse?spouseMonthly:0))*12; bal+=c; tot.contrib+=c; }
 
     // 収入
     var inflow=0;
-    var p=pensionAt(y,working); if(p>0){ inflow+=p; tot.pension+=p; }
+    // ---- 公的年金（配偶者・遺族年金対応）----
+    var pen=0, surv=0;
+    if(!spouseUse){
+      if(y>=pensionAge) pen += pensionAt(y,working);
+    } else if(honninAlive && spouseAlive){
+      if(y>=pensionAge) pen += pensionAt(y,working);
+      if(spouseAge>=spousePensionAge) pen += sKiso+sKousei;
+    } else if(honninAlive){ // 配偶者死亡→本人が遺族
+      var ownKi=(y>=pensionAge)?hKiso:0, ownK=(y>=pensionAge)?hKousei:0;
+      var sk=Math.max(ownK, 0.75*sKousei);
+      pen += ownKi+sk+izokuKiso; surv += Math.max(0,sk-ownK)+izokuKiso;
+    } else if(spouseAlive){ // 本人死亡→配偶者が遺族
+      var oKi=(spouseAge>=spousePensionAge)?sKiso:0, oK=(spouseAge>=spousePensionAge)?sKousei:0;
+      var sk2=Math.max(oK, 0.75*hKousei);
+      pen += oKi+sk2+izokuKiso; surv += Math.max(0,sk2-oK)+izokuKiso;
+    }
+    if(pen>0){ inflow+=pen; tot.pension+=pen; }
+    tot.survivor += surv;
+
     if(y>=privAge && (privYears===0 || y<privAge+privYears)){ inflow+=privAnnual; tot.priv+=privAnnual; }
     if(inheritUse && y===inheritAge){ inflow+=inheritAmount; tot.inherit+=inheritAmount; }
     if(y===insRecvAge && insRecvAmount>0){ inflow+=insRecvAmount; tot.ins+=insRecvAmount; }
-    // 変額年金
+
+    // ---- 変額年金（被保険者＝本人）----
     if(va){
-      if(y===va.start){
-        if(va.recvType==='lump'){ inflow+=va.AV_man; tot.va+=va.AV_man; }        // 一時受取→資産へ
+      // 受取開始前に本人死亡＝死亡給付金（積立金と基本年金月額×10の大きい方）を資産へ
+      if(honninDeathAge!==null && y===honninDeathAge && honninDeathAge<va.start && va.entry<=honninDeathAge){
+        var mToD=Math.max(0,(honninDeathAge-va.entry)*12);
+        var avD=(va.premiumMonthly*vaAccumFactor(mToD,va.accRate))/10000;
+        var db=Math.max(avD, va.impliedAnnuityMonthly_man*10);
+        inflow+=db; tot.va+=db;
       }
-      if(va.recvType==='pension' && y>=va.start){
-        var yr=y-va.start;
-        var an=va.pensionBaseAnnual_man*Math.pow(1+(va.postRate/100-0.035), yr);  // 受取中は3.5%超過分だけ増減（マネー型0%は毎年-3.5%）
-        an=Math.max(0,an); inflow+=an; tot.va+=an;
+      var startedAlive = (honninDeathAge===null) || (honninDeathAge>=va.start);
+      if(startedAlive){
+        if(y===va.start && va.recvType==='lump'){ inflow+=va.AV_man; tot.va+=va.AV_man; }
+        if(va.recvType==='pension' && y>=va.start){
+          var withinGuar = honninAlive || (y < va.start+10); // 10年保証期間は遺族へ継続
+          if(withinGuar){
+            var yr=y-va.start;
+            var an=va.pensionBaseAnnual_man*Math.pow(1+(va.postRate/100-0.035), yr);
+            an=Math.max(0,an); inflow+=an; tot.va+=an;
+          }
+        }
       }
     }
 
-    // 支出（就労終了後の生活・住居・イベント）
+    // ---- 支出 ----
+    var widowed = spouseUse && ((honninAlive?1:0)+(spouseAlive?1:0)===1) && (honninDeathAge!==null||spouseDeathAge!==null);
+    var lifeScale = widowed? singleRatio : 1;
     var outflow=0;
     var inHome = homeUse && y>=homeAge;
     if(!working){
       if(inHome){ outflow+=homeMonthly*12; tot.home+=homeMonthly*12; if(y===homeAge){ outflow+=homeLump; tot.home+=homeLump; } }
-      else { outflow+=livingRetire*12; tot.living+=livingRetire*12;
+      else { var lv=livingRetire*12*lifeScale; outflow+=lv; tot.living+=lv;
              if(!housingOwn){ outflow+=rent*12; tot.housing+=rent*12; } }
-      outflow+=reserveM*12; tot.reserve+=reserveM*12;
+      var rvv=reserveM*12*lifeScale; outflow+=rvv; tot.reserve+=rvv;
       if(housingOwn && y<payoffAge){ outflow+=mortgage*12; tot.housing+=mortgage*12; }
       if(housingOwn && !inHome && repairCycle>0 && (y-ageNow)>0 && (y-ageNow)%repairCycle===0){ outflow+=repairCost; tot.repair+=repairCost; }
       if(carUse && carCycle>0 && (y-ageNow)>0 && (y-ageNow)%carCycle===0){ outflow+=carCost; tot.car+=carCost; }
     }
     // 暦年贈与（全期間）
     if(giftUse && y>=giftStart && y<=giftEnd){ outflow+=giftAnnual; tot.gift+=giftAnnual; }
-    // 変額年金の保険料：就労中は給料から（資産に影響なし）、就労終了後も払込中なら資産から支出
-    if(va && !working && y>=va.entry && y<va.start){ var vpr=va.premiumMonthly*12/10000; outflow+=vpr; tot.vaPrem+=vpr; }
+    // 変額年金の保険料：就労中は給料から、就労終了後も払込中かつ本人生存なら資産から支出
+    if(va && !working && honninAlive && y>=va.entry && y<va.start){ var vpr=va.premiumMonthly*12/10000; outflow+=vpr; tot.vaPrem+=vpr; }
 
     bal += inflow - outflow;
     if(shortAge===null && bal<0) shortAge=y;
@@ -471,9 +566,13 @@ function runSim(opt){
   var demand=tot.living+tot.housing+tot.home+tot.car+tot.repair+tot.reserve+tot.gift;
   var ratio = demand>0 ? Math.round((demand+series[series.length-1].bal)/demand*100) : 999;
 
+  var deathMarks=[];
+  if(honninDeathAge!==null) deathMarks.push({age:honninDeathAge,label:'本人死亡'});
+  if(spouseUse && spouseDeathAge!==null) deathMarks.push({age:ageNow+(spouseDeathAge-spouseAgeNow),label:'配偶者死亡'});
   return {series:series, tot:tot, demand:demand, ratio:ratio, shortAge:shortAge,
     endBal:series[series.length-1].bal, ageNow:ageNow, retireAge:retireAge, endAge:endAge,
-    pensionAge:pensionAge, homeUse:homeUse, homeAge:homeAge, accRate:accRate, monthlyTotal:monthlyTotal, va:va};
+    pensionAge:pensionAge, homeUse:homeUse, homeAge:homeAge, accRate:accRate, monthlyTotal:monthlyTotal, va:va,
+    spouseUse:spouseUse, deathMarks:deathMarks, singleRatio:singleRatio};
 }
 
 /* ===== 資産残高グラフ（SVG） ===== */
@@ -498,6 +597,7 @@ function balanceChart(R, opts){
   vline(R.retireAge,'就労終了','#9a7b4f');
   vline(R.pensionAge,'年金開始','#2f6b4f');
   if(R.homeUse) vline(R.homeAge,'ホーム','#7a6ea0');
+  if(R.deathMarks) R.deathMarks.forEach(function(dm){ vline(dm.age, dm.label, '#9b3b3b'); });
   // エリア＋線
   var dLine='', dArea='';
   s.forEach(function(d,i){ var x=X(d.age), y=Y(d.bal); dLine+=(i===0?'M':'L')+x.toFixed(1)+' '+y.toFixed(1)+' '; });
@@ -523,6 +623,7 @@ function balanceChart(R, opts){
 function simulate(){
   syncHousing();
   syncVA();
+  syncSpouse();
   var methods=readMethods();
   // 現役利回りの自動表示（未入力なら加重平均をプレースホルダ的に表示）
   var accEl=document.getElementById('accRate');
@@ -575,6 +676,16 @@ function simulate(){
   var vaCalcEl=document.getElementById('vaCalc');
   if(vaCalcEl){ if(R.va){ vaCalcEl.style.display=''; vaCalcEl.innerHTML=vaEcho; } else { vaCalcEl.style.display='none'; } }
 
+  // 配偶者・死亡・遺族年金のサマリー
+  if(R.spouseUse || R.deathMarks.length){
+    var dtxt='';
+    if(R.deathMarks.length){ dtxt=R.deathMarks.map(function(d){return d.label+'（今から'+(d.age-R.ageNow)+'年後）';}).join('・'); }
+    var msg='👪 <b>世帯で試算</b>：配偶者の年金・積立を合算';
+    if(R.deathMarks.length){ msg+='<br>☗ 死亡シナリオ：'+dtxt+'。以後は<b>遺族年金</b>に切替（遺族厚生＝亡くなった方の老齢厚生の3/4・差額支給）、生活費は<b>'+R.singleRatio+'倍</b>に圧縮。'; }
+    if(R.tot.survivor>0){ msg+='<br>遺族年金の上乗せ 累計 約<b>'+man(R.tot.survivor)+'</b>。'; }
+    html+='<div class="combo-note">'+msg+'</div>';
+  }
+
   // グラフ
   html+='<div class="chart-h">資産残高の推移（何歳でショートするか）</div>';
   html+=balanceChart(R);
@@ -583,7 +694,7 @@ function simulate(){
   // 内訳
   var t=R.tot;
   html+='<table class="bd"><thead><tr><th>収入・原資（生涯累計）</th><th style="text-align:right;">金額</th><th>支出（生涯累計）</th><th style="text-align:right;">金額</th></tr></thead><tbody>';
-  var inRows=[['現在の金融資産',nv('assetsNow')],['積立の元本',t.contrib],['運用益',t.growth],['公的年金',t.pension],['企業・個人年金',t.priv],['退職金',t.retire],['終身保険 受取',t.ins],['相続',t.inherit]];
+  var inRows=[['現在の金融資産',nv('assetsNow')],['積立の元本',t.contrib],['運用益',t.growth],['公的年金'+(t.survivor>0?'（遺族年金含む）':''),t.pension],['企業・個人年金',t.priv],['退職金',t.retire],['終身保険 受取',t.ins],['相続',t.inherit]];
   if(t.va>0) inRows.push(['変額年金 受取',t.va]);
   var exRows=[['基本生活費',t.living],['住居費（家賃・ローン）',t.housing],['老人ホーム',t.home],['車の買い替え',t.car],['自宅の修繕',t.repair],['予備・医療介護',t.reserve],['暦年贈与',t.gift]];
   if(t.vaPrem>0) exRows.push(['変額年金 保険料（退職後払込分）',t.vaPrem]);
@@ -614,8 +725,9 @@ var FIELD_IDS=['clientName','ageNow','retireAge','endAge','assetsNow','retRate',
  'retireLump','insRecvAge','insRecvAmount','inheritAge','inheritAmount','giftStartAge','giftEndAge','giftAnnual',
  'livingRetire','reserveM','housingType','mortgage','payoffAge','rent','repairCycle','repairCost','carCycle','carCost',
  'homeAge','homeLump','homeMonthly',
- 'vaBasis','vaPremium','vaTargetAnnuity','vaEntryAge','vaStartAge','vaAccRate','vaRecvType','vaPostRate'];
-var CHK_IDS=['inheritUse','giftUse','carUse','homeUse','vaUse'];
+ 'vaBasis','vaPremium','vaTargetAnnuity','vaEntryAge','vaStartAge','vaAccRate','vaRecvType','vaPostRate',
+ 'spouseAgeNow','spouseJob','spousePensionAge','spousePensionAnnual','spouseKisoMonthly','spouseMonthly','honninDeathAge','spouseDeathAge','singleRatio','izokuKiso'];
+var CHK_IDS=['inheritUse','giftUse','carUse','homeUse','vaUse','spouseUse'];
 function clientSei(){var e=document.getElementById('clientName');return e?((e.value||'').trim().replace(/[\\\/:*?"<>|]/g,'')):'';}
 function collectState(){
   var o={tool:'rogo',v:1};
