@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>不動産損益シミュレーター</title>
+<style>
+  :root{--ink:#1b2a4a;--ink-soft:#46506a;--paper:#f7f5ef;--surface:#fff;--brass:#9a7b4f;--brass-deep:#7d6240;--rule:#e3ddcf;--rule-soft:#eee9dd;--credit:#2f6b4f;--loss:#9b3b3b;--shadow:0 1px 2px rgba(27,42,74,.05),0 8px 28px rgba(27,42,74,.07);--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--gothic:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;--mincho:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;}
+  *{box-sizing:border-box;}html,body{margin:0;padding:0;}
+  body{font-family:var(--gothic);color:var(--ink);background:var(--paper);line-height:1.6;-webkit-text-size-adjust:100%;}
+  a{color:var(--brass-deep);}
+  /* ===== 教育資金と同じ骨格 ===== */
+  .wrap{height:100vh;padding:8px 10px;display:flex;gap:10px;align-items:stretch;overflow:hidden;}
+  .side{flex:0 0 64px;display:flex;flex-direction:column;align-items:center;gap:9px;padding-top:4px;}
+  .side-eyebrow{font-family:var(--mincho);font-size:10px;letter-spacing:.3em;color:var(--brass-deep);margin:0;}
+  .side-tt{font-family:var(--mincho);font-weight:600;font-size:17px;color:var(--ink);writing-mode:vertical-rl;text-orientation:upright;letter-spacing:.06em;line-height:1;margin:0 0 6px;white-space:nowrap;}
+  .fpbar{display:flex;flex-direction:column;align-items:stretch;gap:6px;width:100%;}
+  .fpbtn{font-family:inherit;font-size:11px;font-weight:600;color:var(--ink-soft);background:#fcfbf8;border:1px solid var(--rule);border-radius:7px;padding:7px 2px;cursor:pointer;white-space:nowrap;text-align:center;text-decoration:none;display:block;}
+  .fpbtn:hover{border-color:var(--brass);}
+  .fpbtn-input{background:var(--brass)!important;color:#fff!important;border-color:var(--brass-deep)!important;font-weight:700;}
+  #btnInput{display:none;}
+  .client-field{display:flex;flex-direction:column;align-items:stretch;gap:3px;width:100%;background:#fffdf8;border:1px dashed var(--brass);border-radius:7px;padding:5px 6px;box-sizing:border-box;}
+  .client-field label{font-size:9.5px;color:var(--brass-deep);white-space:nowrap;font-weight:600;text-align:center;}
+  .client-field .cf-in{display:flex;align-items:center;gap:3px;justify-content:center;}
+  .client-field input{width:100%;min-width:0;border:none;border-bottom:1px solid var(--rule);background:transparent;font-family:var(--mincho);font-size:13px;color:var(--ink);padding:1px 2px;text-align:center;}
+  .client-field input:focus{outline:none;border-bottom-color:var(--brass);}
+  .client-field em{font-style:normal;font-size:11px;color:var(--ink-soft);}
+  .build-stamp{margin-top:auto;padding-top:8px;font-size:8.5px;line-height:1.35;color:var(--brass-deep);opacity:.6;text-align:center;white-space:pre-line;}
+  .main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:8px;height:100%;overflow:hidden;}
+  .deck{background:var(--surface);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+  .deck-result{flex:1 1 auto;}
+  .deck-head{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:5px 12px;border-bottom:1px solid var(--rule-soft);}
+  .deck-head .no{font-family:var(--mono);font-size:11px;color:var(--brass);}
+  .deck-head b{font-family:var(--mincho);font-size:14px;font-weight:600;letter-spacing:.03em;}
+  .deck-hint{font-size:10.5px;color:var(--brass-deep);}
+  .deck-dots{margin-left:auto;display:flex;gap:5px;align-items:center;}
+  .deck-dots i{width:8px;height:8px;border-radius:50%;background:var(--rule);display:inline-block;cursor:pointer;transition:background .15s;}
+  .deck-dots i.on{background:var(--brass);}
+  .deck-scroll{flex:1 1 auto;min-height:0;display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
+  .deck-scroll>.rpage,.deck-scroll>.ipage{flex:0 0 100%;scroll-snap-align:start;min-width:0;height:100%;overflow-y:auto;padding:12px 16px;}
+  .deck-input{position:fixed;left:8px;right:8px;bottom:0;height:56vh;max-height:640px;transform:translateY(107%);transition:transform .28s ease;z-index:30;border-radius:12px 12px 0 0;box-shadow:0 -12px 34px -12px rgba(0,0,0,.45);}
+  .deck-input.open{transform:translateY(0);}
+  .deck-close{margin-left:auto;font:600 12.5px var(--gothic);color:#fff;background:var(--brass);border:1px solid var(--brass-deep);border-radius:7px;padding:6px 16px;cursor:pointer;}
+  .fab-input{position:fixed;right:12px;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;background:var(--brass);color:#fff;border:1px solid var(--brass-deep);cursor:pointer;box-shadow:0 8px 20px -8px rgba(0,0,0,.5);z-index:45;display:flex;align-items:center;justify-content:center;padding:0;}
+  .fab-input .fab-plus{font-size:26px;line-height:1;transition:transform .22s ease;}
+  .fab-input::after{content:"入力";position:absolute;bottom:-13px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--brass-deep);font-weight:700;letter-spacing:.04em;}
+  .fab-input.on .fab-plus{transform:rotate(45deg);}
+  @media print{.fab-input,.deck-input,.side{display:none!important;}}
+  /* 入力 */
+  .card{background:var(--surface);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);margin-bottom:10px;padding:11px 13px;}
+  .card h2{font-family:var(--mincho);font-size:14.5px;margin:0 0 7px;font-weight:600;display:flex;align-items:center;gap:7px;}
+  .card h2 .ic{width:22px;height:22px;border-radius:6px;background:var(--paper);border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--brass-deep);}
+  .row{display:flex;flex-wrap:wrap;gap:9px 13px;align-items:flex-end;}
+  .f{display:flex;flex-direction:column;gap:3px;margin-bottom:5px;}
+  .f label{font-size:11px;color:var(--ink-soft);font-weight:600;}
+  .f label small{font-weight:400;color:#8a8470;}
+  .f input[type=text],.f select{font-family:var(--mono);font-size:13.5px;color:var(--ink);background:#fff;border:1px solid var(--rule);border-radius:7px;padding:6px 8px;text-align:right;width:118px;}
+  .f select{font-family:var(--gothic);text-align:left;width:auto;min-width:120px;}
+  .f .unit{font-size:11px;color:var(--ink-soft);}
+  .inline{display:flex;align-items:center;gap:4px;}
+  .chk{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink);cursor:pointer;user-select:none;margin-bottom:4px;}
+  .hint{font-size:11px;color:var(--ink-soft);background:var(--paper);border-left:3px solid var(--brass);border-radius:5px;padding:6px 9px;margin:4px 0;}
+  .sub{font-size:11.5px;color:var(--brass-deep);font-weight:700;margin:7px 0 3px;border-bottom:1px dotted var(--rule);padding-bottom:2px;}
+  /* 結果 */
+  .kpis{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+  .kpi{flex:1 1 130px;border:1px solid var(--rule);border-radius:9px;padding:8px 10px;text-align:center;background:#fff;}
+  .kpi .t{font-size:10.5px;color:var(--ink-soft);}
+  .kpi .v{font-family:var(--mincho);font-size:20px;font-weight:700;color:var(--ink);line-height:1.15;}
+  .kpi .v.pos{color:var(--credit);} .kpi .v.neg{color:var(--loss);}
+  .kpi .u{font-size:10px;color:var(--ink-soft);}
+  .verdict{font-size:13px;font-weight:700;border-radius:8px;padding:8px 11px;margin:6px 0;}
+  .verdict.good{background:#eaf3ec;border:1px solid #c6e0cd;color:var(--credit);}
+  .verdict.bad{background:#fbecec;border:1px solid #e6c9c9;color:var(--loss);}
+  .chart-h{font-size:12.5px;color:var(--brass-deep);font-weight:700;margin:12px 0 2px;}
+  .chartwrap svg{width:100%;height:auto;display:block;}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;font-size:10.5px;color:var(--ink-soft);margin-top:4px;}
+  .legend i{display:inline-block;width:12px;height:10px;border-radius:2px;margin-right:3px;vertical-align:middle;}
+  table.bd{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:8px;}
+  table.bd th{background:var(--ink);color:#fff;text-align:right;padding:4px 6px;font-weight:600;font-size:10.5px;}
+  table.bd th:first-child{text-align:center;}
+  table.bd td{border-bottom:1px solid var(--rule);padding:3px 6px;text-align:right;font-family:var(--mono);}
+  table.bd td:first-child{text-align:center;font-family:var(--gothic);}
+  table.bd tr.tot td{border-top:2px solid var(--brass);font-weight:700;background:var(--paper);}
+  table.bd .pos{color:var(--credit);} table.bd .neg{color:var(--loss);}
+  table.cmp{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px;}
+  table.cmp th{background:var(--ink);color:#fff;padding:5px 8px;font-weight:600;font-size:11px;text-align:right;}
+  table.cmp th:first-child{text-align:left;}
+  table.cmp td{border-bottom:1px solid var(--rule);padding:4px 8px;text-align:right;font-family:var(--mono);}
+  table.cmp td:first-child{text-align:left;font-family:var(--gothic);color:var(--ink-soft);}
+  table.cmp .pos{color:var(--credit);font-weight:700;} table.cmp .neg{color:var(--loss);font-weight:700;}
+  .note-list{font-size:11px;color:var(--ink-soft);margin:10px 0 0;padding-left:1.1em;}
+  .note-list li{margin:2px 0;}
+  .combo-note{font-size:12px;background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:8px 11px;margin:8px 0;}
+  #reportView{display:none;}
+  @media print{ body{background:#fff;} .wrap{display:none!important;} }
+</style>
+<script src="config.js"></script>
+<script>if((window.FP_SB_URL||"").indexOf("http")===0)document.documentElement.style.visibility="hidden";</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="fp-auth.js"></script>
+<script>document.addEventListener("DOMContentLoaded",function(){if(window.FPAuth&&FPAuth.guard)FPAuth.guard().then(function(u){if(u&&FPAuth.logEvent)FPAuth.logEvent();});});</script>
+</head>
+<body>
+<div class="wrap">
+<aside class="side">
+  <div class="side-eyebrow">FP</div>
+  <div class="side-tt">不動産損益</div>
+  <div class="fpbar">
+    <button type="button" class="fpbtn fpbtn-input" id="btnInput" onclick="toggleInput()">✎ 入力</button>
+    <a class="fpbtn" href="index.html">トップ</a>
+    <button type="button" class="fpbtn" onclick="clearAll()">クリア</button>
+    <button type="button" class="fpbtn" onclick="saveFile()">保存</button>
+    <button type="button" class="fpbtn" onclick="document.getElementById('loadInput').click()">読込</button>
+    <span class="client-field"><label for="clientName">お客様の姓</label><span class="cf-in"><input type="text" id="clientName" placeholder="例：山田" autocomplete="off"><em>様</em></span></span>
+    <input type="file" id="loadInput" accept="application/json" style="display:none">
+  </div>
+  <div class="build-stamp" id="stamp"></div>
+</aside>
+
+<main class="main">
+  <section class="deck deck-result">
+    <div class="deck-head"><span class="no">結果</span><b>不動産の損益・売却判断</b><span class="deck-hint">スワイプで次ページ</span><span class="deck-dots" id="rDots"></span></div>
+    <div class="deck-scroll" id="outBody"></div>
+  </section>
+  <section class="deck deck-input" id="deckInput">
+    <div class="deck-head"><span class="no">入力</span><b>物件・ローン・保有条件</b><span class="deck-dots" id="iDots"></span><button type="button" class="deck-close" onclick="closeInput()">完了 ✓</button></div>
+    <div class="deck-scroll" id="inScroll">
+      <div class="ipage">
+
+      <div class="card">
+        <h2><span class="ic">①</span>物件・購入</h2>
+        <div class="row">
+          <div class="f"><label>物件種別</label><select id="propType"><option value="kubun" selected>区分マンション</option><option value="ittou">一棟（アパート/マンション）</option><option value="kodate">戸建</option></select></div>
+          <div class="f"><label>物件価格<small>（土地＋建物）</small></label><div class="inline"><input type="text" inputmode="numeric" id="price" value="3000"><span class="unit">万円</span></div></div>
+          <div class="f"><label>購入諸費用</label><div class="inline"><input type="text" inputmode="decimal" id="buyCostRatio" value="7"><span class="unit">%</span></div></div>
+        </div>
+        <div class="row">
+          <div class="f"><label>土地の割合<small>（残りが建物）</small></label><div class="inline"><input type="text" inputmode="decimal" id="landRatio" value="30"><span class="unit">%</span></div></div>
+          <div class="f"><label>建物のうち設備割合</label><div class="inline"><input type="text" inputmode="decimal" id="equipRatio" value="20"><span class="unit">%</span></div></div>
+          <div class="f"><label>構造<small>（法定耐用年数）</small></label><select id="structure"><option value="47">RC・SRC（47年）</option><option value="34">重量鉄骨（34年）</option><option value="27">軽量鉄骨（27年）</option><option value="22" selected>木造（22年）</option></select></div>
+          <div class="f"><label>築年数</label><div class="inline"><input type="text" inputmode="numeric" id="builtAge" value="15"><span class="unit">年</span></div></div>
+        </div>
+        <div class="hint">建物・設備を分けて減価償却します。中古は「（法定−経過）＋経過×20%」で耐用年数を短縮。設備（15年）は本体より早く償却でき、初期の節税が大きくなります。土地は償却しません。</div>
+      </div>
+
+      <div class="card">
+        <h2><span class="ic">②</span>収入・運営費</h2>
+        <div class="row">
+          <div class="f"><label>家賃<small>（満室・月）</small></label><div class="inline"><input type="text" inputmode="numeric" id="rentMonthly" value="15"><span class="unit">万円</span></div></div>
+          <div class="f"><label>空室・滞納率</label><div class="inline"><input type="text" inputmode="decimal" id="vacancy" value="8"><span class="unit">%</span></div></div>
+          <div class="f"><label>管理委託料</label><div class="inline"><input type="text" inputmode="decimal" id="mgmtRatio" value="5"><span class="unit">% 家賃</span></div></div>
+        </div>
+        <div class="row">
+          <div class="f"><label>管理費・修繕積立<small>（区分・月）</small></label><div class="inline"><input type="text" inputmode="numeric" id="repairMonthly" value="1.5"><span class="unit">万円</span></div></div>
+          <div class="f"><label>固定資産税・都計税<small>（年）</small></label><div class="inline"><input type="text" inputmode="numeric" id="propertyTax" value="12"><span class="unit">万円</span></div></div>
+        </div>
+        <div class="row">
+          <div class="f"><label>火災保険<small>（年）</small></label><div class="inline"><input type="text" inputmode="decimal" id="fireIns" value="1.5"><span class="unit">万円</span></div></div>
+          <div class="f"><label>地震保険<small>（年）</small></label><div class="inline"><input type="text" inputmode="decimal" id="quakeIns" value="1"><span class="unit">万円</span></div></div>
+          <div class="f"><label>その他経費<small>（年）</small></label><div class="inline"><input type="text" inputmode="numeric" id="otherCost" value="3"><span class="unit">万円</span></div></div>
+        </div>
+        <div class="hint">実効家賃＝満室家賃×(1−空室率)。運営費＝管理委託＋管理費/修繕積立＋固定資産税＋保険＋その他。家賃下落を見込む場合は⑤で調整します。</div>
+      </div>
+
+      <div class="card">
+        <h2><span class="ic">③</span>投資用ローン</h2>
+        <div class="row">
+          <div class="f"><label>借入額</label><div class="inline"><input type="text" inputmode="numeric" id="loanAmount" value="2700"><span class="unit">万円</span></div></div>
+          <div class="f"><label>金利</label><div class="inline"><input type="text" inputmode="decimal" id="loanRate" value="2"><span class="unit">%</span></div></div>
+          <div class="f"><label>返済期間</label><div class="inline"><input type="text" inputmode="numeric" id="loanYears" value="30"><span class="unit">年</span></div></div>
+        </div>
+        <div class="hint">元利均等で計算。自己資金＝物件価格＋諸費用−借入額。借入が大きいほどレバレッジは効きますが、金利上昇・空室に弱くなります（元本返済は経費になりません）。</div>
+      </div>
+
+      <div class="card">
+        <h2><span class="ic">④</span>保有・売却</h2>
+        <div class="row">
+          <div class="f"><label>保有年数<small>（売却時期）</small></label><div class="inline"><input type="text" inputmode="numeric" id="holdYears" value="10"><span class="unit">年</span></div></div>
+          <div class="f"><label>物件価格の下落<small>（年）</small></label><div class="inline"><input type="text" inputmode="decimal" id="priceDecline" value="1.5"><span class="unit">%/年</span></div></div>
+          <div class="f"><label>家賃の下落<small>（年）</small></label><div class="inline"><input type="text" inputmode="decimal" id="rentDecline" value="1"><span class="unit">%/年</span></div></div>
+          <div class="f"><label>売却諸費用</label><div class="inline"><input type="text" inputmode="decimal" id="sellCostRatio" value="4"><span class="unit">%</span></div></div>
+        </div>
+        <div class="hint">売却益＝売却価格−(取得費−累計償却＝簿価)−売却諸費用。個人は所有5年以下＝<b>短期39.63%</b>／5年超＝<b>長期20.315%</b>（売った年の1/1で判定）。償却を取るほど簿価が下がり売却益（＝譲渡税）は増える点に注意。</div>
+      </div>
+
+      <div class="card">
+        <h2><span class="ic">⑤</span>保有主体・税率</h2>
+        <div class="row">
+          <div class="f"><label>保有主体</label><select id="entity"><option value="kojin" selected>個人</option><option value="houjin">法人</option></select></div>
+        </div>
+        <div class="row kojin-only">
+          <div class="f"><label>給与など課税所得<small>（あなたの年間）</small></label><div class="inline"><input type="text" inputmode="numeric" id="salaryTaxable" value="700"><span class="unit">万円</span></div></div>
+        </div>
+        <div class="row houjin-only">
+          <div class="f"><label>法人 実効税率</label><div class="inline"><input type="text" inputmode="decimal" id="corpRate" value="33"><span class="unit">%</span></div></div>
+        </div>
+        <div class="hint">個人は不動産所得を給与と<b>損益通算</b>（赤字なら節税）。課税所得から限界税率（所得税＋復興＋住民10%）を自動判定。ただし<b>土地取得分の借入利息</b>による赤字は損益通算できません（本ツールは反映済み）。法人は所得・譲渡益とも実効税率で課税、赤字は他所得と通算可。結果は<b>個人と法人を並べて</b>表示します。</div>
+      </div>
+
+      </div><!-- /ipage -->
+    </div><!-- /inScroll -->
+  </section>
+</main>
+</div>
+
+<button type="button" class="fab-input" id="fabInput" aria-label="入力を開く（ドラッグで移動）" title="タップで入力／ドラッグで移動"><span class="fab-plus">＋</span></button>
+<div id="reportView"></div>
+
+<script>
+/* ===== ユーティリティ ===== */
+function zen2han(s){return String(s==null?'':s).replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);}).replace(/[．]/g,'.').replace(/[，、]/g,',').replace(/[－ー−―]/g,'-');}
+function nv(id){var e=document.getElementById(id);if(!e)return 0;var v=parseFloat(zen2han(e.value).replace(/[^\d.\-]/g,''));return isNaN(v)?0:v;}
+function sv(id){var e=document.getElementById(id);return e?e.value:'';}
+function chk(id){var e=document.getElementById(id);return !!(e&&e.checked);}
+var MAN=10000; // 万円→円
+function money(v){ // 円→表示
+  var a=Math.round(v); var s=a<0?'−':''; a=Math.abs(a);
+  if(a>=1e8){ return s+(Math.round(a/1e8*100)/100).toLocaleString('ja-JP')+'億円'; }
+  if(a>=1e4){ return s+Math.round(a/1e4).toLocaleString('ja-JP')+'万円'; }
+  return s+a.toLocaleString('ja-JP')+'円';
+}
+function yen(v){return Math.round(v).toLocaleString('ja-JP');}
+
+/* 中古の耐用年数（簡便法） */
+function usedLife(legal, age){ if(age<=0)return legal; if(age>=legal)return Math.max(2,Math.floor(legal*0.2)); return Math.max(2,Math.floor((legal-age)+age*0.2)); }
+/* 個人・総合課税の限界税率（所得税×1.021＋住民10%） */
+function marginalRate(taxableMan){
+  var r; var m=taxableMan;
+  if(m<=195)r=0.05; else if(m<=330)r=0.10; else if(m<=695)r=0.20; else if(m<=900)r=0.23; else if(m<=1800)r=0.33; else if(m<=4000)r=0.40; else r=0.45;
+  return {income:r, total:r*1.021+0.10};
+}
+/* 元利均等の月返済 */
+function monthlyPay(P,annualRate,years){ var r=annualRate/12, n=years*12; return r>0? P*r/(1-Math.pow(1+r,-n)) : (n>0?P/n:0); }
+
+/* ===== 物件パラメータ（共通） ===== */
+function readProperty(){
+  var price=nv('price')*MAN;
+  var buyCost=price*nv('buyCostRatio')/100;
+  var landRatio=nv('landRatio')/100;
+  var land=price*landRatio;
+  var building=price*(1-landRatio);
+  var equip=building*nv('equipRatio')/100;
+  var struct=building-equip;
+  var legal=parseInt(sv('structure'))||22;
+  var age=Math.round(nv('builtAge'));
+  var structLife=usedLife(legal,age);
+  var equipLife=usedLife(15,age);
+  var structDep=structLife>0?struct/structLife:0; // 定額・年
+  var equipDep=equipLife>0?equip/equipLife:0;
+  return {price:price,buyCost:buyCost,land:land,building:building,equip:equip,struct:struct,
+    legal:legal,age:age,structLife:structLife,equipLife:equipLife,structDep:structDep,equipDep:equipDep,
+    landShare:price>0?land/price:0, acquisition:price+buyCost};
+}
+
+/* ===== 年次シミュレーション（保有 N 年・主体別） ===== */
+function reSim(entity, N){
+  var P=readProperty();
+  var loan=nv('loanAmount')*MAN;
+  var rate=nv('loanRate')/100, lyears=Math.round(nv('loanYears'));
+  var mpay=monthlyPay(loan,rate,lyears);
+  var self=P.acquisition-loan; // 自己資金
+  var rent0=nv('rentMonthly')*MAN*12;
+  var vac=nv('vacancy')/100;
+  var mgmtR=nv('mgmtRatio')/100;
+  var repair=nv('repairMonthly')*MAN*12;
+  var ptax=nv('propertyTax')*MAN, fire=nv('fireIns')*MAN, quake=nv('quakeIns')*MAN, other=nv('otherCost')*MAN;
+  var rentDecl=nv('rentDecline')/100, priceDecl=nv('priceDecline')/100, sellR=nv('sellCostRatio')/100;
+  var salaryTaxable=nv('salaryTaxable');
+  var corpRate=nv('corpRate')/100;
+  var mr=marginalRate(salaryTaxable);
+
+  // ローン返済スケジュール（年ごとの利息・元本・残高）
+  var bal=loan; var sched=[];
+  for(var y=1;y<=Math.max(N,lyears);y++){
+    var interestY=0, principalY=0;
+    for(var mo=0;mo<12;mo++){
+      if(bal<=0){ break; }
+      var i=bal*rate/12; var pr=Math.min(bal, mpay-i); if(pr<0)pr=0;
+      interestY+=i; principalY+=pr; bal-=pr;
+    }
+    sched.push({interest:interestY, principal:principalY, balance:Math.max(0,bal)});
+  }
+
+  var rows=[]; var cumAfter=0; var accumDep=0;
+  for(var y=1;y<=N;y++){
+    var rentEff=rent0*Math.pow(1-rentDecl,y-1)*(1-vac);
+    var opex=rentEff*mgmtR; // 管理委託＝実効家賃×率（簡便）
+    opex+=repair+ptax+fire+quake+other;
+    var s=sched[y-1]||{interest:0,principal:0,balance:0};
+    var interest=s.interest, principal=s.principal;
+    var dep=(y<=P.structLife?P.structDep:0)+(y<=P.equipLife?P.equipDep:0);
+    accumDep+=dep;
+    var income=rentEff-opex-interest-dep; // 不動産所得
+    var tax;
+    if(entity==='kojin'){
+      if(income>=0){ tax=income*mr.total; }
+      else { var loss=-income; var landInt=interest*P.landShare; var nonDeduct=Math.min(loss,landInt); tax=-(loss-nonDeduct)*mr.total; }
+    } else { tax=income*corpRate; }
+    var preCF=rentEff-opex-(interest+principal); // 税引前CF（返済含む）
+    var afterCF=preCF-tax;
+    cumAfter+=afterCF;
+    rows.push({y:y,rentEff:rentEff,opex:opex,interest:interest,principal:principal,dep:dep,income:income,tax:tax,preCF:preCF,afterCF:afterCF,cumAfter:cumAfter,balance:s.balance,accumDep:accumDep});
+  }
+
+  // 売却（N年末）
+  var salePrice=P.price*Math.pow(1-priceDecl,N);
+  var sellCost=salePrice*sellR;
+  var book=P.acquisition-accumDep; // 簿価（取得費−累計償却）
+  var gain=salePrice-sellCost-book; // 譲渡所得
+  var saleTax;
+  if(entity==='kojin'){ var longTerm=N>5; var gr=longTerm?0.20315:0.3963; saleTax=Math.max(0,gain)*gr; }
+  else { saleTax=gain*corpRate; }
+  var loanBal=(sched[N-1]||{balance:loan}).balance;
+  var netSale=salePrice-sellCost-loanBal-saleTax;
+  var total=cumAfter+netSale-self; // 通算損益（投下自己資金に対する最終損益）
+
+  return {rows:rows, self:self, salePrice:salePrice, sellCost:sellCost, book:book, gain:gain, saleTax:saleTax,
+    loanBal:loanBal, netSale:netSale, cumAfter:cumAfter, total:total, N:N, mpay:mpay, entity:entity,
+    marginal:mr, P:P, longTerm:N>5};
+}
+
+/* ===== 売却年スイープ（いつ売れば得か） ===== */
+function sweepTotals(entity, maxY){
+  var arr=[]; for(var y=1;y<=maxY;y++){ arr.push({y:y, total:reSim(entity,y).total}); } return arr;
+}
+
+/* ===== グラフ ===== */
+function multiLineChart(lines, opt){
+  opt=opt||{};
+  var W=1000,padL=70,padR=16,padT=14,padB=26,H=opt.h||220;
+  var plotW=W-padL-padR, plotH=H-padT-padB;
+  var allX=[],allY=[]; lines.forEach(function(L){L.pts.forEach(function(p){allX.push(p.x);allY.push(p.y);});});
+  var x0=Math.min.apply(null,allX),x1=Math.max.apply(null,allX);
+  var y1=Math.max.apply(null,allY.concat([1])), y0=Math.min.apply(null,allY.concat([0])); if(y0>0)y0=0; y1*=1.08; if(y0<0)y0*=1.08;
+  var X=function(x){return padL+(x-x0)/Math.max(1,(x1-x0))*plotW;};
+  var Y=function(y){return padT+(y1-y)/(y1-y0)*plotH;};
+  var g='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">';
+  [y1,(y1+y0)/2,y0].forEach(function(v){var yy=Y(v);g+='<line x1="'+padL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+yy.toFixed(1)+'" stroke="#f2ecdd"/><text x="'+(padL-6)+'" y="'+(yy+3).toFixed(1)+'" font-size="10" fill="#8a8470" text-anchor="end">'+money(v).replace('円','')+'</text>';});
+  var yz=Y(0); g+='<line x1="'+padL+'" y1="'+yz.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+yz.toFixed(1)+'" stroke="#d8cfb8"/>';
+  (opt.marks||[]).forEach(function(m){var mx=X(m.x);g+='<line x1="'+mx.toFixed(1)+'" y1="'+padT+'" x2="'+mx.toFixed(1)+'" y2="'+(H-padB)+'" stroke="'+(m.color||'#9b3b3b')+'" stroke-width="1" stroke-dasharray="3 3" opacity="0.8"/><text x="'+mx.toFixed(1)+'" y="'+(padT+9)+'" font-size="9" fill="'+(m.color||'#9b3b3b')+'" text-anchor="middle">'+(m.label||'')+'</text>';});
+  lines.forEach(function(L){ if(!L.pts.length)return; var d=L.pts.map(function(p,i){return (i?'L':'M')+X(p.x).toFixed(1)+' '+Y(p.y).toFixed(1);}).join(' '); g+='<path d="'+d+'" fill="none" stroke="'+L.color+'" stroke-width="2.2"'+(L.dash?' stroke-dasharray="5 3"':'')+'/>'; var last=L.pts[L.pts.length-1]; g+='<text x="'+(X(last.x)-2).toFixed(1)+'" y="'+(Y(last.y)-4).toFixed(1)+'" font-size="10" fill="'+L.color+'" text-anchor="end" font-weight="700">'+money(last.y).replace('円','')+'</text>'; });
+  for(var ax=Math.ceil(x0/5)*5; ax<=x1; ax+=5){var xx=X(ax);g+='<text x="'+xx.toFixed(1)+'" y="'+(H-padB+15)+'" font-size="10" fill="#8a8470" text-anchor="middle">'+ax+'年</text>';}
+  g+='</svg>'; return '<div class="chartwrap">'+g+'</div>';
+}
+
+/* ===== 描画 ===== */
+function simulate(){
+  var entity=sv('entity');
+  document.querySelectorAll('.kojin-only').forEach(function(e){e.style.display=entity==='kojin'?'':'none';});
+  document.querySelectorAll('.houjin-only').forEach(function(e){e.style.display=entity==='houjin'?'':'none';});
+
+  var N=Math.max(1,Math.round(nv('holdYears')));
+  var R=reSim(entity,N);
+  var P=R.P;
+  var rentAnnual=nv('rentMonthly')*MAN*12;
+  var grossYield=P.price>0?rentAnnual/P.price*100:0;
+  var netYield=P.acquisition>0?(R.rows[0].rentEff-R.rows[0].opex)/P.acquisition*100:0;
+  var ccr=R.self>0?R.rows[0].afterCF/R.self*100:0;
+
+  // 売却年スイープ（両主体）
+  var maxSweep=Math.max(N+5, 20);
+  var sweepK=sweepTotals('kojin',maxSweep), sweepH=sweepTotals('houjin',maxSweep);
+  var mine=entity==='kojin'?sweepK:sweepH;
+  var best=mine.reduce(function(a,b){return b.total>a.total?b:a;}, mine[0]);
+  var breakeven=null; for(var i=0;i<mine.length;i++){ if(mine[i].total>=0){ breakeven=mine[i].y; break; } }
+
+  /* ---------- ページ1：サマリー ---------- */
+  var p1='';
+  p1+='<div class="kpis">'
+    +'<div class="kpi"><div class="t">表面利回り</div><div class="v">'+grossYield.toFixed(2)+'<small>%</small></div><div class="u">家賃/物件価格</div></div>'
+    +'<div class="kpi"><div class="t">実質利回り</div><div class="v">'+netYield.toFixed(2)+'<small>%</small></div><div class="u">(家賃−運営費)/総投資</div></div>'
+    +'<div class="kpi"><div class="t">自己資金</div><div class="v">'+money(R.self).replace('円','')+'</div><div class="u">頭金＋諸費用</div></div>'
+    +'<div class="kpi"><div class="t">初年度CF（税引後）</div><div class="v '+(R.rows[0].afterCF>=0?'pos':'neg')+'">'+money(R.rows[0].afterCF).replace('円','')+'</div><div class="u">自己資金利回り '+ccr.toFixed(1)+'%</div></div>'
+    +'</div>';
+  p1+='<div class="kpis">'
+    +'<div class="kpi" style="flex:1 1 200px;"><div class="t">'+N+'年で売却した場合の通算損益</div><div class="v '+(R.total>=0?'pos':'neg')+'">'+money(R.total)+'</div><div class="u">保有中CF＋売却手取り−自己資金</div></div>'
+    +'<div class="kpi" style="flex:1 1 200px;"><div class="t">最も得な売却時期</div><div class="v pos">'+best.y+'年目</div><div class="u">通算損益 '+money(best.total)+'</div></div>'
+    +'</div>';
+  var good=R.total>=0;
+  p1+='<div class="verdict '+(good?'good':'bad')+'">'+(good?'✓ ':'⚠ ')
+    +N+'年保有・売却で通算損益は<b>'+money(R.total)+'</b>（'+(good?'黒字':'赤字')+'）。'
+    +(breakeven?('通算がプラスに転じるのは<b>'+breakeven+'年目</b>以降。'):'試算期間内では通算プラスになりません。')
+    +'（最大は'+best.y+'年目の'+money(best.total)+'）</div>';
+
+  p1+='<div class="chart-h">売却年ごとの通算損益（いつ売れば得か）</div>';
+  var lines=[
+    {pts:sweepK.map(function(d){return{x:d.y,y:d.total};}),color:'#2f6b4f',label:'個人'},
+    {pts:sweepH.map(function(d){return{x:d.y,y:d.total};}),color:'#3b6ea5',label:'法人',dash:true}
+  ];
+  p1+=multiLineChart(lines,{marks:[{x:5,label:'長期化',color:'#9a7b4f'},{x:best.y,label:'最良',color:'#2f6b4f'}],h:230});
+  p1+='<div class="legend"><span><i style="background:#2f6b4f"></i>個人（通算損益）</span><span><i style="background:#3b6ea5"></i>法人（通算損益）</span><span>点線5年＝個人は5年超で長期譲渡(20.3%)</span></div>';
+  p1+='<div class="combo-note">個人は所有<b>5年以下＝短期39.63%</b>／<b>5年超＝長期20.315%</b>のため、5〜6年目で税負担が大きく下がり通算損益がジャンプします。曲線が下向きに転じる前が売り時の目安です。</div>';
+
+  /* ---------- ページ2：年次キャッシュフロー ---------- */
+  var p2='';
+  p2+='<div class="chart-h" style="margin-top:0;">年次キャッシュフロー（'+(entity==='kojin'?'個人':'法人')+'・'+N+'年）</div>';
+  p2+='<table class="bd"><thead><tr><th>年</th><th>実効家賃</th><th>運営費</th><th>利息</th><th>減価償却</th><th>不動産所得</th><th>税/節税</th><th>税引後CF</th><th>累計CF</th></tr></thead><tbody>';
+  R.rows.forEach(function(r){
+    p2+='<tr><td>'+r.y+'</td><td>'+yen(r.rentEff)+'</td><td>'+yen(r.opex)+'</td><td>'+yen(r.interest)+'</td><td>'+yen(r.dep)+'</td>'
+      +'<td class="'+(r.income>=0?'':'neg')+'">'+yen(r.income)+'</td>'
+      +'<td class="'+(r.tax>0?'neg':'pos')+'">'+(r.tax>0?'−'+yen(r.tax):'+'+yen(-r.tax))+'</td>'
+      +'<td class="'+(r.afterCF>=0?'pos':'neg')+'">'+yen(r.afterCF)+'</td>'
+      +'<td class="'+(r.cumAfter>=0?'pos':'neg')+'">'+yen(r.cumAfter)+'</td></tr>';
+  });
+  p2+='</tbody></table>';
+  p2+='<div class="combo-note" style="font-size:11px;">単位＝円。税/節税は「＋」が節税（損益通算による還付）、「−」が納税。減価償却は現金支出のない経費で、赤字＝節税を生みますが、売却時は簿価が下がるぶん譲渡税が増える「税の繰り延べ」です。設備'+P.equipLife+'年／本体'+P.structLife+'年で償却（中古補正済み）。</div>';
+
+  /* ---------- ページ3：売却明細＋個人法人比較 ---------- */
+  var p3='';
+  p3+='<div class="chart-h" style="margin-top:0;">'+N+'年後の売却試算</div>';
+  p3+='<table class="cmp"><tbody>'
+    +'<tr><td>想定売却価格</td><td>'+money(R.salePrice)+'</td></tr>'
+    +'<tr><td>売却諸費用</td><td>−'+money(R.sellCost)+'</td></tr>'
+    +'<tr><td>簿価（取得費−累計償却'+money(R.rows[N-1].accumDep)+'）</td><td>'+money(R.book)+'</td></tr>'
+    +'<tr><td>譲渡所得</td><td class="'+(R.gain>=0?'':'neg')+'">'+money(R.gain)+'</td></tr>'
+    +'<tr><td>譲渡税（'+(entity==='kojin'?(R.longTerm?'長期20.315%':'短期39.63%'):'法人 実効'+(nv('corpRate'))+'%')+'）</td><td class="neg">−'+money(Math.max(0,R.saleTax))+'</td></tr>'
+    +'<tr><td>ローン残債</td><td>−'+money(R.loanBal)+'</td></tr>'
+    +'<tr class="pos" style="border-top:2px solid var(--brass);"><td><b>売却手取り</b></td><td><b>'+money(R.netSale)+'</b></td></tr>'
+    +'</tbody></table>';
+
+  p3+='<div class="chart-h">個人 vs 法人（'+N+'年保有・売却）</div>';
+  var rk=reSim('kojin',N), rh=reSim('houjin',N);
+  p3+='<table class="cmp"><thead><tr><th>項目</th><th>個人</th><th>法人</th></tr></thead><tbody>'
+    +'<tr><td>保有中の税引後CF 累計</td><td>'+money(rk.cumAfter)+'</td><td>'+money(rh.cumAfter)+'</td></tr>'
+    +'<tr><td>売却手取り</td><td>'+money(rk.netSale)+'</td><td>'+money(rh.netSale)+'</td></tr>'
+    +'<tr><td>譲渡税</td><td>'+money(Math.max(0,rk.saleTax))+'</td><td>'+money(Math.max(0,rh.saleTax))+'</td></tr>'
+    +'<tr class="tot" style="border-top:2px solid var(--brass);"><td><b>通算損益</b></td><td class="'+(rk.total>=0?'pos':'neg')+'">'+money(rk.total)+'</td><td class="'+(rh.total>=0?'pos':'neg')+'">'+money(rh.total)+'</td></tr>'
+    +'</tbody></table>';
+  var diff=rk.total-rh.total;
+  p3+='<div class="combo-note">'+(Math.abs(diff)<1e4?'個人・法人はほぼ同等。':(diff>0?'このケースは<b>個人が'+money(diff)+'有利</b>。':'このケースは<b>法人が'+money(-diff)+'有利</b>。'))
+    +' 一般に、給与課税所得が高い個人ほど損益通算の節税が大きく、譲渡は長期化で有利。法人は税率が一定で経費範囲が広く、複数物件・長期保有・相続対策に向きます（役員報酬・社会保険・設立維持コストは別途）。</div>';
+
+  p3+='<ul class="note-list">'
+    +'<li>減価償却は本体＝定額法（中古は簡便法で耐用年数を短縮）。設備は15年ベースを中古補正。定率法や2007年以前の残存簿価は簡略化。</li>'
+    +'<li>個人の税率は課税所得からの限界税率（所得税×1.021＋住民10%）。不動産所得が上位ブラケットへ食い込む影響は簡略化。土地取得分の借入利息による損失は損益通算不可を反映。</li>'
+    +'<li>譲渡：個人は所有期間（売却年1/1基準）で短期/長期判定。法人は所得に合算。売却価格は下落率で近似（実勢と乖離し得ます）。</li>'
+    +'<li>本ツールは概算の叩き台です。減価償却・消費税（建物）・不動産取得税・登録免許税の精緻化、金利変動、大規模修繕、空室変動等は簡略化。実行時は税理士にご確認ください。</li>'
+    +'</ul>';
+
+  var outBody=document.getElementById('outBody');
+  outBody.innerHTML='<div class="rpage">'+p1+'</div><div class="rpage">'+p2+'</div><div class="rpage">'+p3+'</div>';
+  buildDots('outBody','rDots');
+}
+
+/* ===== 保存・読込 ===== */
+var FIELD_IDS=['clientName','propType','price','buyCostRatio','landRatio','equipRatio','structure','builtAge',
+ 'rentMonthly','vacancy','mgmtRatio','repairMonthly','propertyTax','fireIns','quakeIns','otherCost',
+ 'loanAmount','loanRate','loanYears','holdYears','priceDecline','rentDecline','sellCostRatio','entity','salaryTaxable','corpRate'];
+function clientSei(){var e=document.getElementById('clientName');return e?((e.value||'').trim().replace(/[\\\/:*?"<>|]/g,'')):'';}
+function collectState(){var o={tool:'fudosan',v:1};FIELD_IDS.forEach(function(id){var e=document.getElementById(id);if(e)o[id]=e.value;});return o;}
+function applyState(o){if(!o||typeof o!=='object')return false;FIELD_IDS.forEach(function(id){if(o[id]!=null){var e=document.getElementById(id);if(e)e.value=o[id];}});simulate();return true;}
+function saveFile(){try{var d=new Date();var ymd=String(d.getFullYear()).slice(-2)+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);var name=ymd+'_'+clientSei()+'様_不動産.json';var blob=new Blob([JSON.stringify(collectState(),null,2)],{type:'application/json'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1500);}catch(e){alert('保存に失敗：'+(e&&e.message?e.message:e));}}
+document.getElementById('loadInput').addEventListener('change',function(ev){var f=ev.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var o=JSON.parse(r.result);if(!applyState(o))throw 0;}catch(x){alert('読み込みに失敗しました。');}};r.readAsText(f);ev.target.value='';});
+function clearAll(){if(!confirm('入力内容を初期状態に戻します。よろしいですか？'))return;location.reload();}
+
+/* ===== デッキ／ドロワー／FAB ===== */
+function buildDots(scrollId,dotsId){
+  var sc=document.getElementById(scrollId), dc=document.getElementById(dotsId); if(!sc||!dc)return;
+  var n=sc.children.length; dc.style.display=n<2?'none':''; var hint=dc.parentNode.querySelector('.deck-hint'); if(hint)hint.style.display=n<2?'none':'';
+  if(n<2){dc.innerHTML='';return;}
+  if(dc.children.length!==n){dc.innerHTML='';for(var i=0;i<n;i++){(function(i){var d=document.createElement('i');d.addEventListener('click',function(){sc.scrollTo({left:i*sc.clientWidth,behavior:'smooth'});});dc.appendChild(d);})(i);}}
+  var upd=function(){var w=sc.clientWidth||1;var idx=Math.round(sc.scrollLeft/w);Array.prototype.forEach.call(dc.children,function(d,i){d.classList.toggle('on',i===idx);});};
+  sc.onscroll=upd; upd();
+}
+function openInput(){var d=document.getElementById('deckInput');if(d)d.classList.add('open');['btnInput','fabInput'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.add('on');});}
+function closeInput(){var d=document.getElementById('deckInput');if(d)d.classList.remove('open');['btnInput','fabInput'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.remove('on');});if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}
+function toggleInput(){var d=document.getElementById('deckInput');if(d&&d.classList.contains('open'))closeInput();else openInput();}
+window.openInput=openInput;window.closeInput=closeInput;window.toggleInput=toggleInput;
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeInput();});
+window.addEventListener('resize',function(){buildDots('outBody','rDots');});
+function makeFabDraggable(){
+  var fab=document.getElementById('fabInput'); if(!fab)return; var KEY='fp:fabpos';
+  function place(l,t){l=Math.min(window.innerWidth-fab.offsetWidth-4,Math.max(4,l));t=Math.min(window.innerHeight-fab.offsetHeight-4,Math.max(4,t));fab.style.left=l+'px';fab.style.top=t+'px';fab.style.right='auto';fab.style.bottom='auto';fab.style.transform='none';}
+  try{var p=JSON.parse(localStorage.getItem(KEY)||'null');if(p&&p.left!=null){place(p.left,p.top);}}catch(e){}
+  fab.style.touchAction='none'; var down=false,moved=false,sx,sy,ox,oy;
+  fab.addEventListener('pointerdown',function(e){down=true;moved=false;sx=e.clientX;sy=e.clientY;var r=fab.getBoundingClientRect();ox=r.left;oy=r.top;try{fab.setPointerCapture(e.pointerId);}catch(x){}e.preventDefault();});
+  fab.addEventListener('pointermove',function(e){if(!down)return;var dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true;if(moved)place(ox+dx,oy+dy);});
+  fab.addEventListener('pointerup',function(e){if(!down)return;down=false;if(moved){try{localStorage.setItem(KEY,JSON.stringify({left:parseFloat(fab.style.left),top:parseFloat(fab.style.top)}));}catch(x){}}else{toggleInput();}});
+  window.addEventListener('resize',function(){if(fab.style.left){place(parseFloat(fab.style.left),parseFloat(fab.style.top));}});
+}
+
+/* ===== 初期化 ===== */
+(function(){
+  document.addEventListener('input',function(e){if(e.target&&e.target.closest('.wrap'))simulate();});
+  document.addEventListener('change',function(e){if(e.target&&e.target.closest('.wrap'))simulate();});
+  var st=document.getElementById('stamp');if(st){var lm=document.lastModified||'';var m=lm.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})[ ,]+(\d{1,2}):(\d{2})/);st.textContent=m?('更新 '+m[1]+'/'+m[2]+'\n'+m[4]+':'+m[5]):'';}
+  makeFabDraggable();
+  simulate();
+})();
+</script>
+</body>
+</html>
