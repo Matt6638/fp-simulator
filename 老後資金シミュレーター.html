@@ -235,7 +235,11 @@
         <summary><span class="ic">⑥</span>変額年金（プルデンシャル）<span class="ar">▸</span></summary>
         <div class="sec-body">
           <label class="chk"><input type="checkbox" id="vaUse"> 変額年金（年金型・10年保証期間付終身年金）を老後資金に組み込む</label>
-          <div style="margin:4px 0 8px;"><a href="変額年金シミュレーター.html" target="_blank" style="display:inline-block;font-size:12px;font-weight:600;color:#fff;background:var(--brass);border:1px solid var(--brass-deep);border-radius:7px;padding:6px 12px;text-decoration:none;">変額年金だけを単独で試算する（暴落・マネー型退避・20〜40代の概算）→</a></div>
+          <div style="margin:4px 0 8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <a href="変額年金シミュレーター.html" target="_blank" style="display:inline-block;font-size:12px;font-weight:600;color:#fff;background:var(--brass);border:1px solid var(--brass-deep);border-radius:7px;padding:6px 12px;text-decoration:none;">🏦 個人年金（変額年金）を別タブで試算する →</a>
+            <button type="button" onclick="takeInVA()" style="font-size:12px;font-weight:600;color:var(--brass-deep);background:#fff;border:1px dashed var(--brass);border-radius:7px;padding:6px 12px;cursor:pointer;">変額シミュの結果を取り込む ⟲</button>
+          </div>
+          <div class="hint" id="vaLinkHint" style="border-left-color:var(--credit);">別タブの「変額年金シミュレーター」で契約条件を入れ、右上の<b>「この内容を老後資金に反映 →」</b>を押すと、この老後資金に<b>自動で取り込まれます</b>（変額のような<b>運用で変動する年金</b>は結果で区別表示します）。自動で入らない場合は上の「取り込む」を押してください。</div>
           <div class="hint">プルデンシャル「変額保険(年金型)」の設計書（50歳・月254,640円・15年払込）の実データから、本商品のコスト構造（特別勘定充当率・運用関係費用）を逆算してモデル化。特別勘定の運用実績で積立金・年金額が変動し、<b>最低保証はありません</b>。契約年齢・受取開始年齢・保険料を変えると、それに応じて積立金・年金額も概算で変動します（他年齢の設計書がなくても算出可）。</div>
           <div class="row">
             <div class="f wide"><label>基準の指定</label><select id="vaBasis" style="width:230px;"><option value="premium" selected>月払保険料で指定</option><option value="annuity">基本年金月額で指定（保険料を年齢に応じ自動計算）</option></select></div>
@@ -695,7 +699,7 @@ function simulate(){
   var t=R.tot;
   html+='<table class="bd"><thead><tr><th>収入・原資（生涯累計）</th><th style="text-align:right;">金額</th><th>支出（生涯累計）</th><th style="text-align:right;">金額</th></tr></thead><tbody>';
   var inRows=[['現在の金融資産',nv('assetsNow')],['積立の元本',t.contrib],['運用益',t.growth],['公的年金'+(t.survivor>0?'（遺族年金含む）':''),t.pension],['企業・個人年金',t.priv],['退職金',t.retire],['終身保険 受取',t.ins],['相続',t.inherit]];
-  if(t.va>0) inRows.push(['変額年金 受取',t.va]);
+  if(t.va>0) inRows.push([(R.va&&R.va.recvType==='pension')?'変額年金 受取（運用で変動）':'変額年金 受取',t.va]);
   var exRows=[['基本生活費',t.living],['住居費（家賃・ローン）',t.housing],['老人ホーム',t.home],['車の買い替え',t.car],['自宅の修繕',t.repair],['予備・医療介護',t.reserve],['暦年贈与',t.gift]];
   if(t.vaPrem>0) exRows.push(['変額年金 保険料（退職後払込分）',t.vaPrem]);
   var maxR=Math.max(inRows.length,exRows.length);
@@ -786,6 +790,42 @@ function printReport(){
     setTimeout(function(){window.print();},120);
   }catch(e){alert('PDFの作成に失敗しました：'+(e&&e.message?e.message:e));}
 }
+
+/* ===== 変額年金シミュからの反映（別タブ連携） ===== */
+function vaToast(msg){
+  var t=document.createElement('div');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--credit);color:#fff;font-size:13px;font-weight:600;padding:10px 18px;border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:200;';
+  document.body.appendChild(t);
+  setTimeout(function(){ t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(function(){t.remove();},400); },2600);
+}
+function applyVaPayload(o){
+  if(!o||o.tool!=='va') return false;
+  var setV=function(id,v){ var e=document.getElementById(id); if(e&&v!=null&&v!==''){ e.value=v; } };
+  var vu=document.getElementById('vaUse'); if(vu) vu.checked=true;
+  setV('vaBasis','premium');
+  setV('vaPremium', o.premiumMonthly);
+  setV('vaEntryAge', o.contractAge);
+  setV('vaStartAge', o.recvAge);
+  setV('vaAccRate', o.accRate);
+  setV('vaRecvType', o.recvType==='lump'?'lump':'pension');
+  setV('vaPostRate', o.postRate==='money'?'0':o.postRate);
+  window.__vaVariable = (o.recvType==='var'); // 変動年金フラグ（結果で区別表示）
+  document.querySelectorAll('details.sec').forEach(function(d){ if(/変額年金/.test(d.textContent)) d.open=true; });
+  if(typeof simulate==='function') simulate();
+  return true;
+}
+function takeInVA(){
+  try{
+    var pv=localStorage.getItem('fp:va2rogo');
+    if(!pv){ alert('取り込む変額年金の試算がありません。\n先に「個人年金（変額年金）を別タブで試算する」で条件を入れ、右上の「この内容を老後資金に反映」を押してください。'); return; }
+    if(applyVaPayload(JSON.parse(pv))) vaToast('変額年金の試算を取り込みました');
+  }catch(e){ alert('取り込みに失敗しました：'+(e&&e.message?e.message:e)); }
+}
+window.takeInVA=takeInVA;
+window.addEventListener('storage', function(e){
+  if(e.key==='fp:va2rogo' && e.newValue){ try{ if(applyVaPayload(JSON.parse(e.newValue))) vaToast('変額年金の試算を取り込みました'); }catch(x){} }
+});
 
 /* ===== 初期化 ===== */
 (function(){

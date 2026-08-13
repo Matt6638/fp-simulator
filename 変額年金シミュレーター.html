@@ -76,6 +76,7 @@
     <a class="home" href="index.html">← 一覧</a>
     <a class="home" href="老後資金シミュレーター.html">老後資金へ</a>
     <h1 class="brand">変額年金 単独シミュレーター<small>プルデンシャル 変額保険(年金型) ／ 開始年齢・暴落・マネー型退避の試算（叩き台）</small></h1>
+    <button class="tbtn" onclick="reflectToRogo()" title="この契約条件を老後資金シミュレーターへ反映します（別タブで開いている老後資金に自動反映）">この内容を老後資金に反映 →</button>
     <span class="stamp" id="stamp"></span>
   </div>
 
@@ -434,11 +435,22 @@ function simulate(){
       +'</div>';
     // 年金推移
     if(ann.series.length){
-      html+='<div class="chart-h">年金額の推移（'+recvAge+'→'+endAge+'歳）'+(recvType==='var'?'':'／定額のため一定')+'</div>';
-      html+=lineChart(ann.series.map(function(p){return {x:p.age,y:p.amt};}),{color:'#9a7b4f',markX:switchAge,markLabel:switchAge?'マネー型':'',h:180});
       if(recvType==='var'){
-        var effTxt = sv('postRate')==='money'?'マネー型0%':(nv('postRate')+'%');
-        html+='<div class="legend"><span>受給後利回り '+effTxt+'（予定利率'+(AIR*100)+'%を上回れば増・下回れば減）'+(switchAge?('／'+switchAge+'歳からマネー型0%へ退避'):'')+'</span></div>';
+        // 運用で上下する年金額を「複数利回りの扇」で表示（受給後の運用しだいで増減）
+        html+='<div class="chart-h">年金月額の推移（受給後の運用で上下）</div>';
+        var fanDefs=[{r:0,c:'#9b3b3b',lab:'マネー型0%'},{r:0.035,c:'#9a7b4f',lab:'3.5%'},{r:0.07,c:'#2f6b4f',lab:'7%'},{r:0.10,c:'#3b6ea5',lab:'10%'}];
+        var fanLines=fanDefs.map(function(d){ var s=annuityStream(av,recvAge,endAge,'var',d.r,null).series; return {pts:s.map(function(p){return {x:p.age,y:p.amt/12};}),color:d.c,label:d.lab,dash:(d.r===0)}; });
+        html+=multiLineChart(fanLines,{h:190});
+        html+='<div class="legend">'+fanDefs.map(function(d){return '<span><i style="background:'+d.c+'"></i>受給後'+d.lab+'</span>';}).join('')+'</div>';
+        // レンジのコールアウト（初年度・中間・最終）
+        function mAt(rate,age){ var s=annuityStream(av,recvAge,endAge,'var',rate,null).series; var f=s.filter(function(p){return p.age<=age;}); var last=f.length?f[f.length-1]:s[0]; return Math.round(last.amt/12); }
+        var midAge=Math.round((recvAge+endAge)/2);
+        html+='<div class="combo-note" style="margin-top:6px;">📉📈 <b>運用しだいで年金月額は増減します</b>（初年度は共通 約月'+yen(ann.initial/12)+'）。'
+          +midAge+'歳ごろ：マネー型なら約月'+yen(mAt(0,midAge))+'／7%なら約月'+yen(mAt(0.07,midAge))+'。'
+          +endAge+'歳：約月'+yen(mAt(0,endAge))+'（0%）〜 約月'+yen(mAt(0.10,endAge))+'（10%）。予定利率'+(AIR*100)+'%を上回れば増え、下回れば減ります。</div>';
+      } else {
+        html+='<div class="chart-h">年金額の推移（'+recvAge+'→'+endAge+'歳）／定額のため一定</div>';
+        html+=lineChart(ann.series.map(function(p){return {x:p.age,y:p.amt};}),{color:'#9a7b4f',h:170});
       }
     }
   }
@@ -451,6 +463,24 @@ function simulate(){
 
   document.getElementById('out').innerHTML=html;
 }
+
+/* ===== 老後資金へ反映（別タブ連携） ===== */
+function reflectToRogo(){
+  try{
+    var payload={
+      tool:'va', ts:Date.now(),
+      premiumMonthly:Math.round(nv('monthlyP')),
+      contractAge:Math.round(nv('contractAge')),
+      recvAge:Math.round(nv('recvAge')),
+      accRate:sv('accRate'),                 // 年金開始までの利回り(%)
+      recvType:sv('recvType'),               // var/fixed/lump
+      postRate:sv('postRate')                // 'money' or number
+    };
+    localStorage.setItem('fp:va2rogo', JSON.stringify(payload));
+    alert('老後資金シミュレーターに反映しました。\n・別タブで老後資金を開いていれば自動で更新されます。\n・開いていなければ、老後資金を開いた時に取り込まれます。');
+  }catch(e){ alert('反映に失敗しました：'+(e&&e.message?e.message:e)); }
+}
+window.reflectToRogo=reflectToRogo;
 
 /* 初期化 */
 (function(){
