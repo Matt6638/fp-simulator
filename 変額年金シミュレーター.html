@@ -114,14 +114,23 @@
         </div>
         <div class="hint crash-history">歴史を参考に、契約6年後から約10年ごとに <b>−43%（ITバブル）→−54%（リーマン）→−34%（コロナ）→−30%</b> …を順に反映します（受取開始までの期間に応じて回数が変わります）。</div>
         <div class="row" style="margin-top:8px;">
+          <div class="f wide"><label>市場の前提（暴落後の回復）</label><select id="marketMode" style="width:360px;">
+            <option value="conservative" selected>保守的：暴落後はその水準から成長（回復なし）</option>
+            <option value="recover">楽観：V字回復＋完璧な底で買い戻し（指定利回りが継続）</option>
+          </select></div>
+        </div>
+        <div class="row" style="margin-top:4px;">
           <div class="f wide"><label>暴落時の変額の対応</label><select id="vaStrategy" style="width:330px;">
             <option value="hold" selected>① 何もしない（保有継続・回復を待つ）</option>
             <option value="switch">② 積立金をマネー型へスイッチング＋繰入は継続（安値買い）</option>
             <option value="allmoney">③ 全額マネー型で完全回避（理想の上限）</option>
           </select></div>
         </div>
-        <div class="row va-switch">
+        <div class="row" id="switchBackRow">
           <div class="f"><label>マネー型→株式に戻す</label><div class="inline"><input type="text" inputmode="numeric" id="switchBackYears" value="2"><span class="unit">年後</span></div></div>
+        </div>
+        <div class="row" id="recoveryRow">
+          <div class="f"><label>暴落からの回復年数</label><div class="inline"><input type="text" inputmode="numeric" id="recoveryYears" value="3"><span class="unit">年でトレンド回復</span></div></div>
         </div>
         <div class="hint">②は勉強会で紹介された王道戦略：「暴落が来たら<b>積立金をマネー型へ転換</b>して評価額を保全し、<b>繰入比率は据え置き</b>＝毎月の保険料は株式のまま<b>安いユニットを買い続ける</b>」。安値で買い増した分だけ平均取得単価が下がり、退避した積立金は指定年後に株式へ戻します。<b>スイッチングは翌営業日反映・手数料/税なし（特別勘定内のどんぶり勘定）</b>で、NISA・投信にはこの避難先がありません（投信の売却は数日かかり損切りになりがち）。※恒久ドロップ前提の保守的試算で、完璧な底での買い戻しは仮定していません。</div>
         <div class="chk" style="margin-top:8px;"><label class="chk"><input type="checkbox" id="nisaCompare" checked> NISA（同額を積立）と比較して折れ線で表示</label></div>
@@ -201,24 +210,44 @@ function buildCrashes(scenario, contractAge, recvAge, singleDrop, singleAge){
    これにより「暴落なし ≥ 完全回避 ≥ スイッチング ≥ 保有継続」の順序が保たれ、過大表現を避ける。
    alpha=充当率, drag=年率控除。 */
 function accumulate(monthlyP, contractAge, recvAge, rate, crashes, alpha, drag, opts){
-  opts=opts||{}; var strategy=opts.strategy||'hold';
+  opts=opts||{}; var strategy=opts.strategy||'hold'; var market=opts.market||'conservative';
   if(alpha==null) alpha=ALPHA; if(drag==null) drag=DRAG;
   var months=Math.max(0,Math.round((recvAge-contractAge)*12));
   var im=(rate-drag)/12;
+  var recM=Math.max(1,Math.round((opts.recoveryYears!=null?opts.recoveryYears:3)*12));
   var backM=Math.max(1,Math.round((opts.switchBackYears!=null?opts.switchBackYears:2)*12));
   var crashAt={}; if(crashes){ crashes.forEach(function(c){ if(c.drop>0) crashAt[Math.round((c.age-contractAge)*12)]=c.drop; }); }
-  var L=1, units=0, parked=0, backAt=-1; // 基準価額, 株式口数, マネー型退避額, 株式へ戻す月
+  var units=0, parked=0, backAt=-1, k;
   var series=[{age:contractAge, bal:0}];
-  for(var k=1;k<=months;k++){
-    L*=(1+im); // 通常成長
-    if(crashAt[k] && strategy!=='allmoney'){
-      var drop=crashAt[k];
-      if(strategy==='switch'){ parked += units*L; units=0; backAt=k+backM; } // 暴落直前の評価額をマネー型へ退避
-      L*=(1-drop); // 恒久的に下落（以後はこの水準から成長）
+  if(market==='recover'){
+    // 楽観：暴落は一時的で recoveryYears でトレンドへ V字回復。switchは天井で退避→底で買い戻し（完璧なタイミング）
+    var T=1, g=1, recCount=0;
+    for(k=1;k<=months;k++){
+      T*=(1+im);
+      if(crashAt[k] && strategy!=='allmoney'){
+        var drop=crashAt[k];
+        if(strategy==='switch'){ var top=units*(T*g); g*=(1-drop); units=top/(T*g); recCount=recM; } // 天井評価額を底で全額買い戻し＝口数増
+        else { g*=(1-drop); recCount=recM; }
+      }
+      if(recCount>0){ g += (1-g)/recCount; recCount--; }
+      var Lr=T*g;
+      units += (alpha*monthlyP)/Lr;
+      if(k%12===0){ series.push({age:contractAge + k/12, bal:units*Lr}); }
     }
-    if(strategy==='switch' && backAt===k && parked>0){ units += parked/L; parked=0; backAt=-1; } // 株式へ戻す（現在の安い基準価額で買い戻し）
-    units += (alpha*monthlyP)/L; // 繰入は常に株式ユニットを購入（安値では多く買える）
-    if(k%12===0){ series.push({age:contractAge + k/12, bal:units*L+parked}); }
+  } else {
+    // 保守的：暴落後はその水準から成長（恒久ドロップ・過剰なトレンド回復なし）
+    var L=1;
+    for(k=1;k<=months;k++){
+      L*=(1+im);
+      if(crashAt[k] && strategy!=='allmoney'){
+        var drop2=crashAt[k];
+        if(strategy==='switch'){ parked += units*L; units=0; backAt=k+backM; } // 暴落直前の評価額をマネー型へ退避
+        L*=(1-drop2); // 恒久的に下落
+      }
+      if(strategy==='switch' && backAt===k && parked>0){ units += parked/L; parked=0; backAt=-1; } // 指定年後に株式へ戻す
+      units += (alpha*monthlyP)/L;
+      if(k%12===0){ series.push({age:contractAge + k/12, bal:units*L+parked}); }
+    }
   }
   return {av:(series.length?series[series.length-1].bal:0), series:series, months:months};
 }
@@ -301,7 +330,9 @@ function simulate(){
   document.querySelectorAll('.crash-single').forEach(function(e){e.style.display=scenario==='single'?'':'none';});
   document.querySelectorAll('.crash-history').forEach(function(e){e.style.display=scenario==='history'?'':'none';});
   var strategy=sv('vaStrategy');
-  document.querySelectorAll('.va-switch').forEach(function(e){e.style.display=strategy==='switch'?'':'none';});
+  var market=sv('marketMode');
+  document.getElementById('switchBackRow').style.display=(strategy==='switch'&&market==='conservative'&&scenario!=='none')?'':'none';
+  document.getElementById('recoveryRow').style.display=(market==='recover'&&scenario!=='none')?'':'none';
   var nisaOn=chk('nisaCompare');
   document.querySelectorAll('.nisa-only').forEach(function(e){e.style.display=nisaOn?'':'none';});
   document.getElementById('switchRow').style.display=(isVar&&chk('switchUse'))?'':'none';
@@ -311,13 +342,13 @@ function simulate(){
   var accRate=nv('accRate')/100;
   var crashes=buildCrashes(scenario, contractAge, recvAge, nv('crashDrop')/100, Math.round(nv('crashAge')));
   var hasCrash=crashes.length>0;
-  var switchBackYears=nv('switchBackYears')||2;
+  var switchBackYears=nv('switchBackYears')||2, recoveryYears=nv('recoveryYears')||3;
   var nisaFee=nv('nisaFee')/100;
   var recvType=sv('recvType');
   var postRate = sv('postRate')==='money' ? 0 : nv('postRate')/100;
   var switchAge = chk('switchUse') ? Math.round(nv('switchAge')) : null;
-  // 戦略別の共通オプション
-  function vaOpts(st){ return {strategy:st, switchBackYears:switchBackYears}; }
+  // 戦略別の共通オプション（市場前提・回復年数を含む）
+  function vaOpts(st){ return {strategy:st, switchBackYears:switchBackYears, market:market, recoveryYears:recoveryYears}; }
   var stratLabel={hold:'保有継続', switch:'スイッチング＋安値買い', allmoney:'完全回避(理想)'};
 
   var paid = monthlyP*12*Math.max(0,(recvAge-contractAge));
@@ -335,7 +366,8 @@ function simulate(){
   if(hasCrash){
     var noCrashAV=accumulate(monthlyP,contractAge,recvAge,accRate,[],ALPHA,DRAG,vaOpts('hold')).av;
     var crashList=crashes.map(function(c){return c.age+'歳 −'+Math.round(c.drop*100)+'%';}).join(' ／ ');
-    html+='<div class="crash-note">⚠ 暴落 '+crashes.length+'回（'+crashList+'）を反映（暴落後はその水準から成長する保守的前提）。暴落なしなら約'+moneyJP(noCrashAV)+'。</div>';
+    var marketTxt = market==='recover' ? ('市場は'+recoveryYears+'年でV字回復・スイッチングは完璧な底で買い戻す<b>楽観</b>前提') : '暴落後はその水準から成長する<b>保守的</b>前提';
+    html+='<div class="crash-note">⚠ 暴落 '+crashes.length+'回（'+crashList+'）を反映（'+marketTxt+'）。暴落なしなら約'+moneyJP(noCrashAV)+'。</div>';
   }
 
   // 暴落時の戦略比較（変額の3戦略＋NISA）
@@ -351,7 +383,8 @@ function simulate(){
     html+=row('③ 全額マネー型で完全回避（理想）',vAll,'allmoney');
     if(nisaOn) html+='<tr><td>（参考）NISA 同額・保有継続</td><td>'+moneyJP(accNISA.av)+'</td><td>'+(accNISA.av-vHold>=0?'+':'')+moneyJP(accNISA.av-vHold)+'</td></tr>';
     html+='</tbody></table>';
-    html+='<div class="combo-note" style="border-color:#c6e0cd;background:#eef6f0;">🛡 <b>②スイッチング＋安値買い</b>：暴落時に積立金をマネー型で保全しつつ、繰入は株式のまま<b>安いユニットを買い増し</b>、'+switchBackYears+'年後に株式へ戻す戦略。保有継続より <b>'+(vSwitch-vHold>=0?'+':'')+moneyJP(vSwitch-vHold)+'</b>。特別勘定内の<b>マネー型</b>という避難先は変額保険ならでは（NISAにはありません）。</div>';
+    var backTxt = market==='recover' ? '暴落の底で全額買い戻す（完璧なタイミング）' : (switchBackYears+'年後に株式へ戻す');
+    html+='<div class="combo-note" style="border-color:#c6e0cd;background:#eef6f0;">🛡 <b>②スイッチング＋安値買い</b>：暴落時に積立金をマネー型で保全しつつ、繰入は株式のまま<b>安いユニットを買い増し</b>、'+backTxt+'戦略。保有継続より <b>'+(vSwitch-vHold>=0?'+':'')+moneyJP(vSwitch-vHold)+'</b>'+(market==='recover'?'（楽観前提）':'')+'。特別勘定内の<b>マネー型</b>という避難先は変額保険ならでは（NISAにはありません）。</div>';
   } else if(nisaOn){
     html+='<div class="combo-note">📈 平時（暴落なし）は低コストの<b>NISA</b>が有利になりやすい：変額 約'+moneyJP(av)+' ／ NISA 約'+moneyJP(accNISA.av)+'。暴落局面では変額の<b>マネー型スイッチング</b>で差を縮め・逆転できます（上の暴落シナリオで確認）。</div>';
   }
