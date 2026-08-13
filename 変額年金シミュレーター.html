@@ -145,7 +145,7 @@
           <div class="f"><label>暴落の規模</label><select id="crashDrop"><option value="30">コロナ級 −30%</option><option value="40" selected>リーマン級 −40%</option><option value="50">大恐慌級 −50%</option></select></div>
           <div class="f"><label>暴落する年齢</label><div class="inline"><input type="text" inputmode="numeric" id="crashAge" value="63"><span class="unit">歳</span></div></div>
         </div>
-        <div class="hint crash-history">歴史を参考に、契約6年後から約10年ごとに <b>−43%（ITバブル）→−54%（リーマン）→−34%（コロナ）→−30%</b> …を順に反映します（受取開始までの期間に応じて回数が変わります）。</div>
+        <div class="hint crash-history">歴史を参考に、契約4年後から<b>約7年ごと</b>に <b>−43%（ITバブル）→−54%（リーマン）→−34%（コロナ）→−30%</b> …を順に反映します（15年で約2回・30年で約4回と、期間に応じて複数回起きます）。</div>
         <div class="row" style="margin-top:8px;">
           <div class="f wide"><label>市場の前提（暴落後の回復）</label><select id="marketMode" style="width:360px;">
             <option value="conservative" selected>保守的：暴落後はその水準から成長（回復なし）</option>
@@ -194,7 +194,7 @@
 </main>
 </div>
 
-<button type="button" class="fab-input" id="fabInput" onclick="toggleInput()" aria-label="入力を開く" title="入力"><span class="fab-plus">＋</span></button>
+<button type="button" class="fab-input" id="fabInput" aria-label="入力を開く（ドラッグで移動）" title="タップで入力／ドラッグで移動"><span class="fab-plus">＋</span></button>
 
 <script>
 /* ===== ユーティリティ ===== */
@@ -224,7 +224,7 @@ function buildCrashes(scenario, contractAge, recvAge, singleDrop, singleAge){
   if(scenario==='single'){ return (singleDrop>0)?[{age:singleAge, drop:singleDrop}]:[]; }
   if(scenario==='history'){
     var out=[], k=0;
-    for(var age=contractAge+6; age<recvAge-1; age+=10){ out.push({age:Math.round(age), drop:HISTORY_DROPS[k%HISTORY_DROPS.length]}); k++; }
+    for(var age=contractAge+4; age<recvAge-1; age+=7){ out.push({age:Math.round(age), drop:HISTORY_DROPS[k%HISTORY_DROPS.length]}); k++; }
     return out;
   }
   return [];
@@ -474,7 +474,17 @@ function simulate(){
         var midAge=Math.round((recvAge+endAge)/2);
         p2+='<div class="combo-note" style="margin-top:6px;">📉📈 <b>運用しだいで年金月額は増減します</b>（初年度は共通 約月'+yen(ann.initial/12)+'）。'
           +midAge+'歳ごろ：マネー型なら約月'+yen(mAt(0,midAge))+'／7%なら約月'+yen(mAt(0.07,midAge))+'。'
-          +endAge+'歳：約月'+yen(mAt(0,endAge))+'（0%）〜 約月'+yen(mAt(0.10,endAge))+'（10%）。予定利率'+(AIR*100)+'%を上回れば増え、下回れば減ります。</div>';
+          +endAge+'歳：約月'+yen(mAt(0,endAge))+'（0%）〜 約月'+yen(mAt(0.10,endAge))+'（10%）。予定利率'+(Math.round(AIR*1000)/10)+'%を上回れば増え、下回れば減ります。</div>';
+        // 年金月額の早見表（受給後の運用利回り別）
+        p2+='<div class="chart-h">年金月額の早見表（受給後の運用利回り別・円/月）</div>';
+        var rateCols=[{r:0,lab:'マネー型0%'},{r:0.035,lab:'3.5%'},{r:0.07,lab:'7%'},{r:0.10,lab:'10%'},{r:0.13,lab:'13%'}];
+        p2+='<table class="cmp"><thead><tr><th>年齢</th>'+rateCols.map(function(c){return '<th>'+c.lab+'</th>';}).join('')+'</tr></thead><tbody>';
+        var tAges=[]; for(var aa=recvAge; aa<endAge; aa+=5){ tAges.push(aa); } tAges.push(endAge);
+        tAges.forEach(function(aa){
+          var hl=(aa===recvAge)?' class="hl"':'';
+          p2+='<tr'+hl+'><td>'+aa+'歳'+(aa===recvAge?'（初年度）':'')+'</td>'+rateCols.map(function(c){return '<td>'+yen(mAt(c.r,aa))+'</td>';}).join('')+'</tr>';
+        });
+        p2+='</tbody></table><div class="rp-cap" style="font-size:10px;color:#8a8470;margin-top:3px;">各年齢時点の年金月額（円）。受給後の運用が予定利率'+(Math.round(AIR*1000)/10)+'%を上回れば増・下回れば減。マネー型0%は毎年約3.5%ずつ逓減します。</div>';
       } else {
         p2+='<div class="chart-h">年金額の推移（'+recvAge+'→'+endAge+'歳）／定額のため一定</div>';
         p2+=lineChart(ann.series.map(function(p){return {x:p.age,y:p.amt};}),{color:'#9a7b4f',h:170});
@@ -532,6 +542,20 @@ function toggleInput(){var d=document.getElementById('deckInput');if(d&&d.classL
 window.openInput=openInput;window.closeInput=closeInput;window.toggleInput=toggleInput;
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeInput();});
 window.addEventListener('resize',function(){buildDots('outBody','rDots');});
+/* ＋ボタン（FAB）をドラッグで移動可能に。動かさずに離せば入力トグル。位置は保存 */
+function makeFabDraggable(){
+  var fab=document.getElementById('fabInput'); if(!fab)return;
+  var KEY='fp:fabpos';
+  function place(l,t){ l=Math.min(window.innerWidth-fab.offsetWidth-4,Math.max(4,l)); t=Math.min(window.innerHeight-fab.offsetHeight-4,Math.max(4,t)); fab.style.left=l+'px'; fab.style.top=t+'px'; fab.style.right='auto'; fab.style.bottom='auto'; fab.style.transform='none'; }
+  try{var p=JSON.parse(localStorage.getItem(KEY)||'null'); if(p&&p.left!=null){ place(p.left,p.top); }}catch(e){}
+  fab.style.touchAction='none';
+  var down=false,moved=false,sx,sy,ox,oy;
+  fab.addEventListener('pointerdown',function(e){ down=true;moved=false;sx=e.clientX;sy=e.clientY;var r=fab.getBoundingClientRect();ox=r.left;oy=r.top; try{fab.setPointerCapture(e.pointerId);}catch(x){} e.preventDefault(); });
+  fab.addEventListener('pointermove',function(e){ if(!down)return; var dx=e.clientX-sx,dy=e.clientY-sy; if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true; if(moved) place(ox+dx,oy+dy); });
+  fab.addEventListener('pointerup',function(e){ if(!down)return; down=false; if(moved){ try{localStorage.setItem(KEY,JSON.stringify({left:parseFloat(fab.style.left),top:parseFloat(fab.style.top)}));}catch(x){} } else { toggleInput(); } });
+  window.addEventListener('resize',function(){ if(fab.style.left){ place(parseFloat(fab.style.left),parseFloat(fab.style.top)); } });
+}
+makeFabDraggable();
 
 /* 初期化 */
 (function(){
