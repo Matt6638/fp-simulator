@@ -10,17 +10,38 @@
   *{box-sizing:border-box;}html,body{margin:0;padding:0;}
   body{font-family:var(--gothic);color:var(--ink);background:var(--paper);line-height:1.6;-webkit-text-size-adjust:100%;}
   a{color:var(--brass-deep);}
-  .wrap{max-width:1180px;margin:0 auto;padding:14px 16px 60px;}
-  .topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:2px solid var(--brass);padding-bottom:10px;margin-bottom:14px;}
-  .topbar .home{font-size:12px;text-decoration:none;color:var(--brass-deep);border:1px solid var(--rule);border-radius:7px;padding:6px 10px;background:#fff;white-space:nowrap;}
-  .brand{font-family:var(--mincho);font-size:21px;font-weight:600;letter-spacing:.03em;margin:0;flex:1;min-width:220px;}
-  .brand small{display:block;font-family:var(--gothic);font-size:11px;color:var(--ink-soft);letter-spacing:0;font-weight:400;margin-top:1px;}
-  .tbtn{font-family:inherit;font-size:12.5px;font-weight:600;color:#fff;background:var(--brass);border:1px solid var(--brass-deep);border-radius:7px;padding:7px 12px;cursor:pointer;white-space:nowrap;text-decoration:none;}
-  .stamp{font-size:9px;color:var(--ink-soft);white-space:pre;text-align:center;line-height:1.25;}
-  .grid{display:flex;gap:18px;align-items:flex-start;}
-  .col-in{flex:1 1 430px;min-width:0;}
-  .col-out{flex:1 1 500px;min-width:0;position:sticky;top:10px;}
-  @media(max-width:880px){.grid{flex-direction:column;}.col-out{position:static;width:100%;}}
+  /* ===== 教育資金と同じ骨格（サイドバー＋入力ドロワー＋FAB＋結果デッキ） ===== */
+  .wrap{height:100vh;padding:8px 10px;display:flex;gap:10px;align-items:stretch;overflow:hidden;}
+  .side{flex:0 0 64px;display:flex;flex-direction:column;align-items:center;gap:9px;padding-top:4px;}
+  .side-eyebrow{font-family:var(--mincho);font-size:10px;letter-spacing:.3em;color:var(--brass-deep);margin:0;}
+  .side-tt{font-family:var(--mincho);font-weight:600;font-size:19px;color:var(--ink);writing-mode:vertical-rl;text-orientation:upright;letter-spacing:.08em;line-height:1;margin:0 0 6px;white-space:nowrap;}
+  .fpbar{display:flex;flex-direction:column;align-items:stretch;gap:6px;width:100%;}
+  .fpbtn{font-family:inherit;font-size:11px;font-weight:600;color:var(--ink-soft);background:#fcfbf8;border:1px solid var(--rule);border-radius:7px;padding:7px 2px;cursor:pointer;white-space:nowrap;text-align:center;text-decoration:none;display:block;}
+  .fpbtn:hover{border-color:var(--brass);}
+  .fpbtn-reflect{background:var(--brass);color:#fff;border-color:var(--brass-deep);}
+  .fpbtn-input{background:var(--brass)!important;color:#fff!important;border-color:var(--brass-deep)!important;font-weight:700;}
+  #btnInput{display:none;}
+  .build-stamp{margin-top:auto;padding-top:8px;font-size:8.5px;line-height:1.35;color:var(--brass-deep);opacity:.6;text-align:center;white-space:pre-line;}
+  .main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:8px;height:100%;overflow:hidden;}
+  .deck{background:var(--surface);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+  .deck-result{flex:1 1 auto;}
+  .deck-head{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:5px 12px;border-bottom:1px solid var(--rule-soft);}
+  .deck-head .no{font-family:var(--mono);font-size:11px;color:var(--brass);}
+  .deck-head b{font-family:var(--mincho);font-size:14px;font-weight:600;letter-spacing:.03em;}
+  .deck-hint{font-size:10.5px;color:var(--brass-deep);}
+  .deck-dots{margin-left:auto;display:flex;gap:5px;align-items:center;}
+  .deck-dots i{width:8px;height:8px;border-radius:50%;background:var(--rule);display:inline-block;cursor:pointer;transition:background .15s;}
+  .deck-dots i.on{background:var(--brass);}
+  .deck-scroll{flex:1 1 auto;min-height:0;display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
+  .deck-scroll>.rpage,.deck-scroll>.ipage{flex:0 0 100%;scroll-snap-align:start;min-width:0;height:100%;overflow-y:auto;padding:12px 16px;}
+  .deck-input{position:fixed;left:8px;right:8px;bottom:0;height:54vh;max-height:620px;transform:translateY(107%);transition:transform .28s ease;z-index:30;border-radius:12px 12px 0 0;box-shadow:0 -12px 34px -12px rgba(0,0,0,.45);}
+  .deck-input.open{transform:translateY(0);}
+  .deck-close{margin-left:auto;font:600 12.5px var(--gothic);color:#fff;background:var(--brass);border:1px solid var(--brass-deep);border-radius:7px;padding:6px 16px;cursor:pointer;}
+  .fab-input{position:fixed;right:12px;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;background:var(--brass);color:#fff;border:1px solid var(--brass-deep);cursor:pointer;box-shadow:0 8px 20px -8px rgba(0,0,0,.5);z-index:45;display:flex;align-items:center;justify-content:center;padding:0;}
+  .fab-input .fab-plus{font-size:26px;line-height:1;transition:transform .22s ease;}
+  .fab-input::after{content:"入力";position:absolute;bottom:-13px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--brass-deep);font-weight:700;letter-spacing:.04em;}
+  .fab-input.on .fab-plus{transform:rotate(45deg);}
+  @media print{.fab-input,.deck-input,.side{display:none!important;}}
   .card{background:var(--surface);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);margin-bottom:12px;padding:12px 14px;}
   .card h2{font-family:var(--mincho);font-size:15px;margin:0 0 8px;font-weight:600;display:flex;align-items:center;gap:7px;}
   .card h2 .ic{width:22px;height:22px;border-radius:6px;background:var(--paper);border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--brass-deep);}
@@ -72,16 +93,27 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="topbar">
-    <a class="home" href="index.html">← 一覧</a>
-    <a class="home" href="老後資金シミュレーター.html">老後資金へ</a>
-    <h1 class="brand">変額年金 単独シミュレーター<small>プルデンシャル 変額保険(年金型) ／ 開始年齢・暴落・マネー型退避の試算（叩き台）</small></h1>
-    <button class="tbtn" onclick="reflectToRogo()" title="この契約条件を老後資金シミュレーターへ反映します（別タブで開いている老後資金に自動反映）">この内容を老後資金に反映 →</button>
-    <span class="stamp" id="stamp"></span>
+<aside class="side">
+  <div class="side-eyebrow">FP</div>
+  <div class="side-tt">変額年金</div>
+  <div class="fpbar">
+    <button type="button" class="fpbtn fpbtn-input" id="btnInput" onclick="toggleInput()">✎ 入力</button>
+    <a class="fpbtn" href="index.html">トップ</a>
+    <a class="fpbtn" href="老後資金シミュレーター.html">老後資金</a>
+    <button type="button" class="fpbtn fpbtn-reflect" onclick="reflectToRogo()" title="この契約条件を老後資金シミュレーターへ反映">老後に反映</button>
   </div>
+  <div class="build-stamp" id="stamp"></div>
+</aside>
 
-  <div class="grid">
-    <div class="col-in">
+<main class="main">
+  <section class="deck deck-result">
+    <div class="deck-head"><span class="no">結果</span><b>変額年金の試算</b><span class="deck-hint">スワイプで次ページ</span><span class="deck-dots" id="rDots"></span></div>
+    <div class="deck-scroll" id="outBody"></div>
+  </section>
+  <section class="deck deck-input" id="deckInput">
+    <div class="deck-head"><span class="no">入力</span><b>契約条件</b><span class="deck-dots" id="iDots"></span><button type="button" class="deck-close" onclick="closeInput()">完了 ✓</button></div>
+    <div class="deck-scroll" id="inScroll">
+      <div class="ipage">
       <div class="card">
         <h2><span class="ic">①</span>契約条件</h2>
         <div class="row">
@@ -156,17 +188,13 @@
         </div>
         <div class="hint">変額終身年金は受給開始後も特別勘定で運用され、年金額が毎年変動します（本ツールは予定利率3.5%を基準に、実績との差で増減させる簡易モデル）。マネー型に退避すると以後は概ね横ばい〜微減で安定します。</div>
       </div>
-    </div>
-
-    <div class="col-out">
-      <div class="out" id="out"></div>
-    </div>
-  </div>
-
-  <footer>
-    ※本ツールはプルデンシャル生命「変額保険(年金型)」の設計書（2026年・50歳・月254,640円・65歳受取）から手数料・年金換算係数を逆算した<b>概算の叩き台</b>です。実際の保険料・年金額・解約返戻金は最低保証がなく、運用実績・年齢・性別・所定の係数により設計書と異なります。正式な数値は設計書・担当者にご確認ください。
-  </footer>
+      </div><!-- /ipage -->
+    </div><!-- /inScroll -->
+  </section>
+</main>
 </div>
+
+<button type="button" class="fab-input" id="fabInput" onclick="toggleInput()" aria-label="入力を開く" title="入力"><span class="fab-plus">＋</span></button>
 
 <script>
 /* ===== ユーティリティ ===== */
@@ -413,22 +441,23 @@ function simulate(){
     html+='</tbody></table>';
   }
 
-  // 積立推移グラフ（変額 vs NISA）
-  html+='<div class="chart-h">積立金の推移（'+contractAge+'→'+recvAge+'歳）</div>';
+  // ===== 2ページ目：推移グラフ＋受け取り＋注記（横スワイプ） =====
+  var p2='';
+  p2+='<div class="chart-h" style="margin-top:0;">積立金の推移（'+contractAge+'→'+recvAge+'歳）</div>';
   var lines=[{pts:acc.series.map(function(p){return{x:p.age,y:p.bal};}),color:'#2f6b4f',label:'変額年金'}];
   if(nisaOn) lines.push({pts:accNISA.series.map(function(p){return{x:p.age,y:p.bal};}),color:'#3b6ea5',label:'NISA',dash:true});
   var marks=crashes.map(function(c){return {x:c.age,label:'暴落',color:'#9b3b3b'};});
-  html+=multiLineChart(lines,{marks:marks,h:210});
-  html+='<div class="legend"><span><i style="background:#2f6b4f"></i>変額年金（'+(hasCrash?stratLabel[strategy]:'保有')+'）</span>'+(nisaOn?'<span><i style="background:#3b6ea5"></i>NISA（同額・避難先なし）</span>':'')+(hasCrash?'<span>点線＝暴落</span>':'')+'</div>';
+  p2+=multiLineChart(lines,{marks:marks,h:210});
+  p2+='<div class="legend"><span><i style="background:#2f6b4f"></i>変額年金（'+(hasCrash?stratLabel[strategy]:'保有')+'）</span>'+(nisaOn?'<span><i style="background:#3b6ea5"></i>NISA（同額・避難先なし）</span>':'')+(hasCrash?'<span>点線＝暴落</span>':'')+'</div>';
 
   // 受取
   if(recvType==='lump'){
-    html+='<div class="chart-h">受け取り</div>';
-    html+='<div class="recv"><div class="box"><div class="t">一時金で受取</div><div class="v">'+moneyJP(av)+'</div><div class="u">'+recvAge+'歳・一括</div></div></div>';
+    p2+='<div class="chart-h">受け取り</div>';
+    p2+='<div class="recv"><div class="box"><div class="t">一時金で受取</div><div class="v">'+moneyJP(av)+'</div><div class="u">'+recvAge+'歳・一括</div></div></div>';
   } else {
     var label = recvType==='var'?'変額 終身年金（初年度）':'定額 終身年金';
-    html+='<div class="chart-h">受け取り（'+label+'）</div>';
-    html+='<div class="recv">'
+    p2+='<div class="chart-h">受け取り（'+label+'）</div>';
+    p2+='<div class="recv">'
       +'<div class="box"><div class="t">'+(recvType==='var'?'初年度の年金月額':'年金月額（一定）')+'</div><div class="v">'+yen(ann.initial/12)+'</div><div class="u">円／月</div></div>'
       +'<div class="box"><div class="t">初年度 年額</div><div class="v">'+moneyJP(ann.initial)+'</div><div class="u">円／年</div></div>'
       +'<div class="box"><div class="t">'+endAge+'歳までの累計受取</div><div class="v">'+moneyJP(ann.total)+'</div><div class="u">合計</div></div>'
@@ -436,32 +465,32 @@ function simulate(){
     // 年金推移
     if(ann.series.length){
       if(recvType==='var'){
-        // 運用で上下する年金額を「複数利回りの扇」で表示（受給後の運用しだいで増減）
-        html+='<div class="chart-h">年金月額の推移（受給後の運用で上下）</div>';
+        p2+='<div class="chart-h">年金月額の推移（受給後の運用で上下）</div>';
         var fanDefs=[{r:0,c:'#9b3b3b',lab:'マネー型0%'},{r:0.035,c:'#9a7b4f',lab:'3.5%'},{r:0.07,c:'#2f6b4f',lab:'7%'},{r:0.10,c:'#3b6ea5',lab:'10%'}];
         var fanLines=fanDefs.map(function(d){ var s=annuityStream(av,recvAge,endAge,'var',d.r,null).series; return {pts:s.map(function(p){return {x:p.age,y:p.amt/12};}),color:d.c,label:d.lab,dash:(d.r===0)}; });
-        html+=multiLineChart(fanLines,{h:190});
-        html+='<div class="legend">'+fanDefs.map(function(d){return '<span><i style="background:'+d.c+'"></i>受給後'+d.lab+'</span>';}).join('')+'</div>';
-        // レンジのコールアウト（初年度・中間・最終）
-        function mAt(rate,age){ var s=annuityStream(av,recvAge,endAge,'var',rate,null).series; var f=s.filter(function(p){return p.age<=age;}); var last=f.length?f[f.length-1]:s[0]; return Math.round(last.amt/12); }
+        p2+=multiLineChart(fanLines,{h:190});
+        p2+='<div class="legend">'+fanDefs.map(function(d){return '<span><i style="background:'+d.c+'"></i>受給後'+d.lab+'</span>';}).join('')+'</div>';
+        var mAt=function(rate,age){ var s=annuityStream(av,recvAge,endAge,'var',rate,null).series; var f=s.filter(function(p){return p.age<=age;}); var last=f.length?f[f.length-1]:s[0]; return Math.round(last.amt/12); };
         var midAge=Math.round((recvAge+endAge)/2);
-        html+='<div class="combo-note" style="margin-top:6px;">📉📈 <b>運用しだいで年金月額は増減します</b>（初年度は共通 約月'+yen(ann.initial/12)+'）。'
+        p2+='<div class="combo-note" style="margin-top:6px;">📉📈 <b>運用しだいで年金月額は増減します</b>（初年度は共通 約月'+yen(ann.initial/12)+'）。'
           +midAge+'歳ごろ：マネー型なら約月'+yen(mAt(0,midAge))+'／7%なら約月'+yen(mAt(0.07,midAge))+'。'
           +endAge+'歳：約月'+yen(mAt(0,endAge))+'（0%）〜 約月'+yen(mAt(0.10,endAge))+'（10%）。予定利率'+(AIR*100)+'%を上回れば増え、下回れば減ります。</div>';
       } else {
-        html+='<div class="chart-h">年金額の推移（'+recvAge+'→'+endAge+'歳）／定額のため一定</div>';
-        html+=lineChart(ann.series.map(function(p){return {x:p.age,y:p.amt};}),{color:'#9a7b4f',h:170});
+        p2+='<div class="chart-h">年金額の推移（'+recvAge+'→'+endAge+'歳）／定額のため一定</div>';
+        p2+=lineChart(ann.series.map(function(p){return {x:p.age,y:p.amt};}),{color:'#9a7b4f',h:170});
       }
     }
   }
 
-  html+='<ul class="note-list">'
+  p2+='<ul class="note-list">'
     +'<li>積立金＝月払保険料×充当率96%を特別勘定で運用（年約1.05%控除）した概算。設計書の0%・7%を誤差ほぼ0で再現します（3.5%は−0.5%程度）。</li>'
     +'<li>年金換算は設計書p5の受取開始年齢別係数（定額）と、変額終身の初年度係数6.304%(65歳)を年齢補正して使用。</li>'
-    +'<li>いずれも最低保証はなく、暴落・低利回りでは払込を下回ることがあります。税・受取時費用（年1.0%）等は簡略化しています。</li>'
+    +'<li>いずれも最低保証はなく、暴落・低利回りでは払込を下回ることがあります。税・受取時費用（年1.0%）等は簡略化しています。実際の数値は設計書・担当者にご確認ください。</li>'
     +'</ul>';
 
-  document.getElementById('out').innerHTML=html;
+  var outBody=document.getElementById('outBody');
+  outBody.innerHTML='<div class="rpage">'+html+'</div><div class="rpage">'+p2+'</div>';
+  buildDots('outBody','rDots');
 }
 
 /* ===== 老後資金へ反映（別タブ連携） ===== */
@@ -481,6 +510,28 @@ function reflectToRogo(){
   }catch(e){ alert('反映に失敗しました：'+(e&&e.message?e.message:e)); }
 }
 window.reflectToRogo=reflectToRogo;
+
+/* ===== デッキ（横スワイプ＋ドット）／入力ドロワー（教育資金と同じ骨格） ===== */
+function buildDots(scrollId,dotsId){
+  var sc=document.getElementById(scrollId), dc=document.getElementById(dotsId);
+  if(!sc||!dc)return;
+  var n=sc.children.length;
+  dc.style.display = n<2 ? 'none' : '';
+  var hint=dc.parentNode.querySelector('.deck-hint'); if(hint) hint.style.display = n<2 ? 'none' : '';
+  if(n<2){dc.innerHTML='';return;}
+  if(dc.children.length!==n){
+    dc.innerHTML='';
+    for(var i=0;i<n;i++){ (function(i){var d=document.createElement('i');d.addEventListener('click',function(){sc.scrollTo({left:i*sc.clientWidth,behavior:'smooth'});});dc.appendChild(d);})(i); }
+  }
+  var upd=function(){var w=sc.clientWidth||1;var idx=Math.round(sc.scrollLeft/w);Array.prototype.forEach.call(dc.children,function(d,i){d.classList.toggle('on',i===idx);});};
+  sc.onscroll=upd; upd();
+}
+function openInput(){var d=document.getElementById('deckInput');if(d)d.classList.add('open');['btnInput','fabInput'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.add('on');});}
+function closeInput(){var d=document.getElementById('deckInput');if(d)d.classList.remove('open');['btnInput','fabInput'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.remove('on');});if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}
+function toggleInput(){var d=document.getElementById('deckInput');if(d&&d.classList.contains('open'))closeInput();else openInput();}
+window.openInput=openInput;window.closeInput=closeInput;window.toggleInput=toggleInput;
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeInput();});
+window.addEventListener('resize',function(){buildDots('outBody','rDots');});
 
 /* 初期化 */
 (function(){
