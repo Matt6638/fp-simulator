@@ -391,14 +391,26 @@ function simulate(){
 
   // 利回り比較（積立金）: 変額 と NISA
   html+='<div class="chart-h">利回り別の積立金（'+recvAge+'歳時点）</div>';
-  html+='<table class="cmp"><thead><tr><th>利回り</th><th>変額年金'+(hasCrash?'('+stratLabel[strategy]+')':'')+'</th>'+(nisaOn?'<th>NISA(同額)</th>':'')+'<th>払込倍率</th></tr></thead><tbody>';
-  [0,3.5,7,10,13].forEach(function(rr){
-    var a=accumulate(monthlyP,contractAge,recvAge,rr/100,crashes,ALPHA,DRAG,vaOpts(strategy)).av;
-    var n=nisaOn?accumulate(monthlyP,contractAge,recvAge,rr/100,crashes,1.0,nisaFee,vaOpts('hold')).av:null;
-    var hl=(Math.abs(rr/100-accRate)<1e-9)?' class="hl"':'';
-    html+='<tr'+hl+'><td>'+rr+'%'+(hasCrash?'（暴落込）':'')+'</td><td>'+moneyJP(a)+'</td>'+(nisaOn?'<td>'+moneyJP(n)+'</td>':'')+'<td>'+(paid>0?(a/paid).toFixed(2):'—')+'倍</td></tr>';
-  });
-  html+='</tbody></table>';
+  var subMul=function(v){ return '<br><span style="font-size:9.5px;color:#8a8470;">払込×'+(paid>0?(v/paid).toFixed(2):'—')+'</span>'; };
+  if(nisaOn){
+    html+='<table class="cmp"><thead><tr><th>利回り</th><th>変額年金'+(hasCrash?'('+stratLabel[strategy]+')':'')+'<br><span style="font-weight:400;">（払込倍率）</span></th><th>NISA(同額)<br><span style="font-weight:400;">（払込倍率）</span></th><th>差<br><span style="font-weight:400;">変額−NISA</span></th></tr></thead><tbody>';
+    [0,3.5,7,10,13].forEach(function(rr){
+      var a=accumulate(monthlyP,contractAge,recvAge,rr/100,crashes,ALPHA,DRAG,vaOpts(strategy)).av;
+      var n=accumulate(monthlyP,contractAge,recvAge,rr/100,crashes,1.0,nisaFee,vaOpts('hold')).av;
+      var d=a-n; var dcol=d>=0?'#2f6b4f':'#9b3b3b';
+      var hl=(Math.abs(rr/100-accRate)<1e-9)?' class="hl"':'';
+      html+='<tr'+hl+'><td>'+rr+'%'+(hasCrash?'（暴落込）':'')+'</td><td>'+moneyJP(a)+subMul(a)+'</td><td>'+moneyJP(n)+subMul(n)+'</td><td style="color:'+dcol+';font-weight:700;">'+(d>=0?'+':'−')+moneyJP(Math.abs(d))+'</td></tr>';
+    });
+    html+='</tbody></table><div class="rp-cap" style="font-size:10px;color:#8a8470;margin-top:3px;">差＝変額年金−NISA（プラス＝変額が上、マイナス＝NISAが上）。倍率はいずれも払込総額 '+moneyJP(paid)+' に対する倍率。</div>';
+  } else {
+    html+='<table class="cmp"><thead><tr><th>利回り</th><th>変額年金'+(hasCrash?'('+stratLabel[strategy]+')':'')+'</th><th>払込倍率</th></tr></thead><tbody>';
+    [0,3.5,7,10,13].forEach(function(rr){
+      var a=accumulate(monthlyP,contractAge,recvAge,rr/100,crashes,ALPHA,DRAG,vaOpts(strategy)).av;
+      var hl=(Math.abs(rr/100-accRate)<1e-9)?' class="hl"':'';
+      html+='<tr'+hl+'><td>'+rr+'%'+(hasCrash?'（暴落込）':'')+'</td><td>'+moneyJP(a)+'</td><td>'+(paid>0?(a/paid).toFixed(2):'—')+'倍</td></tr>';
+    });
+    html+='</tbody></table>';
+  }
 
   // 積立推移グラフ（変額 vs NISA）
   html+='<div class="chart-h">積立金の推移（'+contractAge+'→'+recvAge+'歳）</div>';
