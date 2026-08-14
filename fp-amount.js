@@ -29,6 +29,7 @@
     if(dot>=0){ intPart=cleaned.slice(0,dot).replace(/\./g,''); decPart=cleaned.slice(dot+1).replace(/\./g,''); }
     else { intPart=cleaned.replace(/\./g,''); }
     intPart=intPart.replace(/^0+(?=\d)/,''); // 先頭ゼロ除去（0単体は残す）
+    if(intPart.length>16){ intPart=intPart.slice(0,16); } // 保険：桁の暴走を上限で止める
     var out;
     if(intPart===''){ out = (decPart!=null)?'0':''; }
     else { out = Number(intPart).toLocaleString('ja-JP'); }
@@ -70,6 +71,8 @@
   document.addEventListener('compositionstart',function(e){ var el=e.target; if(el&&el.classList&&el.classList.contains('fp-money')) el.__fpComposing=true; },true);
   document.addEventListener('compositionend',function(e){ var el=e.target; if(el&&el.classList&&el.classList.contains('fp-money')){ el.__fpComposing=false; fmt(el); } },true);
   document.addEventListener('input',function(e){ var el=e.target; if(el&&el.classList&&el.classList.contains('fp-money')){ if(el.__fpComposing||e.isComposing)return; fmt(el); } },true);
+  document.addEventListener('change',function(e){ var el=e.target; if(el&&el.classList&&el.classList.contains('fp-money')&&!el.__fpComposing) fmt(el); },true);
+  document.addEventListener('blur',function(e){ var el=e.target; if(el&&el.classList&&el.classList.contains('fp-money')&&!el.__fpComposing) fmt(el); },true);
 
   function boot(){ markAll(document); }
   if(document.readyState!=='loading') setTimeout(boot,0); else document.addEventListener('DOMContentLoaded',boot);
