@@ -652,7 +652,7 @@ window.FP=(function(){
   function saveFile(){var name=KEY+'_'+new Date().toISOString().slice(0,10)+'.json';var data=payload();if(window.showSaveFilePicker){window.showSaveFilePicker({suggestedName:name,types:[{description:'FPシミュレーター データ',accept:{'application/json':['.json']}}]}).then(function(h){return h.createWritable();}).then(function(w){return w.write(data).then(function(){return w.close();});}).catch(function(){});}else{dl(name,data,'application/json');}}
   function loadFile(){var fi=document.getElementById('fpLoadInput');if(fi)fi.click();}
   function onFile(ev){var f=ev.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var o=JSON.parse(r.result);resx(o.inputs||o);els().forEach(function(e){e.setAttribute('data-fpt','1');});if(typeof STRUCT_KEY!=='undefined'){try{STRUCT_KEY=null;}catch(e){}}if(RECALC)RECALC();afterRender();save();}catch(x){window.alert('読み込みに失敗しました（ファイル形式が不正です）。');}};r.readAsText(f);ev.target.value='';}
-  function normZen(e){var el=e.target;if(!el||el.tagName!=='INPUT')return;if(el.type==='checkbox'||el.type==='radio'||el.type==='file')return;var v=el.value;var nv=v.replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);}).replace(/[．]/g,'.').replace(/[，、]/g,',');if(nv!==v){var p=el.selectionStart;el.value=nv;try{el.setSelectionRange(p,p);}catch(x){}}}
+  function normZen(e){if(e&&e.isComposing)return;var el=e.target;if(!el||el.tagName!=='INPUT')return;if(el.type==='checkbox'||el.type==='radio'||el.type==='file')return;var v=el.value;var nv=v.replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);}).replace(/[．]/g,'.').replace(/[，、]/g,',');if(nv!==v){var p=el.selectionStart;el.value=nv;try{el.setSelectionRange(p,p);}catch(x){}}}
   /* ---- 万円表示 ---- */
   function toMan(str){var neg=/^\s*-/.test(str);var n=parseFloat(String(str).replace(/[^\d.]/g,''))||0;var m=n/10000;var s=(Math.round(m*10)/10).toLocaleString('ja-JP',{maximumFractionDigits:1});return (neg?'-':'')+s;}
   function repl円(el){var w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null),n;while(n=w.nextNode()){if(n.nodeValue.indexOf('円')>=0){n.nodeValue=n.nodeValue.replace('円','万円');return;}}}
@@ -745,6 +745,6 @@ function fpFmt(n){if(n===0)return '0';var r=Math.round(n*10000)/10000;return r.t
 })();
 FP.init('tsuma', simulate);
 </script>
-<script src="fp-amount.js?v=2"></script>
+<script src="fp-amount.js?v=3"></script>
 </body>
 </html>
