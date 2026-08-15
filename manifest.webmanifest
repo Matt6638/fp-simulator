@@ -1,0 +1,17 @@
+{
+  "name": "FPシミュレーター",
+  "short_name": "FP試算",
+  "description": "生保営業向けFPシミュレーター集（教育資金・老後資金・変額年金・不動産損益・相続税ほか）。オフライン対応。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "lang": "ja",
+  "background_color": "#f7f5ef",
+  "theme_color": "#9a7b4f",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-1024.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "maskable" }
+  ]
+}
