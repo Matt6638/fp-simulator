@@ -20,4 +20,26 @@
       navigator.serviceWorker.register('sw.js').catch(function(){});
     });
   }
+
+  // iOS のホーム画面アプリ(standalone)は <a> リンクを別Safariで開こうとして遷移しないため、
+  // 同一オリジン・内部リンクは window.location で「アプリ内遷移」に切り替える。
+  var standalone = (window.navigator.standalone===true) ||
+    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+    (window.matchMedia && window.matchMedia('(display-mode: fullscreen)').matches);
+  if(standalone){
+    document.addEventListener('click', function(e){
+      var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if(!a) return;
+      if(e.defaultPrevented) return;                 // ドラッグ等で既に処理済みなら触らない
+      if(a.getAttribute('target')==='_blank') return; // 別タブ指定は従来どおり
+      if(a.hasAttribute('download')) return;
+      var href = a.getAttribute('href');
+      if(!href || href.charAt(0)==='#' || /^(mailto:|tel:|javascript:)/i.test(href)) return;
+      var url;
+      try{ url = new URL(a.href, location.href); }catch(_){ return; }
+      if(url.origin !== location.origin) return;       // 外部サイトは通常挙動
+      e.preventDefault();
+      window.location.href = url.href;                 // アプリ内で遷移
+    }, false);
+  }
 })();

@@ -1,7 +1,7 @@
 /* ===== FPシミュレーター Service Worker（オフライン対応） =====
    全ツールと共有アセットを事前キャッシュし、オフラインでも起動できるようにする。
    更新時は CACHE のバージョンを上げると、次回オンライン時に自動で入れ替わる。 */
-const CACHE = 'fp-cache-v1';
+const CACHE = 'fp-cache-v2';
 
 const ASSETS = [
   './',
@@ -59,8 +59,24 @@ self.addEventListener('fetch', function(e){
   if(req.method !== 'GET') return;
   var url = new URL(req.url);
   if(url.origin !== self.location.origin) return; // クロスオリジンはSWで扱わない
+
+  // ページ遷移（HTML）はネットワーク優先＝オンラインは必ず最新の実ページを開く。
+  // 失敗（オフライン）時のみ、そのページのキャッシュ→無ければトップへ。
+  if(req.mode === 'navigate'){
+    e.respondWith(
+      fetch(req).then(function(res){
+        if(res && res.status===200){ var copy=res.clone(); caches.open(CACHE).then(function(c){ c.put(req, copy); }); }
+        return res;
+      }).catch(function(){
+        return caches.match(req, {ignoreSearch:true}).then(function(m){ return m || caches.match('./index.html'); });
+      })
+    );
+    return;
+  }
+
+  // それ以外（JS/画像等）はキャッシュ優先
   e.respondWith(
-    caches.match(req).then(function(cached){
+    caches.match(req, {ignoreSearch:true}).then(function(cached){
       if(cached) return cached;
       return fetch(req).then(function(res){
         if(res && res.status===200 && res.type==='basic'){
@@ -68,10 +84,7 @@ self.addEventListener('fetch', function(e){
           caches.open(CACHE).then(function(c){ c.put(req, copy); });
         }
         return res;
-      }).catch(function(){
-        // オフラインでキャッシュにも無い場合はトップへフォールバック（HTMLナビゲーション時）
-        if(req.mode === 'navigate') return caches.match('./index.html');
-      });
+      }).catch(function(){});
     })
   );
 });
