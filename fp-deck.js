@@ -68,6 +68,9 @@
     +'.deck-input .toggle .tl{flex:0 1 auto;}'
     // 入力/セレクトはセル幅いっぱい
     +'.deck-input .field input[type=text],.deck-input .field input.yen,.deck-input .field input.num,.deck-input .field input[inputmode],.deck-input .field select{width:100%!important;max-width:none;box-sizing:border-box;}'
+    // 数字欄は必要以上に広げない（歳/年/人=細く、金額=中）
+    +'.deck-input .field input.num,.deck-input .field input[inputmode=numeric]:not(.yen),.deck-input .field input[inputmode=decimal]:not(.yen){max-width:120px!important;}'
+    +'.deck-input .field input.yen{max-width:190px!important;}'
     +'.deck-input .hint{font-size:10.5px;line-height:1.45;margin-top:3px;}'
     +'.deck-input{position:fixed;left:8px;right:8px;bottom:0;height:58vh;max-height:660px;transform:translateY(108%);transition:transform .28s ease;z-index:30;border-radius:12px 12px 0 0;box-shadow:0 -12px 34px -12px rgba(0,0,0,.45);}'
     +'.deck-input.open{transform:translateY(0);}'
@@ -262,7 +265,7 @@
       // 文章だけのカラム（注記）は幅を抑える
       if(hasKpi){ scrollEl.querySelectorAll('.rpage').forEach(function(pg){ var cs=pg.querySelectorAll('.rcol:not(.rcol-kpi)'); cs.forEach(function(c){ var hasData=!!c.querySelector('table,svg'); if(!hasData && c.children.length && cs.length>1) c.className+=' rcol-notes'; }); }); }
       buildDots(scrollEl, dotsId);
-      positionFab(scrollEl);
+      positionFab();
     } finally { scrollEl.__pg=false; }
   }
 
@@ -279,8 +282,8 @@
     scrollEl.onscroll=upd; upd();
   }
 
-  function openInput(){var d=document.getElementById('deckInput');if(d)d.classList.add('open');['btnInput','fabInput'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.add('on');});}
-  function closeInput(){var d=document.getElementById('deckInput');if(d)d.classList.remove('open');['btnInput','fabInput'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.remove('on');});if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}
+  function openInput(){var d=document.getElementById('deckInput');if(d)d.classList.add('open');['btnInput','fabInput'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.add('on');});setTimeout(positionFab,60);setTimeout(positionFab,320);}
+  function closeInput(){var d=document.getElementById('deckInput');if(d)d.classList.remove('open');['btnInput','fabInput'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.remove('on');});if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();setTimeout(positionFab,60);}
   function toggleInput(){var d=document.getElementById('deckInput');if(d&&d.classList.contains('open'))closeInput();else openInput();}
   window.fpToggleInput=toggleInput;
   document.addEventListener('keydown',function(e){if(e.key==='Escape')closeInput();});
@@ -290,26 +293,33 @@
     var fab=document.getElementById('fabInput'); if(!fab)return;
     fab.addEventListener('click',function(e){ e.preventDefault(); toggleInput(); });
   }
-  // ＋入力ボタンを「最右カラムの空きスペースの最上部」に配置（最右が空なら中央）
-  function positionFab(scrollEl){
-    var fab=document.getElementById('fabInput'); if(!fab||!scrollEl) return;
-    var deckRect=scrollEl.getBoundingClientRect(); if(!deckRect.height) return;
+  // ＋/×ボタンを空きスペースの最上部（右）へ自動配置。
+  // 入力ドロワーが開いていれば「ドロワー内の空き」、閉じていれば「結果の最右カラムの空き」を基準にする。
+  function positionFab(){
+    var fab=document.getElementById('fabInput'); if(!fab) return;
     var fh=fab.offsetHeight||46;
-    var page=scrollEl.querySelector('.rpage');
+    var drawer=document.getElementById('deckInput');
+    var open=drawer && drawer.classList.contains('open');
     var top;
-    if(page){
-      var cols=page.querySelectorAll(':scope>.rcol');
-      var last=cols[cols.length-1];
-      if(last && last.children.length && last.scrollHeight>24){
-        var lr=last.getBoundingClientRect();
-        top=lr.top + Math.min(last.scrollHeight, deckRect.height) + 12; // 内容の下＝空きの最上部
-      } else {
-        top=deckRect.top + deckRect.height/2 - fh/2; // 最右が空＝中央
-      }
+    if(open){ // ×ボタン＝結果デッキ上部の空きスペース（右上）へ。ドロワーの入力に被らない
+      var main=document.querySelector('.deck-result')||document.querySelector('.main');
+      var mr=main?main.getBoundingClientRect():null;
+      top=(mr && mr.height)? (mr.top+6) : 8;
     } else {
-      top=deckRect.top + deckRect.height/2 - fh/2;
+      var scrollEl=document.querySelector('.deck-result .deck-scroll');
+      if(!scrollEl) return;
+      var deckRect=scrollEl.getBoundingClientRect(); if(!deckRect.height) return;
+      var page=scrollEl.querySelector('.rpage');
+      if(page){
+        var cols=page.querySelectorAll(':scope>.rcol');
+        var last=cols[cols.length-1];
+        if(last && last.children.length && last.scrollHeight>24){
+          var lr=last.getBoundingClientRect();
+          top=lr.top + Math.min(last.scrollHeight, deckRect.height) + 12; // 内容の下＝空きの最上部
+        } else { top=deckRect.top + deckRect.height/2 - fh/2; } // 最右が空＝中央
+      } else { top=deckRect.top + deckRect.height/2 - fh/2; }
+      top=Math.max(deckRect.top+8, Math.min(top, deckRect.bottom - fh - 8));
     }
-    top=Math.max(deckRect.top+8, Math.min(top, deckRect.bottom - fh - 8));
     fab.style.left='auto'; fab.style.bottom='auto'; fab.style.transform='none';
     fab.style.right='14px'; fab.style.top=Math.round(top)+'px';
   }
