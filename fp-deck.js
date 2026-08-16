@@ -27,12 +27,18 @@
     +'.deck-close{margin-left:auto;font:600 12.5px var(--gothic,sans-serif);color:#fff;background:var(--brass,#9a7b4f);border:1px solid var(--brass-deep,#7d6240);border-radius:7px;padding:6px 16px;cursor:pointer;}'
     // 結果：横スワイプでページ送り（1画面に収め、あふれたら次ページ）
     +'.deck-result .deck-scroll{flex:1 1 auto;min-height:0;display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}'
-    +'.deck-result .deck-scroll>.rpage{flex:0 0 100%;scroll-snap-align:start;min-width:0;height:100%;overflow-y:auto;padding:10px 14px;box-sizing:border-box;}'
-    // 各ページ内は2〜3カラムで詰める（左右の幅を活用）
-    +'.deck-result .rpage{display:flex;flex-wrap:wrap;gap:8px 16px;align-content:flex-start;align-items:flex-start;}'
-    +'.deck-result .rpage>*{flex:1 1 300px;min-width:0;max-width:560px;margin:0;}'
-    +'.deck-result .rpage>.fp-sub,.deck-result .rpage>.fp-rhead{flex-basis:100%;max-width:none;}'
+    // 各ページは複数カラムに縦詰め（マソンリー）＝上から順に埋め、横幅を無駄にしない
+    +'.deck-result .deck-scroll>.rpage{flex:0 0 100%;scroll-snap-align:start;min-width:0;height:100%;overflow-y:auto;padding:10px 14px;box-sizing:border-box;display:flex;gap:16px;align-items:flex-start;}'
+    +'.deck-result .rcol{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:12px;}'
+    +'.deck-result .rcol>*{margin:0;max-width:100%;min-width:0;}'
+    +'.deck-result .rcol>.fp-rhead{margin-bottom:-4px;}'
+    +'.deck-result .rcol table{width:100%;font-size:10.5px;table-layout:auto;}'
+    +'.deck-result .rcol table th,.deck-result .rcol table td{padding:3px 5px;}'
+    +'.deck-result .rcol>*{overflow-x:auto;}' // 表など幅が余る時はブロック内で横スクロール（欠けさせない）
+    +'.deck-result .rcol .chartwrap{overflow-x:auto;}'
     +'.deck-result .rv{overflow-wrap:anywhere;word-break:break-word;}'
+    // 説明文は本文の上に横いっぱいで1回だけ（カラムに混ぜない）
+    +'.deck-result .fp-intro{flex:0 0 auto;padding:7px 16px 7px;margin:0;font-size:11px;line-height:1.5;color:var(--ink-soft,#46506a);border-bottom:1px solid var(--rule-soft,#eee9dd);}'
     // 入力：縦スクロール。欄は細く・多列で1画面に多く並べる
     +'.deck-input .deck-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}'
     +'.deck-input .deck-scroll>.ipage{min-width:0;padding:10px 14px;}'
@@ -68,8 +74,7 @@
     +'.fp-rhead{font-family:var(--mincho,serif);font-size:13px;font-weight:600;color:var(--brass-deep,#7d6240);margin:0 0 3px;border-left:3px solid var(--brass,#9a7b4f);padding-left:7px;}'
     +'.deck-result .panel{box-shadow:none;border:1px solid var(--rule,#e3ddcf);}'
     +'.deck-result .fp-dock{position:fixed;left:-100000px;top:0;width:360px;visibility:hidden;pointer-events:none;}'
-    +'.deck-result .rpage>.panel-head{display:none;}' // デッキ見出し（結果）と重複するため非表示
-    +'.deck-result .rpage>.result-cards{flex-basis:100%;max-width:none;}' // KPI帯は横いっぱいに
+    +'.deck-result .rcol>.panel-head{display:none;}' // 分割で露出したデッキ見出し（結果）と重複するため非表示
     +'@media print{.side,.deck-input,.fab-input{display:none!important;}.wrap{display:block!important;height:auto!important;overflow:visible!important;}.deck-result{border:none;box-shadow:none;}.deck-scroll{overflow:visible!important;}}';
     var st=document.createElement('style'); st.id='fpDeckCSS'; st.textContent=css; document.head.appendChild(st);
   }
@@ -129,7 +134,7 @@
 
     var dock=deckR.querySelector('#fpDock');
     var outPage=dock, inPage=deckI.querySelector('#fpInPage');
-    if(sub){ var s2=sub.cloneNode(true); s2.className='fp-sub'; outPage.appendChild(s2); }
+    if(sub){ var s2=sub.cloneNode(true); s2.className='fp-sub fp-intro'; deckR.insertBefore(s2, deckR.querySelector('.deck-scroll')); }
 
     // 既存コンテンツを分類（タブ/グリッドの入れ子にも対応）
     // 1) すべての .panel を深さに関係なく分類（入力→ドロワー／結果→デッキ、.result は抽出）
@@ -180,19 +185,41 @@
     if(scrollEl.__pg) return; scrollEl.__pg=true;
     try{
       var deckH=scrollEl.clientHeight; if(!deckH||deckH<80){ deckH=99999; }
+      var pageW=scrollEl.clientWidth||1000;
+      var GAP=16, COLW=340, PAD=28; // PAD=.rpage左右padding(14*2)
+      var avail=pageW-PAD;
+      var K=Math.max(1, Math.floor((avail+GAP)/(COLW+GAP)));  // 1ページのカラム数
+      var colW=Math.floor((avail-(K-1)*GAP)/K);               // 実カラム幅
+      // ソースを原子ブロックへ分解
       var srcBlocks=[];
       Array.prototype.slice.call(dock.children).forEach(function(c){ atomize(c, deckH, srcBlocks); });
-      scrollEl.innerHTML='';
-      function mk(){ var p=document.createElement('div'); p.className='rpage'; scrollEl.appendChild(p); return p; }
-      var page=mk();
-      srcBlocks.forEach(function(src){
+      // 各ブロックを実カラム幅で採寸（複製を使い回す）
+      var meas=document.createElement('div'); meas.style.cssText='position:absolute;left:0;top:0;width:'+colW+'px;';
+      dock.appendChild(meas);
+      var items=srcBlocks.map(function(src){
         var clone=src.cloneNode(true);
         if(clone.removeAttribute) clone.removeAttribute('id');
         if(clone.querySelectorAll){ Array.prototype.forEach.call(clone.querySelectorAll('[id]'), function(e){ e.removeAttribute('id'); }); }
-        page.appendChild(clone);
-        if(page.scrollHeight > deckH+6 && page.children.length>1){
-          var np=mk(); np.appendChild(clone); page=np; // appendChild が旧ページから移動
+        meas.appendChild(clone); var h=clone.offsetHeight; meas.removeChild(clone);
+        return {node:clone, h:h};
+      });
+      dock.removeChild(meas);
+      // 縦詰め（カラムを上から埋め、あふれたら次カラム→カラムが尽きたら次ページ）
+      scrollEl.innerHTML='';
+      function mkPage(){ var p=document.createElement('div'); p.className='rpage'; scrollEl.appendChild(p);
+        var cols=[]; for(var i=0;i<K;i++){ var col=document.createElement('div'); col.className='rcol'; p.appendChild(col); cols.push({el:col,h:0}); }
+        return {cols:cols, ci:0}; }
+      var page=mkPage();
+      items.forEach(function(it){
+        // 現ページで一番低いカラムへ（マソンリー＝全カラムを均等に埋めて横幅を活用）
+        var best=0, bh=page.cols[0].h;
+        for(var i=1;i<K;i++){ if(page.cols[i].h<bh){ bh=page.cols[i].h; best=i; } }
+        var col=page.cols[best];
+        if(col.h>0 && (col.h+GAP+it.h)>deckH){        // 一番低いカラムにも入らない＝ページ満杯
+          page=mkPage(); col=page.cols[0];
         }
+        col.el.appendChild(it.node);
+        col.h += (col.h>0?GAP:0)+it.h;
       });
       buildDots(scrollEl, dotsId);
     } finally { scrollEl.__pg=false; }
