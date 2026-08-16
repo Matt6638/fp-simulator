@@ -281,6 +281,9 @@ function simulate(){
   var ageY=rawNum('claimAge')|| (mode==='up'?60:mode==='normal'?65:70);
   var ageM=rawNum('claimMonth')||0;
   if(mode==='normal'){ ageY=65; ageM=0; }
+  // モードごとに請求年齢を範囲内へ丸める（繰上げ60-64／繰下げ66-75）＝モード選択が必ず反映される
+  else if(mode==='up'){ if(ageY>64){ageY=64; ageM=0;} if(ageY<60){ageY=60; ageM=0;} }
+  else if(mode==='down'){ if(ageY<66){ageY=66; ageM=0;} if(ageY>75){ageY=75; ageM=0;} }
   var age2Y=ageY, age2M=ageM;
   if(split){ age2Y=rawNum('claimAge2')||65; age2M=rawNum('claimMonth2')||0; }
 
@@ -444,6 +447,13 @@ document.querySelectorAll('.toggle input').forEach(function(el){el.addEventListe
 document.getElementById('modeSeg').addEventListener('click',function(e){
   var b=e.target.closest('button'); if(!b)return;
   [].forEach.call(e.currentTarget.children,function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});
+  // モードに合わせて請求年齢の既定値を入れ替える（未変更でもモードが必ず反映される）
+  var mode=b.dataset.v;
+  var ca=document.getElementById('claimAge'), cm=document.getElementById('claimMonth');
+  var def=mode==='up'?'62':mode==='normal'?'65':'70';
+  ca.value=def; cm.value='0';
+  ca.setAttribute('data-fpt','1'); cm.setAttribute('data-fpt','1');
+  ca.disabled=cm.disabled=(mode==='normal');
   recalc();
 });
 document.getElementById('calcBtn').addEventListener('click',recalc);
