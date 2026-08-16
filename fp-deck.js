@@ -300,28 +300,30 @@
     var fh=fab.offsetHeight||46;
     var drawer=document.getElementById('deckInput');
     var open=drawer && drawer.classList.contains('open');
-    var top;
-    if(open){ // ×ボタン＝結果デッキ上部の空きスペース（右上）へ。ドロワーの入力に被らない
-      var main=document.querySelector('.deck-result')||document.querySelector('.main');
-      var mr=main?main.getBoundingClientRect():null;
-      top=(mr && mr.height)? (mr.top+6) : 8;
-    } else {
-      var scrollEl=document.querySelector('.deck-result .deck-scroll');
-      if(!scrollEl) return;
-      var deckRect=scrollEl.getBoundingClientRect(); if(!deckRect.height) return;
-      var page=scrollEl.querySelector('.rpage');
-      if(page){
-        var cols=page.querySelectorAll(':scope>.rcol');
-        var last=cols[cols.length-1];
-        if(last && last.children.length && last.scrollHeight>24){
-          var lr=last.getBoundingClientRect();
-          top=lr.top + Math.min(last.scrollHeight, deckRect.height) + 12; // 内容の下＝空きの最上部
-        } else { top=deckRect.top + deckRect.height/2 - fh/2; } // 最右が空＝中央
-      } else { top=deckRect.top + deckRect.height/2 - fh/2; }
-      top=Math.max(deckRect.top+8, Math.min(top, deckRect.bottom - fh - 8));
+    fab.style.left='auto'; fab.style.transform='none'; fab.style.right='14px';
+    if(open){ // ×ボタン＝ドロワーの「完了」ボタンのすぐ下（右）へ。offsetHeightで確実に配置
+      var dh=drawer.offsetHeight||Math.round(window.innerHeight*0.58);
+      var head=drawer.querySelector('.deck-head');
+      var hh=head?head.offsetHeight:50;
+      fab.style.top='auto';
+      fab.style.bottom=Math.max(10, dh - hh - 12 - fh)+'px'; // ドロワー下端(=画面下)からの高さ＝ヘッダ直下
+      return;
     }
-    fab.style.left='auto'; fab.style.bottom='auto'; fab.style.transform='none';
-    fab.style.right='14px'; fab.style.top=Math.round(top)+'px';
+    // 閉：結果の最右カラムの空きスペース最上部（空なら中央）
+    var scrollEl=document.querySelector('.deck-result .deck-scroll');
+    if(!scrollEl) return;
+    var deckRect=scrollEl.getBoundingClientRect(); if(!deckRect.height) return;
+    var page=scrollEl.querySelector('.rpage'), top;
+    if(page){
+      var cols=page.querySelectorAll(':scope>.rcol');
+      var last=cols[cols.length-1];
+      if(last && last.children.length && last.scrollHeight>24){
+        var lr=last.getBoundingClientRect();
+        top=lr.top + Math.min(last.scrollHeight, deckRect.height) + 12;
+      } else { top=deckRect.top + deckRect.height/2 - fh/2; }
+    } else { top=deckRect.top + deckRect.height/2 - fh/2; }
+    top=Math.max(deckRect.top+8, Math.min(top, deckRect.bottom - fh - 8));
+    fab.style.bottom='auto'; fab.style.top=Math.round(top)+'px';
   }
 
   // ツールの初期化が終わってから変換（結果が描画済みの状態でDOMを移動）

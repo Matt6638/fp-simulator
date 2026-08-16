@@ -37,7 +37,7 @@
   .fpbtn-input.on{background:var(--brass-deep)!important;}
   /* 入力FAB（右下の＋ボタン＝買い物リスト風）。印刷では非表示 */
   #btnInput{display:none;}  /* サイドバーの入力ボタンはFABに集約 */
-  .fab-input{position:fixed;left:14px;bottom:14px;top:auto;right:auto;transform:none;width:46px;height:46px;border-radius:50%;background:var(--brass);color:#fff;border:1px solid var(--brass-deep);cursor:pointer;box-shadow:0 8px 20px -8px rgba(0,0,0,.5);z-index:45;display:flex;align-items:center;justify-content:center;padding:0;transition:background .2s;}
+  .fab-input{position:fixed;right:14px;top:50%;left:auto;bottom:auto;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;background:var(--brass);color:#fff;border:1px solid var(--brass-deep);cursor:pointer;box-shadow:0 8px 20px -8px rgba(0,0,0,.5);z-index:45;display:flex;align-items:center;justify-content:center;padding:0;transition:background .2s;}
   .fab-input .fab-plus{font-size:24px;line-height:1;font-weight:400;transition:transform .22s ease;}
   .fab-input::after{content:"入力";position:absolute;bottom:-13px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--brass-deep);font-weight:700;letter-spacing:.04em;}
   .fab-input:hover{background:var(--brass-deep);}
