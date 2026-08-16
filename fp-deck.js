@@ -30,6 +30,9 @@
     // 各ページは複数カラムに縦詰め（マソンリー）＝上から順に埋め、横幅を無駄にしない
     +'.deck-result .deck-scroll>.rpage{flex:0 0 100%;scroll-snap-align:start;min-width:0;height:100%;overflow-y:auto;padding:10px 14px;box-sizing:border-box;display:flex;gap:16px;align-items:flex-start;}'
     +'.deck-result .rcol{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:12px;}'
+    +'.deck-result .rcol-kpi{flex:0 0 250px;max-width:250px;}' // KPI帯は細い左カラムに固定
+    +'.deck-result .rcol-kpi .result-cards{flex-direction:column;}'
+    +'.deck-result .rcol-kpi .result-cards>*{flex:1 1 auto;max-width:none;}'
     +'.deck-result .rcol>*{margin:0;max-width:100%;min-width:0;}'
     +'.deck-result .rcol>.fp-rhead{margin-bottom:-4px;}'
     // 結果内テーブルは固定レイアウト＋折返しでカラム幅に必ず収める（横スワイプ不要）
@@ -186,40 +189,56 @@
     try{
       var deckH=scrollEl.clientHeight; if(!deckH||deckH<80){ deckH=99999; }
       var pageW=scrollEl.clientWidth||1000;
-      var GAP=16, COLW=340, PAD=28; // PAD=.rpage左右padding(14*2)
-      var avail=pageW-PAD;
-      var K=Math.max(1, Math.floor((avail+GAP)/(COLW+GAP)));  // 1ページのカラム数
-      var colW=Math.floor((avail-(K-1)*GAP)/K);               // 実カラム幅
+      var GAP=16, COLW=340, PAD=28, KPIW=250; // PAD=.rpage左右padding(14*2)
       // ソースを原子ブロックへ分解
       var srcBlocks=[];
       Array.prototype.slice.call(dock.children).forEach(function(c){ atomize(c, deckH, srcBlocks); });
-      // 各ブロックを実カラム幅で採寸（複製を使い回す）
-      var meas=document.createElement('div'); meas.style.cssText='position:absolute;left:0;top:0;width:'+colW+'px;';
+      function isCls(node,name){ return (' '+(node.className||'')+' ').indexOf(' '+name+' ')>=0; }
+      // 先に列数・実カラム幅を確定（KPI帯があれば細い左列を1本確保）
+      var hasKpi=srcBlocks.some(function(b){return isCls(b,'result-cards');});
+      var restAvail=pageW-PAD-(hasKpi?KPIW+GAP:0);
+      var K=Math.max(1, Math.floor((restAvail+GAP)/(COLW+GAP)));
+      var restColW=Math.max(160, Math.floor((restAvail-(K-1)*GAP)/K));
+      var Kfull=Math.max(1, Math.floor((pageW-PAD+GAP)/(COLW+GAP)));
+      // 採寸は「実際に配置する幅」で行う（KPI=細幅／その他=実カラム幅）＝高さ誤差なし
+      var meas=document.createElement('div'); meas.style.cssText='position:absolute;left:0;top:0;';
       dock.appendChild(meas);
       var items=srcBlocks.map(function(src){
         var clone=src.cloneNode(true);
         if(clone.removeAttribute) clone.removeAttribute('id');
         if(clone.querySelectorAll){ Array.prototype.forEach.call(clone.querySelectorAll('[id]'), function(e){ e.removeAttribute('id'); }); }
-        meas.appendChild(clone); var h=clone.offsetHeight; meas.removeChild(clone);
-        return {node:clone, h:h};
+        var kpi=isCls(src,'result-cards');
+        meas.style.width=(kpi?KPIW:restColW)+'px'; meas.appendChild(clone); var h=clone.offsetHeight; meas.removeChild(clone);
+        return {node:clone, h:h, kpi:kpi, legend:isCls(src,'legend')};
       });
       dock.removeChild(meas);
-      // 縦詰め（カラムを上から埋め、あふれたら次カラム→カラムが尽きたら次ページ）
+      var kpiItems=items.filter(function(x){return x.kpi;});
+      var rest=items.filter(function(x){return !x.kpi;});
+
       scrollEl.innerHTML='';
-      function mkPage(){ var p=document.createElement('div'); p.className='rpage'; scrollEl.appendChild(p);
-        var cols=[]; for(var i=0;i<K;i++){ var col=document.createElement('div'); col.className='rcol'; p.appendChild(col); cols.push({el:col,h:0}); }
-        return {cols:cols, ci:0}; }
-      var page=mkPage();
-      items.forEach(function(it){
-        // 現ページで一番低いカラムへ（マソンリー＝全カラムを均等に埋めて横幅を活用）
-        var best=0, bh=page.cols[0].h;
-        for(var i=1;i<K;i++){ if(page.cols[i].h<bh){ bh=page.cols[i].h; best=i; } }
-        var col=page.cols[best];
-        if(col.h>0 && (col.h+GAP+it.h)>deckH){        // 一番低いカラムにも入らない＝ページ満杯
-          page=mkPage(); col=page.cols[0];
+      function mkPage(withKpi){
+        var p=document.createElement('div'); p.className='rpage'; scrollEl.appendChild(p);
+        var kc=null;
+        if(withKpi){ kc=document.createElement('div'); kc.className='rcol rcol-kpi'; p.appendChild(kc); }
+        var n=withKpi?K:Kfull, cols=[];
+        for(var i=0;i<n;i++){ var c=document.createElement('div'); c.className='rcol'; p.appendChild(c); cols.push({el:c,h:0}); }
+        return {cols:cols, kpiCol:kc};
+      }
+      // 1ページ目：KPIは細い左カラムへ
+      var page=mkPage(hasKpi);
+      if(page.kpiCol) kpiItems.forEach(function(it){ page.kpiCol.appendChild(it.node); });
+      // その他：一番低いカラムへ（マソンリー）。凡例は直前のブロック（グラフ）と同じカラムへ。
+      var lastIdx=0;
+      rest.forEach(function(it){
+        var cols=page.cols, idx;
+        if(it.legend){ idx=Math.min(lastIdx, cols.length-1); }
+        else{
+          idx=0; for(var i=1;i<cols.length;i++){ if(cols[i].h<cols[idx].h) idx=i; }
+          if(cols[idx].h>0 && (cols[idx].h+GAP+it.h)>deckH){ page=mkPage(false); cols=page.cols; idx=0; }
         }
-        col.el.appendChild(it.node);
-        col.h += (col.h>0?GAP:0)+it.h;
+        cols[idx].el.appendChild(it.node);
+        cols[idx].h += (cols[idx].h>0?GAP:0)+it.h;
+        lastIdx=idx;
       });
       buildDots(scrollEl, dotsId);
     } finally { scrollEl.__pg=false; }
