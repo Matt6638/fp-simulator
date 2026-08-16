@@ -30,7 +30,7 @@
     // 各ページは複数カラムに縦詰め（マソンリー）＝上から順に埋め、横幅を無駄にしない
     +'.deck-result .deck-scroll>.rpage{flex:0 0 100%;scroll-snap-align:start;min-width:0;height:100%;overflow-y:auto;padding:10px 14px;box-sizing:border-box;display:flex;gap:16px;align-items:flex-start;}'
     +'.deck-result .rcol{flex:1 1 0;min-width:0;max-width:720px;display:flex;flex-direction:column;gap:12px;}' // 中央（グラフ＋表）は大きく、広すぎは抑制
-    +'.deck-result .rcol-kpi{flex:0 0 clamp(300px,26%,380px);max-width:380px;}' // KPI帯＝左を大きめに（内容が収まる幅）
+    +'.deck-result .rcol-kpi{flex:0 0 clamp(320px,28%,430px);max-width:430px;}' // KPI帯＝左を大きめに（結果金額を見やすく）
     +'.deck-result .rcol-kpi .result-cards{flex-direction:column;}'
     +'.deck-result .rcol-kpi .result-cards>*{flex:1 1 auto;max-width:none;min-width:0;}'
     +'.deck-result .rcol-notes{flex:1 1 0;max-width:340px;}' // 注記＝折返し可なので細めに（データ列に幅を譲る）'
@@ -64,12 +64,14 @@
     // セグメント選択欄は最低限の幅（2列ぶん）に。夫/妻・会社員/自営業などが横に並び右を無駄にしない
     +'.deck-input .field:has(.seg){grid-column:span 2;max-width:480px;}'
     +'.deck-input .field:has(.seg) .lab,.deck-input .field:has(.toggle) .lab{min-height:0;}'
+    +'.deck-input .toggle{justify-content:flex-start!important;gap:12px;}' // スイッチを文字の右隣へ（右端に寄せない）
+    +'.deck-input .toggle .tl{flex:0 1 auto;}'
     // 入力/セレクトはセル幅いっぱい
     +'.deck-input .field input[type=text],.deck-input .field input.yen,.deck-input .field input.num,.deck-input .field input[inputmode],.deck-input .field select{width:100%!important;max-width:none;box-sizing:border-box;}'
     +'.deck-input .hint{font-size:10.5px;line-height:1.45;margin-top:3px;}'
     +'.deck-input{position:fixed;left:8px;right:8px;bottom:0;height:58vh;max-height:660px;transform:translateY(108%);transition:transform .28s ease;z-index:30;border-radius:12px 12px 0 0;box-shadow:0 -12px 34px -12px rgba(0,0,0,.45);}'
     +'.deck-input.open{transform:translateY(0);}'
-    +'.fab-input{position:fixed;left:14px;bottom:14px;top:auto;right:auto;transform:none;width:46px;height:46px;border-radius:50%;background:var(--brass,#9a7b4f);color:#fff;border:1px solid var(--brass-deep,#7d6240);cursor:pointer;box-shadow:0 8px 20px -8px rgba(0,0,0,.5);z-index:45;display:flex;align-items:center;justify-content:center;padding:0;}'
+    +'.fab-input{position:fixed;right:14px;top:50%;left:auto;bottom:auto;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;background:var(--brass,#9a7b4f);color:#fff;border:1px solid var(--brass-deep,#7d6240);cursor:pointer;box-shadow:0 8px 20px -8px rgba(0,0,0,.5);z-index:45;display:flex;align-items:center;justify-content:center;padding:0;}'
     +'.fab-input .fab-plus{font-size:25px;line-height:1;transition:transform .22s ease;}'
     +'.fab-input::after{content:"入力";position:absolute;bottom:-13px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--brass-deep,#7d6240);font-weight:700;letter-spacing:.04em;white-space:nowrap;}'
     +'.fab-input.on .fab-plus{transform:rotate(45deg);}'
@@ -260,6 +262,7 @@
       // 文章だけのカラム（注記）は幅を抑える
       if(hasKpi){ scrollEl.querySelectorAll('.rpage').forEach(function(pg){ var cs=pg.querySelectorAll('.rcol:not(.rcol-kpi)'); cs.forEach(function(c){ var hasData=!!c.querySelector('table,svg'); if(!hasData && c.children.length && cs.length>1) c.className+=' rcol-notes'; }); }); }
       buildDots(scrollEl, dotsId);
+      positionFab(scrollEl);
     } finally { scrollEl.__pg=false; }
   }
 
@@ -283,14 +286,32 @@
   document.addEventListener('keydown',function(e){if(e.key==='Escape')closeInput();});
 
   function makeFabDraggable(){
-    var fab=document.getElementById('fabInput'); if(!fab)return; var KEY='fp:fabpos2';
-    function place(l,t){l=Math.min(window.innerWidth-fab.offsetWidth-4,Math.max(4,l));t=Math.min(window.innerHeight-fab.offsetHeight-4,Math.max(4,t));fab.style.left=l+'px';fab.style.top=t+'px';fab.style.right='auto';fab.style.bottom='auto';fab.style.transform='none';}
-    try{var p=JSON.parse(localStorage.getItem(KEY)||'null');if(p&&p.left!=null){place(p.left,p.top);}}catch(e){}
-    fab.style.touchAction='none'; var down=false,moved=false,sx,sy,ox,oy;
-    fab.addEventListener('pointerdown',function(e){down=true;moved=false;sx=e.clientX;sy=e.clientY;var r=fab.getBoundingClientRect();ox=r.left;oy=r.top;try{fab.setPointerCapture(e.pointerId);}catch(x){}e.preventDefault();});
-    fab.addEventListener('pointermove',function(e){if(!down)return;var dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true;if(moved)place(ox+dx,oy+dy);});
-    fab.addEventListener('pointerup',function(e){if(!down)return;down=false;if(moved){try{localStorage.setItem(KEY,JSON.stringify({left:parseFloat(fab.style.left),top:parseFloat(fab.style.top)}));}catch(x){}}else{toggleInput();}});
-    window.addEventListener('resize',function(){if(fab.style.left){place(parseFloat(fab.style.left),parseFloat(fab.style.top));}});
+    // 位置は positionFab() が結果に合わせて都度自動配置する。ここではタップ＝入力開閉のみ。
+    var fab=document.getElementById('fabInput'); if(!fab)return;
+    fab.addEventListener('click',function(e){ e.preventDefault(); toggleInput(); });
+  }
+  // ＋入力ボタンを「最右カラムの空きスペースの最上部」に配置（最右が空なら中央）
+  function positionFab(scrollEl){
+    var fab=document.getElementById('fabInput'); if(!fab||!scrollEl) return;
+    var deckRect=scrollEl.getBoundingClientRect(); if(!deckRect.height) return;
+    var fh=fab.offsetHeight||46;
+    var page=scrollEl.querySelector('.rpage');
+    var top;
+    if(page){
+      var cols=page.querySelectorAll(':scope>.rcol');
+      var last=cols[cols.length-1];
+      if(last && last.children.length && last.scrollHeight>24){
+        var lr=last.getBoundingClientRect();
+        top=lr.top + Math.min(last.scrollHeight, deckRect.height) + 12; // 内容の下＝空きの最上部
+      } else {
+        top=deckRect.top + deckRect.height/2 - fh/2; // 最右が空＝中央
+      }
+    } else {
+      top=deckRect.top + deckRect.height/2 - fh/2;
+    }
+    top=Math.max(deckRect.top+8, Math.min(top, deckRect.bottom - fh - 8));
+    fab.style.left='auto'; fab.style.bottom='auto'; fab.style.transform='none';
+    fab.style.right='14px'; fab.style.top=Math.round(top)+'px';
   }
 
   // ツールの初期化が終わってから変換（結果が描画済みの状態でDOMを移動）

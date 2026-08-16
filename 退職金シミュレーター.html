@@ -256,9 +256,14 @@ function salaryTotals(monthly,ageFrom,ageTo){
 /* ===== 描画 ===== */
 function renderTax(){
   var gross=num('t_gross'),join=intV('t_join'),ret=intV('t_ret'),yk=g('t_yakuin').checked;
-  var yInput=String(g('t_years').value||'').trim();
+  var ty=g('t_years'), manual=ty.getAttribute('data-manual')==='1';
+  if(!manual){ // 就任・勇退から在任年数を自動計算し、値として黒字表示（手入力があればそちら優先）
+    var auto=(ret>join)?String(ret-join):'';
+    if(ty.value!==auto){ ty.value=auto; }
+    if(auto){ ty.setAttribute('data-fpt','1'); } else { ty.removeAttribute('data-fpt'); }
+  }
+  var yInput=String(ty.value||'').trim();
   var years = yInput!=='' ? Math.max(0,intV('t_years')) : Math.max(0,ret-join);
-  if(yInput===''){try{g('t_years').placeholder=(ret-join>0?String(ret-join):'自動');}catch(e){}}
   var r=taishokuTax(gross,years,yk);
   var o='';
   o+=row('退職金額',yen(gross)+' 円');
@@ -325,7 +330,7 @@ function hero(k,v){return '<div class="orow hero"><span class="k">'+k+'</span><s
 function lin(k,v){return '<div class="lin"><span>'+k+'</span><span>'+v+' 円</span></div>';}
 
 var TAB='tax';
-function recalc(){ if(TAB==='tax')renderTax(); else if(TAB==='need')renderNeed(); else renderSave(); }
+function recalc(){ try{renderTax();}catch(e){} try{renderNeed();}catch(e){} try{renderSave();}catch(e){} } /* フェイス変換でタブが1画面化されるため3計算を常時描画 */
 
 /* 配線：金額欄整形（全角対応・フォーカスでクリア） */
 function formatYen(el){var half=zen2han(el.value);var db=half.slice(0,el.selectionStart).replace(/[^\d.]/g,'').length;var raw=half.replace(/[^\d.]/g,'');el.value=raw?Number(raw).toLocaleString('ja-JP'):'';var pos=0,c=0;if(db>0){for(var i=0;i<el.value.length;i++){var ch=el.value.charCodeAt(i);if(ch>=48&&ch<=57)c++;if(c>=db){pos=i+1;break;}}if(c<db)pos=el.value.length;}try{el.setSelectionRange(pos,pos);}catch(e){}}
@@ -333,6 +338,8 @@ function attachAmount(el){var comp=false;el.addEventListener('compositionstart',
 function attachNum(el){el.addEventListener('focus',function(){this.dataset.prev=this.value;this.value='';});el.addEventListener('blur',function(){if(this.value.trim()==='')this.value=this.dataset.prev||'';recalc();});el.addEventListener('input',function(){el.value=zen2han(el.value).replace(/[^\d]/g,'');recalc();});}
 document.querySelectorAll('input.yen').forEach(attachAmount);
 document.querySelectorAll('input.num').forEach(attachNum);
+// 在任年数を手入力したら「手動」フラグ（自動計算で上書きしない）。空にすれば自動へ復帰
+(function(){var ty=document.getElementById('t_years');if(ty)ty.addEventListener('input',function(){this.setAttribute('data-manual',this.value.trim()===''?'0':'1');},true);})();
 document.querySelectorAll('input[type=checkbox]').forEach(function(c){c.addEventListener('change',recalc);});
 document.getElementById('tabs').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;TAB=b.dataset.t;[].forEach.call(this.children,function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});document.querySelectorAll('.tab-pane').forEach(function(p){p.classList.remove('on');});document.getElementById('pane-'+TAB).classList.add('on');recalc();});
 recalc();
@@ -448,7 +455,7 @@ function fpFmt(n){if(n===0)return '0';var r=Math.round(n*10000)/10000;return r.t
 })();
 FP.init('taishoku', recalc);
 </script>
-<script src="fp-deck.js?v=15"></script>
+<script src="fp-deck.js?v=16"></script>
 <script src="fp-amount.js?v=5"></script>
 <script src="fp-pwa.js?v=4"></script>
 </body>
