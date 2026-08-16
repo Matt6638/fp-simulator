@@ -14,14 +14,14 @@
   add('meta', {name:'apple-mobile-web-app-title', content:'FP試算'});
   add('link', {rel:'apple-touch-icon', href:'apple-touch-icon.png'});
 
-  // ===== オンライン運用（毎回最新を取得） =====
-  // 開発中は頻繁に更新するため、Service Worker のオフラインキャッシュは使わない。
-  // 既に登録済みのSWがあれば解除し、キャッシュも削除して常に最新版が表示されるようにする。
+  // ===== オフライン対応（Service Worker 登録） =====
+  // sw.js は「HTMLはネットワーク優先（オンライン時は常に最新）／JS等はキャッシュ優先」。
+  // オンラインで一度開けば、以降はオフライン（iPad現地作業）でも起動できる。
+  // 更新を配る側は sw.js の CACHE バージョンを上げること（次回オンライン時に自動入替）。
   if('serviceWorker' in navigator){
-    try{ navigator.serviceWorker.getRegistrations().then(function(rs){ rs.forEach(function(r){ r.unregister(); }); }).catch(function(){}); }catch(_){}
-  }
-  if(window.caches && caches.keys){
-    try{ caches.keys().then(function(keys){ keys.forEach(function(k){ if(/^fp-cache/.test(k)) caches.delete(k); }); }).catch(function(){}); }catch(_){}
+    window.addEventListener('load', function(){
+      try{ navigator.serviceWorker.register('sw.js').catch(function(){}); }catch(_){}
+    });
   }
 
   // iOS のホーム画面アプリ(standalone)は <a> リンクを別Safariで開こうとして遷移しないため、

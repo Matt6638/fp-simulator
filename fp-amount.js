@@ -67,12 +67,31 @@
     });
   }
 
+  // 金額以外の数値欄（歳・年・％・年数・カンマ区切り等）も全角→半角に統一する。
+  // FPコアは 'input' のみで変換するが、iOSのIMEでは変換確定後に input が飛ばず
+  // 全角が残ることがあるため、compositionend/change/blur でも必ず半角化する。
+  function textish(el){ if(!el||el.tagName!=='INPUT')return false; var t=(el.getAttribute('type')||'text').toLowerCase(); return t==='text'||t==='tel'||t===''; }
+  function numericField(el){
+    var im=(el.getAttribute('inputmode')||'').toLowerCase();
+    if(im==='numeric'||im==='decimal'||el.classList.contains('num')||el.classList.contains('yen')||el.classList.contains('dec')) return true;
+    // 値が数字・区切り記号のみなら数値欄扱い（連名の年齢欄「10, 8」など。氏名等は対象外）
+    var v=el.value||'';
+    return v!=='' && /^[\d０-９.,，、。．\s\-－ー−―‐‑–—]+$/.test(v);
+  }
+  function widthFix(el){
+    if(!textish(el)||el.classList.contains('fp-money')) return; // 金額欄は fmt() が担当
+    var v=el.value; if(!v) return;
+    var nv=v.replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);});
+    if(numericField(el)) nv=nv.replace(/[．。]/g,'.').replace(/[，、]/g,',').replace(/[－ー−―‐‑–—]/g,'-');
+    if(nv!==v){ var p=el.selectionStart; el.value=nv; try{el.setSelectionRange(p,p);}catch(e){} }
+  }
+
   // 委譲リスナー（capture）。要素を移動しても document 上で有効。
   document.addEventListener('compositionstart',function(e){ var el=e.target; if(el&&el.classList&&el.classList.contains('fp-money')) el.__fpComposing=true; },true);
-  document.addEventListener('compositionend',function(e){ var el=e.target; if(el&&el.classList&&el.classList.contains('fp-money')){ el.__fpComposing=false; fmt(el); } },true);
-  document.addEventListener('input',function(e){ var el=e.target; if(el&&el.classList&&el.classList.contains('fp-money')){ if(el.__fpComposing||e.isComposing)return; fmt(el); } },true);
-  document.addEventListener('change',function(e){ var el=e.target; if(el&&el.classList&&el.classList.contains('fp-money')&&!el.__fpComposing) fmt(el); },true);
-  document.addEventListener('blur',function(e){ var el=e.target; if(el&&el.classList&&el.classList.contains('fp-money')&&!el.__fpComposing) fmt(el); },true);
+  document.addEventListener('compositionend',function(e){ var el=e.target; if(!el||!el.classList)return; if(el.classList.contains('fp-money')){ el.__fpComposing=false; fmt(el); } else { widthFix(el); } },true);
+  document.addEventListener('input',function(e){ var el=e.target; if(!el||!el.classList)return; if(el.classList.contains('fp-money')){ if(el.__fpComposing||e.isComposing)return; fmt(el); } else { if(e.isComposing)return; widthFix(el); } },true);
+  document.addEventListener('change',function(e){ var el=e.target; if(!el||!el.classList)return; if(el.classList.contains('fp-money')){ if(!el.__fpComposing) fmt(el); } else { widthFix(el); } },true);
+  document.addEventListener('blur',function(e){ var el=e.target; if(!el||!el.classList)return; if(el.classList.contains('fp-money')){ if(!el.__fpComposing) fmt(el); } else { widthFix(el); } },true);
 
   // 全ツール共通：入力欄で Return(Enter) を押したらその欄を確定（フォーカスを外す）
   document.addEventListener('keydown',function(e){

@@ -33,7 +33,7 @@
     +'.deck-result .rcol-kpi{flex:0 0 clamp(300px,26%,380px);max-width:380px;}' // KPI帯＝左を大きめに（内容が収まる幅）
     +'.deck-result .rcol-kpi .result-cards{flex-direction:column;}'
     +'.deck-result .rcol-kpi .result-cards>*{flex:1 1 auto;max-width:none;min-width:0;}'
-    +'.deck-result .rcol-notes{flex:0 0 clamp(260px,22%,330px);max-width:330px;}' // 注記＝折返し可なので右を細く'
+    +'.deck-result .rcol-notes{flex:1 1 0;max-width:340px;}' // 注記＝折返し可なので細めに（データ列に幅を譲る）'
     +'.deck-result .rcol>*{margin:0;max-width:100%;min-width:0;}'
     +'.deck-result .rcol>.fp-rhead{margin-bottom:-4px;}'
     // 結果内テーブルは固定レイアウト＋折返しでカラム幅に必ず収める（横スワイプ不要）
@@ -190,7 +190,7 @@
     try{
       var deckH=scrollEl.clientHeight; if(!deckH||deckH<80){ deckH=99999; }
       var pageW=scrollEl.clientWidth||1000;
-      var GAP=16, COLW=340, PAD=28, KPIW=250; // PAD=.rpage左右padding(14*2)
+      var GAP=16, COLW=268, PAD=28, KPIW=300; // COLW=1カラムの最小目安幅／KPIW=左KPI列の実幅(CSSと一致)
       // ソースを原子ブロックへ分解
       var srcBlocks=[];
       Array.prototype.slice.call(dock.children).forEach(function(c){ atomize(c, deckH, srcBlocks); });
@@ -215,27 +215,50 @@
       dock.removeChild(meas);
       var kpiItems=items.filter(function(x){return x.kpi;});
       var rest=items.filter(function(x){return !x.kpi;});
-      // その他の必要カラム数（内容量に応じて。少なければ列も減らす）
-      var totalRest=0; rest.forEach(function(it){ totalRest+=it.h+GAP; });
+      // ブロックを「ユニット」にまとめる：凡例→直前へ、見出し(.sec-h等)→直後へ結合し、はぐれ防止
+      function isHead(n){ return isCls(n,'sec-h')||isCls(n,'chart-h')||isCls(n,'fp-rhead')||isCls(n,'sub'); }
+      function hasTag(n,tag){ return n&&(n.tagName===tag||(n.querySelector&&n.querySelector(tag.toLowerCase()))); }
+      var units=[];
+      rest.forEach(function(it){
+        if(it.legend && units.length){ var u=units[units.length-1]; u.items.push(it.node); u.h+=GAP+it.h; return; }
+        units.push({items:[it.node], h:it.h, head:isHead(it.node)});
+      });
+      var uni=[];
+      for(var i=0;i<units.length;i++){
+        var u=units[i];
+        if(u.head && u.items.length===1 && units[i+1]){ var n=units[i+1]; n.items=u.items.concat(n.items); n.h+=GAP+u.h; }
+        else uni.push(u);
+      }
+      // 各ユニットの性質（表/グラフを含むか）
+      uni.forEach(function(u){ u.hasData=u.items.some(function(n){ return hasTag(n,'TABLE')||hasTag(n,'SVG'); }); });
+      // カラム数（内容量に応じて。幅で入る本数を上限）
+      var totalRest=0; uni.forEach(function(u){ totalRest+=u.h+GAP; });
       var maxRestCols=hasKpi?K:Kfull;
-      var restCols=Math.max(1, Math.min(maxRestCols, Math.ceil(totalRest/deckH)));
-      var target=totalRest/restCols; // 各カラムの目安高さ（順序を保ったまま均す）
+      var restCols=Math.max(1, Math.min(maxRestCols, Math.ceil(totalRest/(deckH*0.95))));
 
       scrollEl.innerHTML='';
-      var p=document.createElement('div'); p.className='rpage'; scrollEl.appendChild(p);
-      if(hasKpi){ var kc=document.createElement('div'); kc.className='rcol rcol-kpi'; p.appendChild(kc); kpiItems.forEach(function(it){ kc.appendChild(it.node); }); }
-      var cols=[];
-      for(var i=0;i<restCols;i++){ var c=document.createElement('div'); c.className='rcol'; p.appendChild(c); cols.push({el:c,h:0}); }
-      // その他：文書順にカラムを埋め、目安高さを超えたら次カラムへ（グラフ→凡例→表を隣接維持）
-      var ci=0;
-      rest.forEach(function(it,k){
-        cols[ci].el.appendChild(it.node);
-        cols[ci].h += (cols[ci].h>0?GAP:0)+it.h;
-        var next=rest[k+1];
-        if(cols[ci].h>=target && ci<cols.length-1 && !(next&&next.legend)){ ci++; }
+      function newPage(){
+        var p=document.createElement('div'); p.className='rpage'; scrollEl.appendChild(p);
+        if(hasKpi){ var kc=document.createElement('div'); kc.className='rcol rcol-kpi'; p.appendChild(kc); }
+        var cs=[]; for(var i=0;i<restCols;i++){ var c=document.createElement('div'); c.className='rcol'; p.appendChild(c); cs.push({el:c,h:0}); }
+        return {kc:hasKpi?p.querySelector('.rcol-kpi'):null, cols:cs};
+      }
+      var page=newPage();
+      if(page.kc) kpiItems.forEach(function(it){ page.kc.appendChild(it.node); });
+      // ファーストフィット：文書順に、収まる最初のカラムへ（収まらなければ次ページ）。表・グラフは切らない
+      uni.forEach(function(u){
+        var cols=page.cols, idx=-1;
+        for(var i=0;i<cols.length;i++){ if(cols[i].h===0 || cols[i].h+GAP+u.h<=deckH+2){ idx=i; break; } }
+        if(idx<0){
+          if(u.h<=deckH){ page=newPage(); cols=page.cols; idx=0; }
+          else { idx=0; for(var j=1;j<cols.length;j++){ if(cols[j].h<cols[idx].h) idx=j; } } // 1画面超の巨大ブロックは最短列へ（縦スクロール）
+        }
+        u.items.forEach(function(n){ cols[idx].el.appendChild(n); });
+        cols[idx].h += (cols[idx].h>0?GAP:0)+u.h;
+        cols[idx].text = cols[idx].text!==false && !u.hasData; // 表/グラフが無ければ文章列
       });
-      // KPI帯付きツールで2カラム以上なら、最後のカラム（注記が入る）は細く
-      if(hasKpi && cols.length>=2) cols[cols.length-1].el.className+=' rcol-notes';
+      // 文章だけのカラム（注記）は幅を抑える
+      if(hasKpi){ scrollEl.querySelectorAll('.rpage').forEach(function(pg){ var cs=pg.querySelectorAll('.rcol:not(.rcol-kpi)'); cs.forEach(function(c){ var hasData=!!c.querySelector('table,svg'); if(!hasData && c.children.length && cs.length>1) c.className+=' rcol-notes'; }); }); }
       buildDots(scrollEl, dotsId);
     } finally { scrollEl.__pg=false; }
   }
