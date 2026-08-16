@@ -32,9 +32,9 @@
     +'.deck-result .rcol{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:12px;}'
     +'.deck-result .rcol>*{margin:0;max-width:100%;min-width:0;}'
     +'.deck-result .rcol>.fp-rhead{margin-bottom:-4px;}'
-    +'.deck-result .rcol table{width:100%;font-size:10.5px;table-layout:auto;}'
-    +'.deck-result .rcol table th,.deck-result .rcol table td{padding:3px 5px;}'
-    +'.deck-result .rcol>*{overflow-x:auto;}' // 表など幅が余る時はブロック内で横スクロール（欠けさせない）
+    // 結果内テーブルは固定レイアウト＋折返しでカラム幅に必ず収める（横スワイプ不要）
+    +'.deck-result .rcol table{width:100%;font-size:10px;table-layout:fixed;}'
+    +'.deck-result .rcol table th,.deck-result .rcol table td{padding:3px 4px;white-space:normal;overflow-wrap:anywhere;word-break:break-word;line-height:1.3;}'
     +'.deck-result .rcol .chartwrap{overflow-x:auto;}'
     +'.deck-result .rv{overflow-wrap:anywhere;word-break:break-word;}'
     // 説明文は本文の上に横いっぱいで1回だけ（カラムに混ぜない）
