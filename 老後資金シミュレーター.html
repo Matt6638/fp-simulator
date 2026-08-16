@@ -883,7 +883,7 @@ window.addEventListener('resize',function(){buildDots('outBody','rDots');buildDo
 /* ＋ボタン（FAB）をドラッグで移動可能に。動かさずに離せば入力トグル。位置は保存 */
 function makeFabDraggable(){
   var fab=document.getElementById('fabInput'); if(!fab)return;
-  var KEY='fp:fabpos';
+  var KEY='fp:fabpos2';
   function place(l,t){ l=Math.min(window.innerWidth-fab.offsetWidth-4,Math.max(4,l)); t=Math.min(window.innerHeight-fab.offsetHeight-4,Math.max(4,t)); fab.style.left=l+'px'; fab.style.top=t+'px'; fab.style.right='auto'; fab.style.bottom='auto'; fab.style.transform='none'; }
   try{var p=JSON.parse(localStorage.getItem(KEY)||'null'); if(p&&p.left!=null){ place(p.left,p.top); }}catch(e){}
   fab.style.touchAction='none';
