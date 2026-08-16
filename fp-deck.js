@@ -40,7 +40,9 @@
     // 入力欄はグリッドで整列（ラベル高さがバラついても上揃え・列がそろう）
     +'.deck-input .panel-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px 18px;align-items:start;}'
     // 入れ子の枠（条件表示ボックス・2列行など）は横いっぱいに広げ、内部も同じグリッドで整列
-    +'.deck-input .panel-body>div:not(.field):not(.grp):not(.sub):not(.hint):not(.hide):not([hidden]),.deck-input .row2,.deck-input .row3,.deck-input #kouseiBox,.deck-input #kokuminBox{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px 18px;align-items:start;margin:0;}'
+    +'.deck-input .panel-body>div:not(.field):not(.grp):not(.sub):not(.hint):not(.row2):not(.row3):not(.hide):not([hidden]),.deck-input #kouseiBox,.deck-input #kokuminBox{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px 18px;align-items:start;margin:0;}'
+    // 2列行は「枠」を消して中の欄を親グリッドへ流し込む（右の余白を作らず詰める）
+    +'.deck-input .row2,.deck-input .row3{display:contents;}'
     // カテゴリ見出しは横いっぱいの区切り線に
     +'.deck-input .grp,.deck-input .sub,.deck-input .subhead{grid-column:1/-1;font-size:11.5px;font-weight:700;color:var(--brass-deep,#7d6240);letter-spacing:.04em;border-bottom:1px solid var(--rule,#e3ddcf);padding:2px 0 5px;margin:10px 0 0;}'
     +'.deck-input .grp:first-child,.deck-input .sub:first-child{margin-top:0;}'
@@ -48,7 +50,9 @@
     +'.deck-input .field{width:auto;min-width:0;margin:0;align-self:start;}'
     +'.deck-input .field .lab,.deck-input .field label{display:block;min-height:2.4em;}' // ラベル高さを揃えて枠の頭を合わせる
     // 説明文・ボタン・セグメント/トグルを含む欄は横いっぱい
-    +'.deck-input .panel-body>.hint,.deck-input .panel-body>button,.deck-input .panel-body>.btn,.deck-input .field:has(.seg),.deck-input .field:has(.toggle),.deck-input .field:has(textarea),.deck-input .field.wide{grid-column:1/-1;}'
+    +'.deck-input .panel-body>.hint,.deck-input .panel-body>button,.deck-input .panel-body>.btn,.deck-input .field:has(.toggle),.deck-input .field:has(textarea),.deck-input .field.wide{grid-column:1/-1;}'
+    // セグメント選択欄は最低限の幅（2列ぶん）に。夫/妻・会社員/自営業などが横に並び右を無駄にしない
+    +'.deck-input .field:has(.seg){grid-column:span 2;max-width:480px;}'
     +'.deck-input .field:has(.seg) .lab,.deck-input .field:has(.toggle) .lab{min-height:0;}'
     // 入力/セレクトはセル幅いっぱい
     +'.deck-input .field input[type=text],.deck-input .field input.yen,.deck-input .field input.num,.deck-input .field input[inputmode],.deck-input .field select{width:100%!important;max-width:none;box-sizing:border-box;}'
