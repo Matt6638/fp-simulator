@@ -233,7 +233,9 @@ function computeTax(cfg){
   total=Math.round(total);
   const nozei=Math.round(total*(1-spouseShare)); // 配偶者軽減後（法定相続分で分割前提）
   const totalBurden=nozei+ichijiTax; // 相続税＋（一時所得パターンなら所得税）
-  return {category,heirCount,adoptedCounted,adoptedInput:adoptedChildren,realChildren,kiso,hikazeiIns,taxIns,insurance,insMode,ichijiTax,hikazeiRet,taxRet,retirement,kazeiKakaku,kazeiIsan,total,nozei,totalBurden,spouse,spouseShare,catCount,perCatShare};
+  const grossReceived=Math.max(0, assets+insurance+retirement-debts); // 世帯が受け取る総額（税引前）
+  const netAfterTax=Math.max(0, grossReceived-totalBurden);            // 手残り総額（税引後）
+  return {category,heirCount,adoptedCounted,adoptedInput:adoptedChildren,realChildren,kiso,hikazeiIns,taxIns,insurance,insMode,ichijiTax,hikazeiRet,taxRet,retirement,kazeiKakaku,kazeiIsan,total,nozei,totalBurden,grossReceived,netAfterTax,spouse,spouseShare,catCount,perCatShare};
 }
 
 /* ===== UI ===== */
@@ -276,8 +278,20 @@ function render(r,noAdopt,cfg,insSouzoku,insIchiji){
     const better=insSouzoku.totalBurden<=insIchiji.totalBurden?'相続税':'一時所得';
     const diff=Math.abs(insSouzoku.totalBurden-insIchiji.totalBurden);
     html+=`<div class="rc saving" style="background:#eef2fa;border-color:#c3d2ea;"><div class="k">生命保険金の課税パターン比較（保険金 ${yen(r.insurance)}円）</div>
-      <div class="v" style="color:var(--ink);">${better}パターンが有利<small>（差 ${yen(diff)}円）</small></div>
-      <div class="note">相続税パターン：世帯負担 ${yen(insSouzoku.totalBurden)}円（500万×${r.heirCount}人が非課税）。一時所得パターン：世帯負担 ${yen(insIchiji.totalBurden)}円（相続税 ${yen(insIchiji.nozei)}＋一時所得税 ${yen(insIchiji.ichijiTax)}）。契約形態で税目が変わります。一時所得は(保険金−払込−50万)×1/2課税なので、相続税率が高い家庭で有利になりやすい。</div></div>`;
+      <div class="v" style="color:var(--ink);">${better}パターンが有利<small>（手残りが ${yen(diff)}円多い）</small></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 4px;">
+        <div style="flex:1 1 150px;border:1px solid #c3d2ea;border-radius:8px;padding:8px 10px;background:#fff;">
+          <div style="font-size:11px;color:var(--ink-soft);">相続税パターンの手残り総額</div>
+          <div style="font-family:var(--mincho);font-size:18px;font-weight:700;color:${better==='相続税'?'var(--credit)':'var(--ink)'};">${yen(insSouzoku.netAfterTax)}<small style="font-size:11px;"> 円</small></div>
+          <div style="font-size:10.5px;color:#8a8470;">税負担 ${yen(insSouzoku.totalBurden)}円（500万×${r.heirCount}人が非課税）</div>
+        </div>
+        <div style="flex:1 1 150px;border:1px solid #c3d2ea;border-radius:8px;padding:8px 10px;background:#fff;">
+          <div style="font-size:11px;color:var(--ink-soft);">一時所得パターンの手残り総額</div>
+          <div style="font-family:var(--mincho);font-size:18px;font-weight:700;color:${better==='一時所得'?'var(--credit)':'var(--ink)'};">${yen(insIchiji.netAfterTax)}<small style="font-size:11px;"> 円</small></div>
+          <div style="font-size:10.5px;color:#8a8470;">税負担 ${yen(insIchiji.totalBurden)}円（相続税${yen(insIchiji.nozei)}＋所得税${yen(insIchiji.ichijiTax)}）</div>
+        </div>
+      </div>
+      <div class="note">手残り総額＝相続財産＋保険金＋退職金−債務−税負担。契約形態で税目が変わります。一時所得は(保険金−払込−50万)×1/2課税なので、相続税率が高い家庭で有利になりやすい。</div></div>`;
   }
 
   if(r.category==='children' && r.adoptedInput>0){
