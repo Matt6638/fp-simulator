@@ -29,10 +29,11 @@
     +'.deck-result .deck-scroll{flex:1 1 auto;min-height:0;display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}'
     // 各ページは複数カラムに縦詰め（マソンリー）＝上から順に埋め、横幅を無駄にしない
     +'.deck-result .deck-scroll>.rpage{flex:0 0 100%;scroll-snap-align:start;min-width:0;height:100%;overflow-y:auto;padding:10px 14px;box-sizing:border-box;display:flex;gap:16px;align-items:flex-start;}'
-    +'.deck-result .rcol{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:12px;}'
-    +'.deck-result .rcol-kpi{flex:0 0 250px;max-width:250px;}' // KPI帯は細い左カラムに固定
+    +'.deck-result .rcol{flex:1 1 0;min-width:0;max-width:720px;display:flex;flex-direction:column;gap:12px;}' // 中央（グラフ＋表）は大きく、広すぎは抑制
+    +'.deck-result .rcol-kpi{flex:0 0 clamp(300px,26%,380px);max-width:380px;}' // KPI帯＝左を大きめに（内容が収まる幅）
     +'.deck-result .rcol-kpi .result-cards{flex-direction:column;}'
-    +'.deck-result .rcol-kpi .result-cards>*{flex:1 1 auto;max-width:none;}'
+    +'.deck-result .rcol-kpi .result-cards>*{flex:1 1 auto;max-width:none;min-width:0;}'
+    +'.deck-result .rcol-notes{flex:0 0 clamp(260px,22%,330px);max-width:330px;}' // 注記＝折返し可なので右を細く'
     +'.deck-result .rcol>*{margin:0;max-width:100%;min-width:0;}'
     +'.deck-result .rcol>.fp-rhead{margin-bottom:-4px;}'
     // 結果内テーブルは固定レイアウト＋折返しでカラム幅に必ず収める（横スワイプ不要）
@@ -233,6 +234,8 @@
         var next=rest[k+1];
         if(cols[ci].h>=target && ci<cols.length-1 && !(next&&next.legend)){ ci++; }
       });
+      // KPI帯付きツールで2カラム以上なら、最後のカラム（注記が入る）は細く
+      if(hasKpi && cols.length>=2) cols[cols.length-1].el.className+=' rcol-notes';
       buildDots(scrollEl, dotsId);
     } finally { scrollEl.__pg=false; }
   }
