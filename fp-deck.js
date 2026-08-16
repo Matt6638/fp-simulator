@@ -25,23 +25,34 @@
     +'.deck-head .no{font-family:var(--mono,monospace);font-size:11px;color:var(--brass,#9a7b4f);}'
     +'.deck-head b{font-family:var(--mincho,serif);font-size:14px;font-weight:600;letter-spacing:.03em;}'
     +'.deck-close{margin-left:auto;font:600 12.5px var(--gothic,sans-serif);color:#fff;background:var(--brass,#9a7b4f);border:1px solid var(--brass-deep,#7d6240);border-radius:7px;padding:6px 16px;cursor:pointer;}'
-    +'.deck-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}'
-    +'.deck-scroll>.rpage,.deck-scroll>.ipage{min-width:0;padding:12px 16px;}'
-    +'.deck-result #fpOutPage{display:flex;flex-wrap:wrap;gap:10px 18px;align-content:flex-start;align-items:flex-start;}'
-    +'.deck-result #fpOutPage>*{flex:1 1 340px;min-width:0;max-width:560px;margin:0;}'
-    +'.deck-result #fpOutPage>.fp-sub{flex-basis:100%;max-width:none;}'
-    +'.deck-result #fpOutPage>.fp-rhead{flex-basis:100%;max-width:none;}'
-    +'.deck-result .panel .rv,.deck-result .result .rv{overflow-wrap:anywhere;word-break:break-word;}'
+    // 結果：横スワイプでページ送り（1画面に収め、あふれたら次ページ）
+    +'.deck-result .deck-scroll{flex:1 1 auto;min-height:0;display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}'
+    +'.deck-result .deck-scroll>.rpage{flex:0 0 100%;scroll-snap-align:start;min-width:0;height:100%;overflow-y:auto;padding:10px 14px;box-sizing:border-box;}'
+    // 各ページ内は2〜3カラムで詰める（左右の幅を活用）
+    +'.deck-result .rpage{display:flex;flex-wrap:wrap;gap:8px 16px;align-content:flex-start;align-items:flex-start;}'
+    +'.deck-result .rpage>*{flex:1 1 300px;min-width:0;max-width:560px;margin:0;}'
+    +'.deck-result .rpage>.fp-sub,.deck-result .rpage>.fp-rhead{flex-basis:100%;max-width:none;}'
+    +'.deck-result .rv{overflow-wrap:anywhere;word-break:break-word;}'
+    // 入力：縦スクロール。欄は細く・多列で1画面に多く並べる
+    +'.deck-input .deck-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}'
+    +'.deck-input .deck-scroll>.ipage{min-width:0;padding:10px 14px;}'
+    +'.deck-input .panel{margin:0 0 8px!important;box-shadow:none;}'
+    +'.deck-input .panel-body{display:flex;flex-wrap:wrap;gap:0 16px;align-items:flex-start;}'
+    +'.deck-input .field{flex:0 0 auto;width:190px;margin-bottom:8px;}'
+    +'.deck-input .field:has(.seg),.deck-input .field:has(.toggle),.deck-input .field:has(textarea),.deck-input .field.wide{width:100%;max-width:430px;}'
+    +'.deck-input .field input[type=text],.deck-input .field input.yen,.deck-input .field input.num,.deck-input .field input[inputmode]{width:100%!important;box-sizing:border-box;}'
+    +'.deck-input .field select{max-width:190px;}'
     +'.deck-input{position:fixed;left:8px;right:8px;bottom:0;height:58vh;max-height:660px;transform:translateY(108%);transition:transform .28s ease;z-index:30;border-radius:12px 12px 0 0;box-shadow:0 -12px 34px -12px rgba(0,0,0,.45);}'
     +'.deck-input.open{transform:translateY(0);}'
-    +'.fab-input{position:fixed;right:12px;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;background:var(--brass,#9a7b4f);color:#fff;border:1px solid var(--brass-deep,#7d6240);cursor:pointer;box-shadow:0 8px 20px -8px rgba(0,0,0,.5);z-index:45;display:flex;align-items:center;justify-content:center;padding:0;}'
-    +'.fab-input .fab-plus{font-size:26px;line-height:1;transition:transform .22s ease;}'
-    +'.fab-input::after{content:"入力";position:absolute;bottom:-13px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--brass-deep,#7d6240);font-weight:700;}'
+    +'.fab-input{position:fixed;left:14px;bottom:14px;top:auto;right:auto;transform:none;width:46px;height:46px;border-radius:50%;background:var(--brass,#9a7b4f);color:#fff;border:1px solid var(--brass-deep,#7d6240);cursor:pointer;box-shadow:0 8px 20px -8px rgba(0,0,0,.5);z-index:45;display:flex;align-items:center;justify-content:center;padding:0;}'
+    +'.fab-input .fab-plus{font-size:25px;line-height:1;transition:transform .22s ease;}'
     +'.fab-input.on .fab-plus{transform:rotate(45deg);}'
     +'.fp-sub{font-size:11px;color:var(--ink-soft,#46506a);margin:0 0 8px;}'
-    +'.fp-rhead{font-family:var(--mincho,serif);font-size:13px;font-weight:600;color:var(--brass-deep,#7d6240);margin:10px 0 3px;border-left:3px solid var(--brass,#9a7b4f);padding-left:7px;}'
-    +'.deck-input .panel,.deck-input .grid{margin:0 0 10px!important;box-shadow:none;}'
+    +'.fp-rhead{font-family:var(--mincho,serif);font-size:13px;font-weight:600;color:var(--brass-deep,#7d6240);margin:0 0 3px;border-left:3px solid var(--brass,#9a7b4f);padding-left:7px;}'
     +'.deck-result .panel{box-shadow:none;border:1px solid var(--rule,#e3ddcf);}'
+    +'.deck-result .fp-dock{position:fixed;left:-100000px;top:0;width:360px;visibility:hidden;pointer-events:none;}'
+    +'.deck-result .rpage>.panel-head{display:none;}' // デッキ見出し（結果）と重複するため非表示
+    +'.deck-result .rpage>.result-cards{flex-basis:100%;max-width:none;}' // KPI帯は横いっぱいに
     +'@media print{.side,.deck-input,.fab-input{display:none!important;}.wrap{display:block!important;height:auto!important;overflow:visible!important;}.deck-result{border:none;box-shadow:none;}.deck-scroll{overflow:visible!important;}}';
     var st=document.createElement('style'); st.id='fpDeckCSS'; st.textContent=css; document.head.appendChild(st);
   }
@@ -92,14 +103,15 @@
     // メイン（結果デッキ＋入力ドロワー）
     var main=document.createElement('main'); main.className='main';
     var deckR=document.createElement('section'); deckR.className='deck deck-result';
-    deckR.innerHTML='<div class="deck-head"><span class="no">結果</span><b>結果</b></div><div class="deck-scroll"><div class="rpage" id="fpOutPage"></div></div>';
+    deckR.innerHTML='<div class="deck-head"><span class="no">結果</span><b>結果</b><span class="deck-hint" style="margin-left:8px;color:var(--brass-deep,#7d6240);font-size:10.5px;">スワイプで次ページ</span><span class="deck-dots" id="fpRDots" style="margin-left:auto;display:flex;gap:5px;align-items:center;"></span></div><div class="deck-scroll"></div><div class="fp-dock" id="fpDock"></div>';
     var deckI=document.createElement('section'); deckI.className='deck deck-input'; deckI.id='deckInput';
     var closeBtn='<button type="button" class="deck-close">完了 ✓</button>';
     deckI.innerHTML='<div class="deck-head"><span class="no">入力</span><b>入力</b>'+closeBtn+'</div><div class="deck-scroll"><div class="ipage" id="fpInPage"></div></div>';
     deckI.querySelector('.deck-close').addEventListener('click',closeInput);
     main.appendChild(deckR); main.appendChild(deckI);
 
-    var outPage=deckR.querySelector('#fpOutPage'), inPage=deckI.querySelector('#fpInPage');
+    var dock=deckR.querySelector('#fpDock');
+    var outPage=dock, inPage=deckI.querySelector('#fpInPage');
     if(sub){ var s2=sub.cloneNode(true); s2.className='fp-sub'; outPage.appendChild(s2); }
 
     // 既存コンテンツを分類（タブ/グリッドの入れ子にも対応）
@@ -122,6 +134,64 @@
     document.body.appendChild(fab);
     makeFabDraggable();
     var lm=document.lastModified||''; var mm=lm.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})[ ,]+(\d{1,2}):(\d{2})/); stamp.textContent=mm?('更新 '+mm[1]+'/'+mm[2]+'\n'+mm[4]+':'+mm[5]):'';
+    // 結果を1画面ごとの横ページに分割（あふれたら次ページ＝右スワイプ）
+    // 実データはドックに保持し、可視ページには複製を配置。再計算のたびに再分割する。
+    var rScroll=deckR.querySelector('.deck-scroll');
+    var repag=function(){ repaginate(rScroll,'fpRDots',dock); };
+    repag();
+    var rzT; window.addEventListener('resize',function(){ clearTimeout(rzT); rzT=setTimeout(repag,120); });
+    try{
+      var mo=new MutationObserver(function(){ clearTimeout(rScroll.__moTO); rScroll.__moTO=setTimeout(repag,60); });
+      mo.observe(dock,{childList:true,subtree:true,characterData:true});
+    }catch(e){}
+  }
+
+  // ドック内のソースを、1画面に収まる原子ブロックへ分解する（背の高い入れ物は子へ降りる）
+  function atomize(node, deckH, out){
+    if(!node || node.nodeType!==1) return;
+    var kids=Array.prototype.filter.call(node.children, function(k){ return k.nodeType===1; });
+    if(kids.length>1 && node.offsetHeight > deckH*0.9){
+      kids.forEach(function(k){ atomize(k, deckH, out); });
+    } else {
+      out.push(node);
+    }
+  }
+  // 結果コンテンツを、デッキの高さに収まるよう複数の .rpage へ複製配置する。
+  // ソース(dock)は破壊せず読むだけ＝再計算(outBody書換)のたびに再実行できる。
+  function repaginate(scrollEl, dotsId, dock){
+    if(!scrollEl || !dock) return;
+    if(scrollEl.__pg) return; scrollEl.__pg=true;
+    try{
+      var deckH=scrollEl.clientHeight; if(!deckH||deckH<80){ deckH=99999; }
+      var srcBlocks=[];
+      Array.prototype.slice.call(dock.children).forEach(function(c){ atomize(c, deckH, srcBlocks); });
+      scrollEl.innerHTML='';
+      function mk(){ var p=document.createElement('div'); p.className='rpage'; scrollEl.appendChild(p); return p; }
+      var page=mk();
+      srcBlocks.forEach(function(src){
+        var clone=src.cloneNode(true);
+        if(clone.removeAttribute) clone.removeAttribute('id');
+        if(clone.querySelectorAll){ Array.prototype.forEach.call(clone.querySelectorAll('[id]'), function(e){ e.removeAttribute('id'); }); }
+        page.appendChild(clone);
+        if(page.scrollHeight > deckH+6 && page.children.length>1){
+          var np=mk(); np.appendChild(clone); page=np; // appendChild が旧ページから移動
+        }
+      });
+      buildDots(scrollEl, dotsId);
+    } finally { scrollEl.__pg=false; }
+  }
+
+  // スワイプ位置に応じたドット表示
+  function buildDots(scrollEl, dotsId){
+    var dc=document.getElementById(dotsId); if(!dc) return;
+    var n=scrollEl.querySelectorAll(':scope>.rpage').length;
+    dc.style.display = n<2 ? 'none' : 'flex';
+    var hint=scrollEl.parentNode.querySelector('.deck-hint'); if(hint) hint.style.display = n<2 ? 'none' : '';
+    dc.innerHTML='';
+    if(n<2) return;
+    for(var i=0;i<n;i++){ (function(i){ var d=document.createElement('i'); d.style.cssText='width:8px;height:8px;border-radius:50%;background:var(--rule,#e3ddcf);display:inline-block;cursor:pointer;'; d.addEventListener('click',function(){ scrollEl.scrollTo({left:i*scrollEl.clientWidth,behavior:'smooth'}); }); dc.appendChild(d); })(i); }
+    var upd=function(){ var w=scrollEl.clientWidth||1; var idx=Math.round(scrollEl.scrollLeft/w); Array.prototype.forEach.call(dc.children,function(d,i){ d.style.background = i===idx ? 'var(--brass,#9a7b4f)' : 'var(--rule,#e3ddcf)'; }); };
+    scrollEl.onscroll=upd; upd();
   }
 
   function openInput(){var d=document.getElementById('deckInput');if(d)d.classList.add('open');['btnInput','fabInput'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.add('on');});}

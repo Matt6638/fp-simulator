@@ -74,6 +74,21 @@
   document.addEventListener('change',function(e){ var el=e.target; if(el&&el.classList&&el.classList.contains('fp-money')&&!el.__fpComposing) fmt(el); },true);
   document.addEventListener('blur',function(e){ var el=e.target; if(el&&el.classList&&el.classList.contains('fp-money')&&!el.__fpComposing) fmt(el); },true);
 
+  // 全ツール共通：入力欄で Return(Enter) を押したらその欄を確定（フォーカスを外す）
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Enter' && e.keyCode!==13) return;
+    if(e.isComposing) return; // IME変換確定のEnterは対象外
+    var el=e.target;
+    if(el && el.tagName==='INPUT'){
+      var t=(el.getAttribute('type')||'text').toLowerCase();
+      if(t==='checkbox'||t==='radio'||t==='button'||t==='submit'||t==='file') return;
+      e.preventDefault();
+      if(el.__fpComposing) el.__fpComposing=false;
+      fmt&&el.classList&&el.classList.contains('fp-money')&&fmt(el);
+      el.blur(); // 確定＝カーソルを外す・キーボードを閉じる
+    }
+  }, false);
+
   function boot(){ markAll(document); }
   if(document.readyState!=='loading') setTimeout(boot,0); else document.addEventListener('DOMContentLoaded',boot);
   // 遅延生成される入力欄にも対応（結果再描画等の後）

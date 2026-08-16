@@ -42,7 +42,7 @@
   .fpbtn-input.on{background:var(--brass-deep)!important;}
   #btnInput{display:none;}  /* サイドバーの入力ボタンはFABに集約 */
   /* 入力FAB（右下の＋ボタン）。印刷では非表示 */
-  .fab-input{position:fixed;right:22px;bottom:22px;width:60px;height:60px;border-radius:50%;background:var(--brass);color:#fff;border:1px solid var(--brass-deep);cursor:pointer;box-shadow:0 10px 26px -8px rgba(0,0,0,.55);z-index:45;display:flex;align-items:center;justify-content:center;padding:0;transition:transform .22s ease,background .2s;}
+  .fab-input{position:fixed;left:14px;bottom:14px;width:60px;height:60px;border-radius:50%;background:var(--brass);color:#fff;border:1px solid var(--brass-deep);cursor:pointer;box-shadow:0 10px 26px -8px rgba(0,0,0,.55);z-index:45;display:flex;align-items:center;justify-content:center;padding:0;transition:transform .22s ease,background .2s;}
   .fab-input .fab-plus{font-size:32px;line-height:1;font-weight:400;transition:transform .22s ease;}
   .fab-input::after{content:"入力";position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--brass-deep);font-weight:700;letter-spacing:.04em;}
   .fab-input:hover{background:var(--brass-deep);}
@@ -745,7 +745,7 @@ function fpFmt(n){if(n===0)return '0';var r=Math.round(n*10000)/10000;return r.t
 })();
 FP.init('tsuma', simulate);
 </script>
-<script src="fp-amount.js?v=3"></script>
-<script src="fp-pwa.js?v=2"></script>
+<script src="fp-amount.js?v=4"></script>
+<script src="fp-pwa.js?v=3"></script>
 </body>
 </html>
