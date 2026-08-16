@@ -36,12 +36,23 @@
     // 入力：縦スクロール。欄は細く・多列で1画面に多く並べる
     +'.deck-input .deck-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}'
     +'.deck-input .deck-scroll>.ipage{min-width:0;padding:10px 14px;}'
-    +'.deck-input .panel{margin:0 0 8px!important;box-shadow:none;}'
-    +'.deck-input .panel-body{display:flex;flex-wrap:wrap;gap:0 16px;align-items:flex-start;}'
-    +'.deck-input .field{flex:0 0 auto;width:190px;margin-bottom:8px;}'
-    +'.deck-input .field:has(.seg),.deck-input .field:has(.toggle),.deck-input .field:has(textarea),.deck-input .field.wide{width:100%;max-width:430px;}'
-    +'.deck-input .field input[type=text],.deck-input .field input.yen,.deck-input .field input.num,.deck-input .field input[inputmode]{width:100%!important;box-sizing:border-box;}'
-    +'.deck-input .field select{max-width:190px;}'
+    +'.deck-input .panel{margin:0 0 8px!important;box-shadow:none;padding:0;border:none;background:none;}'
+    // 入力欄はグリッドで整列（ラベル高さがバラついても上揃え・列がそろう）
+    +'.deck-input .panel-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px 18px;align-items:start;}'
+    // 入れ子の枠（条件表示ボックス・2列行など）は横いっぱいに広げ、内部も同じグリッドで整列
+    +'.deck-input .panel-body>div:not(.field):not(.grp):not(.sub):not(.hint):not(.hide):not([hidden]),.deck-input .row2,.deck-input .row3,.deck-input #kouseiBox,.deck-input #kokuminBox{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px 18px;align-items:start;margin:0;}'
+    // カテゴリ見出しは横いっぱいの区切り線に
+    +'.deck-input .grp,.deck-input .sub,.deck-input .subhead{grid-column:1/-1;font-size:11.5px;font-weight:700;color:var(--brass-deep,#7d6240);letter-spacing:.04em;border-bottom:1px solid var(--rule,#e3ddcf);padding:2px 0 5px;margin:10px 0 0;}'
+    +'.deck-input .grp:first-child,.deck-input .sub:first-child{margin-top:0;}'
+    // フィールドは各セル。上揃えで整列
+    +'.deck-input .field{width:auto;min-width:0;margin:0;align-self:start;}'
+    +'.deck-input .field .lab,.deck-input .field label{display:block;min-height:2.4em;}' // ラベル高さを揃えて枠の頭を合わせる
+    // 説明文・ボタン・セグメント/トグルを含む欄は横いっぱい
+    +'.deck-input .panel-body>.hint,.deck-input .panel-body>button,.deck-input .panel-body>.btn,.deck-input .field:has(.seg),.deck-input .field:has(.toggle),.deck-input .field:has(textarea),.deck-input .field.wide{grid-column:1/-1;}'
+    +'.deck-input .field:has(.seg) .lab,.deck-input .field:has(.toggle) .lab{min-height:0;}'
+    // 入力/セレクトはセル幅いっぱい
+    +'.deck-input .field input[type=text],.deck-input .field input.yen,.deck-input .field input.num,.deck-input .field input[inputmode],.deck-input .field select{width:100%!important;max-width:none;box-sizing:border-box;}'
+    +'.deck-input .hint{font-size:10.5px;line-height:1.45;margin-top:3px;}'
     +'.deck-input{position:fixed;left:8px;right:8px;bottom:0;height:58vh;max-height:660px;transform:translateY(108%);transition:transform .28s ease;z-index:30;border-radius:12px 12px 0 0;box-shadow:0 -12px 34px -12px rgba(0,0,0,.45);}'
     +'.deck-input.open{transform:translateY(0);}'
     +'.fab-input{position:fixed;left:14px;bottom:14px;top:auto;right:auto;transform:none;width:46px;height:46px;border-radius:50%;background:var(--brass,#9a7b4f);color:#fff;border:1px solid var(--brass-deep,#7d6240);cursor:pointer;box-shadow:0 8px 20px -8px rgba(0,0,0,.5);z-index:45;display:flex;align-items:center;justify-content:center;padding:0;}'
