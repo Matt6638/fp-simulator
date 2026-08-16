@@ -66,6 +66,10 @@
     +'.deck-input .field:has(.seg) .lab,.deck-input .field:has(.toggle) .lab{min-height:0;}'
     +'.deck-input .toggle{justify-content:flex-start!important;gap:12px;}' // スイッチを文字の右隣へ（右端に寄せない）
     +'.deck-input .toggle .tl{flex:0 1 auto;}'
+    // <details>（税額控除など）は開いたら中の欄を横並びグリッドに
+    +'.deck-input details{grid-column:1/-1;}'
+    +'.deck-input details[open]{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:0 16px;align-items:start;}'
+    +'.deck-input details>summary{grid-column:1/-1;margin-bottom:8px;cursor:pointer;}'
     // 入力/セレクトはセル幅いっぱい
     +'.deck-input .field input[type=text],.deck-input .field input.yen,.deck-input .field input.num,.deck-input .field input[inputmode],.deck-input .field select{width:100%!important;max-width:none;box-sizing:border-box;}'
     // 数字欄は必要以上に広げない（歳/年/人=細く、金額=中）

@@ -123,14 +123,15 @@
       <p class="divider-note">1年間（1/1〜12/31）に受けた贈与の合計から基礎控除110万円を差し引いて課税。</p>
 
       <div class="field">
-        <label class="lab">一般贈与財産 <span class="q">兄弟間・夫婦間・未成年の子への贈与など</span></label>
+        <label class="lab" style="white-space:nowrap;">一般贈与財産</label>
         <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="ippan" value="" placeholder="0"><span class="yen-unit">円</span></div>
+        <div class="hint">兄弟間・夫婦間・未成年の子への贈与など。</div>
       </div>
 
       <div class="field">
-        <label class="lab">特例贈与財産 <span class="q">直系尊属→18歳以上の子・孫</span></label>
+        <label class="lab" style="white-space:nowrap;">特例贈与財産</label>
         <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="tokurei" value="" placeholder="0"><span class="yen-unit">円</span></div>
-        <div class="hint">1月1日時点で18歳以上の人が、父母・祖父母など直系尊属から受けた贈与。より低い特例税率が適用されます。</div>
+        <div class="hint">直系尊属→18歳以上の子・孫。1月1日時点で18歳以上の人が父母・祖父母から受けた贈与で、より低い特例税率が適用されます。</div>
       </div>
 
       <div class="field">
@@ -161,13 +162,15 @@
       <p class="divider-note">累計2,500万円までの特別控除。超えた分に一律20%課税。贈与財産は相続時に相続財産へ加算されます。</p>
 
       <div class="field">
-        <label class="lab">課税贈与額（本年分）</label>
+        <label class="lab" style="white-space:nowrap;">課税贈与額（本年分）</label>
         <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="seisanGift" value="" placeholder="0"><span class="yen-unit">円</span></div>
+        <div class="hint">今年の贈与額（精算課税分）。</div>
       </div>
 
       <div class="field">
-        <label class="lab">前年までの特別控除額 <span class="q">累計2,500万円のうち使用済み</span></label>
+        <label class="lab" style="white-space:nowrap;">前年までの特別控除額</label>
         <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="seisanPrior" value="" placeholder="0"><span class="yen-unit">円</span></div>
+        <div class="hint">累計2,500万円のうち使用済みの額。</div>
       </div>
 
       <div class="info" id="seisanNote"></div>
@@ -418,7 +421,7 @@ function fpFmt(n){if(n===0)return '0';var r=Math.round(n*10000)/10000;return r.t
 })();
 FP.init('gift', recalc);
 </script>
-<script src="fp-deck.js?v=19"></script>
+<script src="fp-deck.js?v=20"></script>
 <script src="fp-amount.js?v=5"></script>
 <script src="fp-pwa.js?v=4"></script>
 </body>
