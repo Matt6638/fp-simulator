@@ -214,31 +214,24 @@
       dock.removeChild(meas);
       var kpiItems=items.filter(function(x){return x.kpi;});
       var rest=items.filter(function(x){return !x.kpi;});
+      // その他の必要カラム数（内容量に応じて。少なければ列も減らす）
+      var totalRest=0; rest.forEach(function(it){ totalRest+=it.h+GAP; });
+      var maxRestCols=hasKpi?K:Kfull;
+      var restCols=Math.max(1, Math.min(maxRestCols, Math.ceil(totalRest/deckH)));
+      var target=totalRest/restCols; // 各カラムの目安高さ（順序を保ったまま均す）
 
       scrollEl.innerHTML='';
-      function mkPage(withKpi){
-        var p=document.createElement('div'); p.className='rpage'; scrollEl.appendChild(p);
-        var kc=null;
-        if(withKpi){ kc=document.createElement('div'); kc.className='rcol rcol-kpi'; p.appendChild(kc); }
-        var n=withKpi?K:Kfull, cols=[];
-        for(var i=0;i<n;i++){ var c=document.createElement('div'); c.className='rcol'; p.appendChild(c); cols.push({el:c,h:0}); }
-        return {cols:cols, kpiCol:kc};
-      }
-      // 1ページ目：KPIは細い左カラムへ
-      var page=mkPage(hasKpi);
-      if(page.kpiCol) kpiItems.forEach(function(it){ page.kpiCol.appendChild(it.node); });
-      // その他：一番低いカラムへ（マソンリー）。凡例は直前のブロック（グラフ）と同じカラムへ。
-      var lastIdx=0;
-      rest.forEach(function(it){
-        var cols=page.cols, idx;
-        if(it.legend){ idx=Math.min(lastIdx, cols.length-1); }
-        else{
-          idx=0; for(var i=1;i<cols.length;i++){ if(cols[i].h<cols[idx].h) idx=i; }
-          if(cols[idx].h>0 && (cols[idx].h+GAP+it.h)>deckH){ page=mkPage(false); cols=page.cols; idx=0; }
-        }
-        cols[idx].el.appendChild(it.node);
-        cols[idx].h += (cols[idx].h>0?GAP:0)+it.h;
-        lastIdx=idx;
+      var p=document.createElement('div'); p.className='rpage'; scrollEl.appendChild(p);
+      if(hasKpi){ var kc=document.createElement('div'); kc.className='rcol rcol-kpi'; p.appendChild(kc); kpiItems.forEach(function(it){ kc.appendChild(it.node); }); }
+      var cols=[];
+      for(var i=0;i<restCols;i++){ var c=document.createElement('div'); c.className='rcol'; p.appendChild(c); cols.push({el:c,h:0}); }
+      // その他：文書順にカラムを埋め、目安高さを超えたら次カラムへ（グラフ→凡例→表を隣接維持）
+      var ci=0;
+      rest.forEach(function(it,k){
+        cols[ci].el.appendChild(it.node);
+        cols[ci].h += (cols[ci].h>0?GAP:0)+it.h;
+        var next=rest[k+1];
+        if(cols[ci].h>=target && ci<cols.length-1 && !(next&&next.legend)){ ci++; }
       });
       buildDots(scrollEl, dotsId);
     } finally { scrollEl.__pg=false; }
