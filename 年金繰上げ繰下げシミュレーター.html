@@ -144,8 +144,8 @@
       <div class="grp">65歳時点の年金額（ねんきん定期便の見込額）</div>
       <div class="field">
         <label class="lab">老齢基礎年金（年額）</label>
-        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="kiso" value="" placeholder="831700"><span class="yen-unit">円</span></div>
-        <div class="hint">満額は令和7年度で約831,700円。加入期間が短い場合は見込額を入力。</div>
+        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="kiso" value="" placeholder="847300"><span class="yen-unit">円</span></div>
+        <div class="hint">満額は令和8年度で約847,300円。加入期間が短い場合は見込額を入力。</div>
       </div>
       <div class="field">
         <label class="lab">老齢厚生年金（年額）</label>
@@ -263,7 +263,7 @@ function factorAt(ageY, ageM, rateCut){
 }
 
 function simulate(){
-  var kiso=numById('kiso'); if(kiso===0 && !document.getElementById('kiso').value) kiso=831700;
+  var kiso=numById('kiso'); if(kiso===0 && !document.getElementById("kiso").value) kiso=847300;
   var kousei=numById('kousei');
   var base=kiso+kousei;              // 65歳時点の年額（額面）
   var rateCut=cutRate();
@@ -276,7 +276,7 @@ function simulate(){
   var working=document.getElementById('working').checked;
   var salaryM=numById('salaryM');
   var workEndAge=rawNum('workEndAge')||70;
-  var THR=510000; // 令和7年度 在職老齢年金 支給停止調整額
+  var THR=650000; // 在職老齢年金 支給停止調整額（令和8年度＝2026年4月〜 65万円。令和7年度は51万円）
 
   var ageY=rawNum('claimAge')|| (mode==='up'?60:mode==='normal'?65:70);
   var ageM=rawNum('claimMonth')||0;
@@ -372,7 +372,7 @@ function simulate(){
   notes.push('減額率は<b>'+(rateCut*100).toFixed(1)+'%／月</b>（'+(rateCut===0.004?'昭和37年4月2日以降生まれ':'昭和37年4月1日以前生まれ')+'）、繰下げ増額は0.7%／月で計算しています。');
   if(invOn) notes.push('<b>運用利回り '+(invR*100).toFixed(1)+'%／年</b>で早く受け取った分を運用した残高で比較（65歳受給側も同率で運用と仮定）。運用するほど「早くもらう」ほうが有利になり、繰下げの損益分岐は後ろ倒し（またはしない）になります。');
   if(working){
-    notes.push('<b>在職老齢年金</b>：総報酬月額相当額 '+yen(salaryM)+'円 と老齢厚生年金の月額の合計が<b>'+yen(THR)+'円</b>（令和7年度基準）を超える月は、超過分の1/2が支給停止（'+workEndAge+'歳まで・基礎年金と加給は対象外）。'+(stopAtStart>0?('受給開始時点で約'+yen(stopAtStart)+'円/月が停止。'):'この給与では支給停止は生じません。'));
+    notes.push('<b>在職老齢年金</b>：総報酬月額相当額 '+yen(salaryM)+'円 と老齢厚生年金の月額の合計が<b>'+yen(THR)+'円</b>（令和8年度＝2026年4月〜基準）を超える月は、超過分の1/2が支給停止（'+workEndAge+'歳まで・基礎年金と加給は対象外）。'+(stopAtStart>0?('受給開始時点で約'+yen(stopAtStart)+'円/月が停止。'):'この給与では支給停止は生じません。'));
     if(mode==='down') notes.push('※<b>繰下げ待機中に在職で支給停止相当</b>となる部分は本来は繰下げ増額の対象外ですが、本試算では待機中の厚生を全額増額対象として簡略計算しています（在職しながらの厚生繰下げは増額が目減りする点に注意）。');
   }
   if(mode==='up') notes.push('<b>繰上げは基礎・厚生を同時に</b>行う必要があり、一度請求すると取消できません。障害年金・寡婦年金が受けられなくなる場合があります。');
