@@ -98,7 +98,8 @@
     var st=document.createElement('style'); st.id='fpDeckCSS'; st.textContent=css; document.head.appendChild(st);
   }
 
-  function hasInput(el){ return !!(el && el.querySelector && el.querySelector('input,select,textarea,button[data-v],.seg,.sw,.toggle')); }
+  // 結果に埋め込む編集欄(.fp-resultedit)は「入力」に数えない＝結果パネルがドロワーへ移動しないようにする
+  function hasInput(el){ return !!(el && el.querySelector && el.querySelector('input:not(.fp-resultedit),select:not(.fp-resultedit),textarea:not(.fp-resultedit),button[data-v],.seg,.sw,.toggle')); }
 
   function placeNode(node, inPage, outPage){
     if(!node || node.nodeType!==1){ if(node) outPage.appendChild(node); return; }

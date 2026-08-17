@@ -342,7 +342,7 @@ function render(){
     }
     const sur = he.surcharge ? base*0.2 : 0;
     surchargeTotal+=sur;
-    rows.push({name:he.label,pct:f*100,base,surcharge:sur,credit,net:Math.max(0,base+sur-credit)});
+    rows.push({id:he.id,name:he.label,pct:f*100,base,surcharge:sur,credit,net:Math.max(0,base+sur-credit)});
   }
   const otherCredits = numV('cMinor')+numV('cDisabled')+numV('cSuccessive')+numV('cGiftTax');
   const netTotal = Math.max(0, st.total + surchargeTotal - spouseCredit - otherCredits);
@@ -373,7 +373,7 @@ function render(){
   if(rows.length && st.total>0){
     let t=`<table class="tbl"><thead><tr><th>相続人</th><th>取得割合</th><th>算出税額</th><th>2割加算</th><th>配偶者軽減</th><th>納付税額</th></tr></thead><tbody>`;
     for(const row of rows){
-      t+=`<tr><td>${row.name}</td><td>${row.pct.toFixed(1)}%</td><td>${yen(row.base)}</td><td>${row.surcharge?yen(row.surcharge):'—'}</td><td>${row.credit?('-'+yen(row.credit)):'—'}</td><td><b>${yen(row.net)}</b></td></tr>`;
+      t+=`<tr><td>${row.name}</td><td style="white-space:nowrap;"><input type="text" inputmode="decimal" class="share2 fp-resultedit" data-id="${row.id}" value="${row.pct.toFixed(1)}" style="width:52px;text-align:right;font-family:var(--mono);border:1px solid var(--rule);border-radius:5px;padding:3px 5px;">%</td><td>${yen(row.base)}</td><td>${row.surcharge?yen(row.surcharge):'—'}</td><td>${row.credit?('-'+yen(row.credit)):'—'}</td><td><b>${yen(row.net)}</b></td></tr>`;
     }
     const sumNet=rows.reduce((a,b)=>a+b.net,0);
     t+=`</tbody><tfoot><tr><td>合計</td><td>${rows.reduce((a,b)=>a+b.pct,0).toFixed(0)}%</td><td>${yen(st.total)}</td><td>${surchargeTotal?yen(surchargeTotal):'—'}</td><td>${spouseCredit?('-'+yen(spouseCredit)):'—'}</td><td>${yen(sumNet)}</td></tr></tfoot></table>`;
@@ -415,6 +415,15 @@ document.getElementById('splitSection').addEventListener('focusin',e=>{
   setTimeout(function(){ try{el.select();}catch(_){}}, 0);
 });
 document.getElementById('resetSplit').addEventListener('click',()=>{ userShares={}; STRUCT_KEY=null; render(); });
+// 結果ページの表内でも取得割合を直接編集できる（.share2）。打ち終わってから再計算（フォーカス飛び防止）
+let _share2Timer=null;
+document.addEventListener('input',function(e){
+  const el=e.target && e.target.closest ? e.target.closest('input.share2') : null; if(!el) return;
+  const v=zen2han(el.value).trim();
+  if(v==='') delete userShares[el.dataset.id]; else userShares[el.dataset.id]=parseFloat(v)||0;
+  clearTimeout(_share2Timer); _share2Timer=setTimeout(function(){ render(); }, 550);
+});
+document.addEventListener('focusin',function(e){ const el=e.target&&e.target.closest?e.target.closest('input.share2'):null; if(el) setTimeout(function(){try{el.select();}catch(_){}} ,0); });
 render();
 </script>
 
@@ -529,7 +538,8 @@ function fpFmt(n){if(n===0)return '0';var r=Math.round(n*10000)/10000;return r.t
 })();
 FP.init('souzokuzei', recalc);
 </script>
-<script src="fp-deck.js?v=21"></script>
+<script>window.FP_DECK_STACK=true;/* 数字→相続人ごとの納付税額表を縦積み・全幅で下に配置 */</script>
+<script src="fp-deck.js?v=22"></script>
 <script src="fp-amount.js?v=5"></script>
 <script src="fp-pwa.js?v=4"></script>
 </body>

@@ -1,7 +1,7 @@
 /* ===== FPシミュレーター Service Worker（オフライン対応） =====
    全ツールと共有アセットを事前キャッシュし、オフラインでも起動できるようにする。
    更新時は CACHE のバージョンを上げると、次回オンライン時に自動で入れ替わる。 */
-const CACHE = 'fp-cache-v9';
+const CACHE = 'fp-cache-v10';
 
 const ASSETS = [
   './',
