@@ -38,6 +38,12 @@
     +'.deck-result .rcol>.fp-rhead{margin-bottom:-4px;}'
     // 結果内テーブルは固定レイアウト＋折返しでカラム幅に必ず収める（横スワイプ不要）
     +'.deck-result .rcol table{width:100%;font-size:10px;table-layout:fixed;}'
+    // 縦積みモード：全幅1カラム。表は圧縮せず読みやすく
+    +'.deck-result .rpage.fp-stacked{display:block;overflow-y:auto;}'
+    +'.deck-result .rpage.fp-stacked .rcol{max-width:none;width:100%;}'
+    +'.deck-result .rpage.fp-stacked table{table-layout:auto;font-size:12px;}'
+    +'.deck-result .rpage.fp-stacked table th,.deck-result .rpage.fp-stacked table td{padding:5px 8px;white-space:normal;}'
+    +'.deck-result .rpage.fp-stacked .result-cards{margin-bottom:4px;}'
     +'.deck-result .rcol table th,.deck-result .rcol table td{padding:3px 4px;white-space:normal;overflow-wrap:anywhere;word-break:break-word;line-height:1.3;}'
     +'.deck-result .rcol .chartwrap{overflow-x:auto;}'
     +'.deck-result .rv{overflow-wrap:anywhere;word-break:break-word;}'
@@ -205,11 +211,14 @@
       Array.prototype.slice.call(dock.children).forEach(function(c){ atomize(c, deckH, srcBlocks); });
       function isCls(node,name){ return (' '+(node.className||'')+' ').indexOf(' '+name+' ')>=0; }
       // 先に列数・実カラム幅を確定（KPI帯があれば細い左列を1本確保）
-      var hasKpi=srcBlocks.some(function(b){return isCls(b,'result-cards');});
+      // スタックモード（window.FP_DECK_STACK）：カラム分割せず1画面いっぱいの縦積み（数字→表の順・表は広く）
+      var stack = (window.FP_DECK_STACK===true);
+      var hasKpi=(!stack) && srcBlocks.some(function(b){return isCls(b,'result-cards');});
       var restAvail=pageW-PAD-(hasKpi?KPIW+GAP:0);
       var K=Math.max(1, Math.floor((restAvail+GAP)/(COLW+GAP)));
       var restColW=Math.max(160, Math.floor((restAvail-(K-1)*GAP)/K));
       var Kfull=Math.max(1, Math.floor((pageW-PAD+GAP)/(COLW+GAP)));
+      if(stack){ restColW=pageW-PAD; } // 縦積み＝全幅1カラムで採寸
       // 採寸は「実際に配置する幅」で行う（KPI=細幅／その他=実カラム幅）＝高さ誤差なし
       var meas=document.createElement('div'); meas.style.cssText='position:absolute;left:0;top:0;';
       dock.appendChild(meas);
@@ -243,11 +252,11 @@
       // カラム数（内容量に応じて。幅で入る本数を上限）
       var totalRest=0; uni.forEach(function(u){ totalRest+=u.h+GAP; });
       var maxRestCols=hasKpi?K:Kfull;
-      var restCols=Math.max(1, Math.min(maxRestCols, Math.ceil(totalRest/(deckH*0.95))));
+      var restCols=stack?1:Math.max(1, Math.min(maxRestCols, Math.ceil(totalRest/(deckH*0.95))));
 
       scrollEl.innerHTML='';
       function newPage(){
-        var p=document.createElement('div'); p.className='rpage'; scrollEl.appendChild(p);
+        var p=document.createElement('div'); p.className='rpage'+(stack?' fp-stacked':''); scrollEl.appendChild(p);
         if(hasKpi){ var kc=document.createElement('div'); kc.className='rcol rcol-kpi'; p.appendChild(kc); }
         var cs=[]; for(var i=0;i<restCols;i++){ var c=document.createElement('div'); c.className='rcol'; p.appendChild(c); cs.push({el:c,h:0}); }
         return {kc:hasKpi?p.querySelector('.rcol-kpi'):null, cols:cs};
@@ -257,7 +266,8 @@
       // ファーストフィット：文書順に、収まる最初のカラムへ（収まらなければ次ページ）。表・グラフは切らない
       uni.forEach(function(u){
         var cols=page.cols, idx=-1;
-        for(var i=0;i<cols.length;i++){ if(cols[i].h===0 || cols[i].h+GAP+u.h<=deckH+2){ idx=i; break; } }
+        if(stack){ idx=0; } // 縦積み＝常に1カラムへ（あふれは縦スクロール、横ページ化しない）
+        else for(var i=0;i<cols.length;i++){ if(cols[i].h===0 || cols[i].h+GAP+u.h<=deckH+2){ idx=i; break; } }
         if(idx<0){
           if(u.h<=deckH){ page=newPage(); cols=page.cols; idx=0; }
           else { idx=0; for(var j=1;j<cols.length;j++){ if(cols[j].h<cols[idx].h) idx=j; } } // 1画面超の巨大ブロックは最短列へ（縦スクロール）
