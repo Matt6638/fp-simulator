@@ -384,7 +384,7 @@ function blendedAccRate(methods){
 /* ===== 変額年金（プルデンシャル）モデル =====
    設計書実データ（0%=40,740,000 / 3.5%=53,397,000 / 7.0%=70,811,000）から逆算した係数。
    AV(円) = 充当率 × 月払保険料 × Σ((1+(r-ドラッグ)/12)^k)。0%・7%を誤差0で再現。 */
-var VA_ALPHA=0.9598, VA_DRAG=0.0105;
+var VA_ALPHA=0.934, VA_DRAG=0.0078; /* 年齢別設計書(22/24/29→65歳)＋50歳設計書で同時校正・±2.5% */
 function vaAccumFactor(months, ratePct){ // AV(円) = 月払保険料 × この係数
   var i=(ratePct/100 - VA_DRAG)/12, n=Math.max(0,months);
   var S=(Math.abs(i)<1e-12)? n : ((Math.pow(1+i,n)-1)/i);

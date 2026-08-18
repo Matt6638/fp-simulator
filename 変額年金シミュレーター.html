@@ -129,8 +129,9 @@
         </div>
         <div class="row" style="margin-top:8px;">
           <div class="f"><label>月払保険料</label><div class="inline"><input type="text" inputmode="numeric" id="monthlyP" value="254640"><span class="unit">円</span></div></div>
+          <div class="f"><label>性別<small>（終身年金係数）</small></label><select id="sex" style="font-family:var(--gothic);"><option value="male" selected>男性</option><option value="female">女性</option></select></div>
         </div>
-        <div class="hint">月払保険料は設計書（50歳・月254,640円）が既定です。他年齢は実際の設計書の保険料を入れると精度が上がります。空欄の年代クイックは概算として月5万円で試算します。手数料構造は設計書から逆算（特別勘定充当率≒96%・年約1.05%控除）して全年齢に適用しています。</div>
+        <div class="hint">月払保険料は設計書（50歳・月254,640円）が既定です。他年齢は実際の設計書の保険料を入れると精度が上がります。空欄の年代クイックは概算として月5万円で試算します。積立倍率は<b>年齢別設計書（22/24/29歳→65歳）＋50歳設計書</b>の解約返戻金で同時校正（充当率≒93%・年約0.78%控除）し、契約年齢（＝積立期間）で自動的に変わります。65歳の終身年金係数は男6.304%／女5.389%。</div>
       </div>
 
       <div class="card">
@@ -210,12 +211,15 @@ function moneyJP(v){ // 円→「◯,◯◯◯万円」等
 }
 
 /* ===== 逆算した本商品のパラメータ ===== */
-var ALPHA=0.9598;   // 保険関係費用控除後に特別勘定へ回る割合
-var DRAG=0.0105;    // 運用関係費用等の年率ドラッグ
+// 2026年8月 年齢別設計書（22/24/29歳→65歳）＋従来の50歳設計書、計4本×0/3.5/7%の解約返戻金で同時校正（±2.5%で一致）。
+// 積立倍率＝alpha×((1+(r-drag)/12)^月数−1)/((r-drag)/12×月数)。月数（＝契約年齢→受給年齢）で決まり、若い加入ほど倍率が上がる＝年齢別。
+var ALPHA=0.934;    // 特別勘定へ回る実効割合（保険関係費用等控除後）
+var DRAG=0.0078;    // 運用関係費用等の年率ドラッグ
 var AIR=0.035;      // 変額年金の予定利率（受給後の増減基準）
-/* 受取開始年齢別の年金係数（設計書p5から。年額/積立金） */
+var SEX='male';     // 年金係数の性別（男性/女性で終身年金係数が変わる）
+/* 受取開始年齢別の年金係数（設計書p5・年齢別設計書から。年額/積立金） */
 function fixedFactor(recvAge){ return 0.03425 + (recvAge-55)*(0.04494-0.03425)/10; } // 定額終身10年保証
-function varFactor(recvAge){ return fixedFactor(recvAge)*(0.06304/0.04494); }         // 変額終身 初年度係数
+function varFactor(recvAge){ var base=(SEX==='female')?0.05389:0.06304; return fixedFactor(recvAge)*(base/0.04494); } // 変額終身 初年度係数（65歳：男6.304%／女5.389%）
 
 /* ===== 暴落シナリオの生成 =====
    scenario: 'none' / 'single' / 'history'。crashes配列 [{age,drop}] を返す */
@@ -366,6 +370,7 @@ function simulate(){
   document.querySelectorAll('.nisa-only').forEach(function(e){e.style.display=nisaOn?'':'none';});
   document.getElementById('switchRow').style.display=(isVar&&chk('switchUse'))?'':'none';
 
+  var sexEl=document.getElementById('sex'); SEX=(sexEl&&sexEl.value==='female')?'female':'male';
   var contractAge=Math.round(nv('contractAge')), recvAge=Math.round(nv('recvAge')), endAge=Math.round(nv('endAge'));
   var monthlyP=nv('monthlyP');
   var accRate=nv('accRate')/100;
@@ -494,7 +499,8 @@ function simulate(){
 
   p2+='<ul class="note-list">'
     +'<li>積立金＝月払保険料×充当率96%を特別勘定で運用（年約1.05%控除）した概算。設計書の0%・7%を誤差ほぼ0で再現します（3.5%は−0.5%程度）。</li>'
-    +'<li>年金換算は設計書p5の受取開始年齢別係数（定額）と、変額終身の初年度係数6.304%(65歳)を年齢補正して使用。</li>'
+    +'<li>積立倍率は<b>年齢別設計書（22/24/29歳→65歳・0/3.5/7%）</b>の解約返戻金で再校正し、実額に±2%で一致。契約年齢（積立期間）で自動的に倍率が変わります。</li>'
+    +'<li>年金換算は変額終身の初年度係数を<b>65歳＝男6.304%／女5.389%</b>（設計書の年齢別実額）とし、受取開始年齢で補正。定額終身はp5の年齢別係数。</li>'
     +'<li>いずれも最低保証はなく、暴落・低利回りでは払込を下回ることがあります。税・受取時費用（年1.0%）等は簡略化しています。実際の数値は設計書・担当者にご確認ください。</li>'
     +'</ul>';
 
