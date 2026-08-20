@@ -47,8 +47,13 @@
   .card .no{font-family:"SF Mono",monospace;font-size:12px;color:var(--brass);letter-spacing:.08em;flex:0 0 auto;min-width:22px;}
   .card h2{font-family:var(--mincho);font-size:15px;margin:0;font-weight:600;letter-spacing:.02em;flex:1;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .card .badge{margin:0;flex:0 0 auto;}
-  .card .drag{flex:0 0 auto;color:#cfc9b6;font-size:16px;line-height:1;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;margin:-4px 0 -4px -6px;padding:6px 4px;}
+  .card .drag{flex:0 0 auto;color:#a89f86;font-size:20px;line-height:1;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;margin:-6px 2px -6px -4px;padding:10px 8px;border-radius:7px;}
+  .card .drag:hover{background:#f2eee3;color:var(--brass-deep);}
   .card .drag:active{cursor:grabbing;}
+  .card .movebtns{flex:0 0 auto;display:flex;flex-direction:column;gap:2px;margin-left:auto;}
+  .card .movebtn{font-size:12px;line-height:1;color:var(--brass-deep);background:#fcfbf8;border:1px solid var(--rule);border-radius:6px;width:30px;height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+  .card .movebtn:hover{background:var(--brass);color:#fff;border-color:var(--brass-deep);}
+  .card .movebtn:active{transform:scale(.94);}
   .card.dragging{opacity:.7;border-color:var(--brass);box-shadow:0 12px 28px rgba(27,42,74,.22);}
   .cards.reordering a.card{transition:none;}
   .cards.reordering a.card:hover{transform:none;}
@@ -105,7 +110,7 @@
   <input type="file" id="hubLoad" accept=".json,application/json" style="display:none;">
 </div>
 
-<p class="rehint"><span aria-hidden="true">⠿</span> ハンドルをドラッグして並び替えできます（番号は自動で振り直します）</p>
+<p class="rehint">右の <b>▲▼</b> ボタン、または左の <span aria-hidden="true">⠿</span> ハンドルをドラッグで並び替えできます（番号は自動で振り直します）</p>
 <div class="cards">
   <a class="card" href="教育資金シミュレーター.html">
     <span class="drag" aria-hidden="true">⠿</span><span class="no">01</span>
@@ -233,8 +238,19 @@ window.FPS=(function(){
   cards.addEventListener('pointermove',function(e){if(!dragEl)return;e.preventDefault();if(Math.abs(e.clientY-sy)>4)moved=true;var a=afterEl(e.clientY);if(a==null){if(cards.lastElementChild!==dragEl)cards.appendChild(dragEl);}else if(a!==dragEl){cards.insertBefore(dragEl,a);}});
   function end(){if(!dragEl)return;dragEl.classList.remove('dragging');cards.classList.remove('reordering');dragEl=null;renumber();save();}
   cards.addEventListener('pointerup',end); cards.addEventListener('pointercancel',end);
-  // ハンドル操作/ドラッグ後のクリックでの誤遷移を抑止
-  cards.addEventListener('click',function(e){if(e.target.closest('.drag')||moved){e.preventDefault();e.stopPropagation();moved=false;}},true);
+  // ハンドル操作/ドラッグ後/移動ボタンのクリックでの誤遷移を抑止
+  cards.addEventListener('click',function(e){if(e.target.closest('.movebtn')){e.preventDefault();return;}if(e.target.closest('.drag')||moved){e.preventDefault();e.stopPropagation();moved=false;}},true);
+  // ▲▼ 移動ボタン（ドラッグが難しい場合のわかりやすい並び替え）
+  function move(c,dir){var arr=items();var i=arr.indexOf(c);var j=i+dir;if(j<0||j>=arr.length)return;if(dir<0){cards.insertBefore(c,arr[j]);}else{cards.insertBefore(c,arr[j].nextElementSibling);}renumber();save();c.animate&&c.animate([{background:'#fbf6ec'},{background:'#fff'}],{duration:400});}
+  items().forEach(function(c){
+    if(c.querySelector('.movebtns'))return;
+    var mb=document.createElement('span');mb.className='movebtns';
+    var up=document.createElement('span');up.className='movebtn';up.setAttribute('role','button');up.textContent='▲';up.title='上へ移動';
+    var dn=document.createElement('span');dn.className='movebtn';dn.textContent='▼';dn.setAttribute('role','button');dn.title='下へ移動';
+    up.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();move(c,-1);});
+    dn.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();move(c,1);});
+    mb.appendChild(up);mb.appendChild(dn);c.appendChild(mb);
+  });
 })();
 </script>
 <script>
