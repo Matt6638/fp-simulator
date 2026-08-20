@@ -43,7 +43,12 @@
     +'.deck-result .rpage.fp-stacked .rcol{max-width:none;width:100%;}'
     +'.deck-result .rpage.fp-stacked table{table-layout:auto;font-size:12px;}'
     +'.deck-result .rpage.fp-stacked table th,.deck-result .rpage.fp-stacked table td{padding:5px 8px;white-space:normal;}'
-    +'.deck-result .rpage.fp-stacked .result-cards{margin-bottom:4px;}'
+    // 金額カード＝全幅に自動整列でコンパクトに詰める（1枚が横いっぱいにならない＝D）。グラフ/表・注記は全幅（A）。
+    +'.deck-result .rpage.fp-stacked .result-cards{margin-bottom:6px;width:100%!important;max-width:none!important;display:grid!important;grid-template-columns:repeat(auto-fill,minmax(190px,1fr))!important;gap:8px!important;align-content:start;}'
+    +'.deck-result .rpage.fp-stacked .result-cards>*{max-width:none;min-width:0;margin:0;grid-column:auto!important;}'
+    +'.deck-result .rpage.fp-stacked .result-cards>.hero,.deck-result .rpage.fp-stacked .result-cards>.rc.hero{grid-column:1/-1!important;}' // 主役カードのみ全幅
+    +'.deck-result .rpage.fp-stacked .chartwrap{width:100%;}'
+    +'.deck-result .rpage.fp-stacked .chartwrap svg{width:100%;height:auto;min-height:230px;}' // グラフを大きく
     +'.deck-result .rcol table th,.deck-result .rcol table td{padding:3px 4px;white-space:normal;overflow-wrap:anywhere;word-break:break-word;line-height:1.3;}'
     +'.deck-result .rcol .chartwrap{overflow-x:auto;}'
     +'.deck-result .rv{overflow-wrap:anywhere;word-break:break-word;}'
@@ -68,7 +73,10 @@
     // 説明文・ボタン・セグメント/トグルを含む欄は横いっぱい
     +'.deck-input .panel-body>.hint,.deck-input .panel-body>button,.deck-input .panel-body>.btn,.deck-input .field:has(.toggle),.deck-input .field:has(textarea),.deck-input .field.wide{grid-column:1/-1;}'
     // セグメント選択欄は最低限の幅（2列ぶん）に。夫/妻・会社員/自営業などが横に並び右を無駄にしない
-    +'.deck-input .field:has(.seg){grid-column:span 2;max-width:480px;}'
+    +'.deck-input .field:has(.seg){grid-column:span 2;max-width:520px;}'
+    // セグメント(スイッチ)は1行に（<br>で強制2行になっているのを解除。短い文言は1行に収まる）
+    +'.deck-input .seg button br{display:none;}'
+    +'.deck-input .seg button{line-height:1.35;padding:9px 8px;font-size:11.5px;}'
     +'.deck-input .field:has(.seg) .lab,.deck-input .field:has(.toggle) .lab{min-height:0;}'
     +'.deck-input .toggle{justify-content:flex-start!important;gap:12px;}' // スイッチを文字の右隣へ（右端に寄せない）
     +'.deck-input .toggle .tl{flex:0 1 auto;}'
@@ -191,8 +199,11 @@
   // ドック内のソースを、1画面に収まる原子ブロックへ分解する（背の高い入れ物は子へ降りる）
   function atomize(node, deckH, out){
     if(!node || node.nodeType!==1) return;
+    // KPI帯(.result-cards)・グラフ(.chartwrap)・表は分解しない＝1ブロックとして扱い、内部で折返し/全幅化する
+    var cn=' '+(node.className||'')+' ';
+    var keepWhole = cn.indexOf(' result-cards ')>=0 || cn.indexOf(' chartwrap ')>=0 || node.tagName==='TABLE' || (node.querySelector && node.querySelector(':scope>table'));
     var kids=Array.prototype.filter.call(node.children, function(k){ return k.nodeType===1; });
-    if(kids.length>1 && node.offsetHeight > deckH*0.9){
+    if(!keepWhole && kids.length>1 && node.offsetHeight > deckH*0.9){
       kids.forEach(function(k){ atomize(k, deckH, out); });
     } else {
       out.push(node);
@@ -212,8 +223,9 @@
       Array.prototype.slice.call(dock.children).forEach(function(c){ atomize(c, deckH, srcBlocks); });
       function isCls(node,name){ return (' '+(node.className||'')+' ').indexOf(' '+name+' ')>=0; }
       // 先に列数・実カラム幅を確定（KPI帯があれば細い左列を1本確保）
-      // スタックモード（window.FP_DECK_STACK）：カラム分割せず1画面いっぱいの縦積み（数字→表の順・表は広く）
-      var stack = (window.FP_DECK_STACK===true);
+      // スタックモード＝既定ON：グラフ・表を左右に並べて縮めず、縦積みで大きく表示。
+      // 金額カードはコンパクトに折返し（D）、グラフ・表は全幅（A）。opt-out は window.FP_DECK_STACK=false。
+      var stack = (window.FP_DECK_STACK!==false);
       var hasKpi=(!stack) && srcBlocks.some(function(b){return isCls(b,'result-cards');});
       var restAvail=pageW-PAD-(hasKpi?KPIW+GAP:0);
       var K=Math.max(1, Math.floor((restAvail+GAP)/(COLW+GAP)));
@@ -228,12 +240,13 @@
         if(clone.removeAttribute) clone.removeAttribute('id');
         if(clone.querySelectorAll){ Array.prototype.forEach.call(clone.querySelectorAll('[id]'), function(e){ e.removeAttribute('id'); }); }
         var kpi=isCls(src,'result-cards');
-        meas.style.width=(kpi?KPIW:restColW)+'px'; meas.appendChild(clone); var h=clone.offsetHeight; meas.removeChild(clone);
+        meas.style.width=((kpi&&!stack)?KPIW:restColW)+'px'; meas.appendChild(clone); var h=clone.offsetHeight; meas.removeChild(clone);
         return {node:clone, h:h, kpi:kpi, legend:isCls(src,'legend')};
       });
       dock.removeChild(meas);
-      var kpiItems=items.filter(function(x){return x.kpi;});
-      var rest=items.filter(function(x){return !x.kpi;});
+      // KPI専用の細い左列を使うのは masonry かつ hasKpi の時だけ。スタック時は KPI帯も通常ブロックとして縦積みへ
+      var kpiItems=hasKpi?items.filter(function(x){return x.kpi;}):[];
+      var rest=hasKpi?items.filter(function(x){return !x.kpi;}):items.slice();
       // ブロックを「ユニット」にまとめる：凡例→直前へ、見出し(.sec-h等)→直後へ結合し、はぐれ防止
       function isHead(n){ return isCls(n,'sec-h')||isCls(n,'chart-h')||isCls(n,'fp-rhead')||isCls(n,'sub'); }
       function hasTag(n,tag){ return n&&(n.tagName===tag||(n.querySelector&&n.querySelector(tag.toLowerCase()))); }
