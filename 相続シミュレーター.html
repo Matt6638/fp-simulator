@@ -257,8 +257,11 @@ function simulate(){
   render(now,noAdopt,cfg,insSouzoku,insIchiji);
 }
 
-function yen(v){return Math.round(v).toLocaleString('ja-JP');}
+/* 表示単位(円/万円)に追従。円モードは従来どおり整数円、万モードは「◯◯万」を返す（後ろに付く「円」と合わせて「◯◯万円」）。 */
+function yen(v){if(window.__fpU==='man'){var m=Math.round(v/1000)/10;return m.toLocaleString('ja-JP',{maximumFractionDigits:1})+'万';}return Math.round(v).toLocaleString('ja-JP');}
 function man(v){return (v/10000).toFixed(0);}
+/* 単位（円/万円）まで含めた文章中の金額用 */
+function yenT(v){return yen(v)+(window.__fpU==='man'?'円':'円');}
 function pct(v){return (v*100).toFixed(v<0.1?1:0);}
 function render(r,noAdopt,cfg,insSouzoku,insIchiji){
   const catName={children:'子',parents:'父母',siblings:'兄弟姉妹',none:'—'}[r.category];
@@ -271,24 +274,24 @@ function render(r,noAdopt,cfg,insSouzoku,insIchiji){
   html+=`<div class="result-cards">
     <div class="rc hero"><div class="k">${isIchiji?'相続税の納税額 ＋ 生保の一時所得税 ＝ 世帯の税負担':'相続税の総額 → 配偶者の税額軽減後の納税額'}</div>
       <div class="v">${isIchiji?(yen(r.nozei)+'<small>円 ＋ </small>'+yen(r.ichijiTax)+'<small>円 ＝ </small>'+yen(r.totalBurden)+'<small>円</small>'):(yen(r.total)+'<small>円 → </small>'+yen(r.nozei)+'<small>円</small>')}</div>
-      <div class="note">法定相続人 ${r.heirCount}人（基礎控除 ${yen(r.kiso)}円）。${isIchiji?'生保は相続財産に入らず、受取人の一時所得として所得税 '+yen(r.ichijiTax)+'円。':(r.spouse?'配偶者が法定相続分を取得する前提で軽減後は '+yen(r.nozei)+'円。':'配偶者なし。')}${r.kazeiIsan<=0&&!isIchiji?' 課税遺産がゼロ＝相続税はかかりません。':''}</div></div>`;
+      <div class="note">法定相続人 ${r.heirCount}人（基礎控除 ${yenT(r.kiso)}）。${isIchiji?'生保は相続財産に入らず、受取人の一時所得として所得税 '+yenT(r.ichijiTax)+'。':(r.spouse?'配偶者が法定相続分を取得する前提で軽減後は '+yenT(r.nozei)+'。':'配偶者なし。')}${r.kazeiIsan<=0&&!isIchiji?' 課税遺産がゼロ＝相続税はかかりません。':''}</div></div>`;
 
   // 生保の課税パターン比較（相続税 vs 一時所得）
   if(r.insurance>0){
     const better=insSouzoku.totalBurden<=insIchiji.totalBurden?'相続税':'一時所得';
     const diff=Math.abs(insSouzoku.totalBurden-insIchiji.totalBurden);
-    html+=`<div class="rc saving" style="background:#eef2fa;border-color:#c3d2ea;"><div class="k">生命保険金の課税パターン比較（保険金 ${yen(r.insurance)}円）</div>
-      <div class="v" style="color:var(--ink);">${better}パターンが有利<small>（手残りが ${yen(diff)}円多い）</small></div>
+    html+=`<div class="rc saving" style="background:#eef2fa;border-color:#c3d2ea;"><div class="k">生命保険金の課税パターン比較（保険金 ${yenT(r.insurance)}）</div>
+      <div class="v" style="color:var(--ink);">${better}パターンが有利<small>（手残りが ${yenT(diff)}多い）</small></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 4px;">
         <div style="flex:1 1 150px;border:1px solid #c3d2ea;border-radius:8px;padding:8px 10px;background:#fff;">
           <div style="font-size:11px;color:var(--ink-soft);">相続税パターンの手残り総額</div>
           <div style="font-family:var(--mincho);font-size:18px;font-weight:700;color:${better==='相続税'?'var(--credit)':'var(--ink)'};">${yen(insSouzoku.netAfterTax)}<small style="font-size:11px;"> 円</small></div>
-          <div style="font-size:10.5px;color:#8a8470;">税負担 ${yen(insSouzoku.totalBurden)}円（500万×${r.heirCount}人が非課税）</div>
+          <div style="font-size:10.5px;color:#8a8470;">税負担 ${yenT(insSouzoku.totalBurden)}（500万×${r.heirCount}人が非課税）</div>
         </div>
         <div style="flex:1 1 150px;border:1px solid #c3d2ea;border-radius:8px;padding:8px 10px;background:#fff;">
           <div style="font-size:11px;color:var(--ink-soft);">一時所得パターンの手残り総額</div>
           <div style="font-family:var(--mincho);font-size:18px;font-weight:700;color:${better==='一時所得'?'var(--credit)':'var(--ink)'};">${yen(insIchiji.netAfterTax)}<small style="font-size:11px;"> 円</small></div>
-          <div style="font-size:10.5px;color:#8a8470;">税負担 ${yen(insIchiji.totalBurden)}円（相続税${yen(insIchiji.nozei)}＋所得税${yen(insIchiji.ichijiTax)}）</div>
+          <div style="font-size:10.5px;color:#8a8470;">税負担 ${yenT(insIchiji.totalBurden)}（相続税${yenT(insIchiji.nozei)}＋所得税${yenT(insIchiji.ichijiTax)}）</div>
         </div>
       </div>
       <div class="note">手残り総額＝相続財産＋保険金＋退職金−債務−税負担。契約形態で税目が変わります。一時所得は(保険金−払込−50万)×1/2課税なので、相続税率が高い家庭で有利になりやすい。</div></div>`;
@@ -297,16 +300,16 @@ function render(r,noAdopt,cfg,insSouzoku,insIchiji){
   if(r.category==='children' && r.adoptedInput>0){
     html+=`<div class="rc saving"><div class="k">養子縁組による節税額（養子${r.adoptedInput}人 → うち算入${r.adoptedCounted}人）</div>
       <div class="v">相続税総額 −${yen(savingTotal)}<small>円</small></div>
-      <div class="note">養子なしなら総額 ${yen(noAdopt.total)}円・納税 ${yen(noAdopt.nozei)}円。養子で基礎控除＋${yen(6000000*r.adoptedCounted)}円・生保非課税＋${yen(5000000*r.adoptedCounted)}円、税率区分も低下。納税額ベースでも −${yen(savingNozei)}円。</div></div>`;
+      <div class="note">養子なしなら総額 ${yenT(noAdopt.total)}・納税 ${yenT(noAdopt.nozei)}。養子で基礎控除＋${yenT(6000000*r.adoptedCounted)}・生保非課税＋${yenT(5000000*r.adoptedCounted)}、税率区分も低下。納税額ベースでも −${yenT(savingNozei)}。</div></div>`;
   }
 
   html+=`<div class="rc"><div class="k">基礎控除</div><div class="v" style="font-size:18px;">${yen(r.kiso)}<small>円</small></div><div class="note">3,000万＋600万×${r.heirCount}人。</div></div>
-    <div class="rc"><div class="k">生命保険の非課税枠</div><div class="v" style="font-size:18px;">${yen(r.hikazeiIns)}<small>円</small></div><div class="note">500万×${r.heirCount}人。${r.insurance>0?('現在 '+yen(r.insurance)+'円 のうち '+yen(Math.min(r.insurance,r.hikazeiIns))+'円が非課税。'):'保険金 未入力。'}</div></div>
+    <div class="rc"><div class="k">生命保険の非課税枠</div><div class="v" style="font-size:18px;">${yen(r.hikazeiIns)}<small>円</small></div><div class="note">500万×${r.heirCount}人。${r.insurance>0?('現在 '+yenT(r.insurance)+' のうち '+yenT(Math.min(r.insurance,r.hikazeiIns))+'が非課税。'):'保険金 未入力。'}</div></div>
   </div>`;
 
   // 生保活用の提案
   if(insRoom>0){
-    html+=`<div style="padding:0 20px;"><div class="info"><b>生命保険の非課税枠に余裕あり：</b>あと <b>${yen(insRoom)}円</b> まで生命保険金を非課税で受け取れます。現預金でそのまま相続するより、同額を一時払終身保険等に移すと<b>${yen(insRoom)}円が課税対象から外れ</b>、相続税を圧縮できます（税率区分に応じて概ね ${yen(Math.round(insRoom*0.15))}〜${yen(Math.round(insRoom*0.3))}円程度の節税目安）。これが生命保険を使う相続対策の基本形です。</div></div>`;
+    html+=`<div style="padding:0 20px;"><div class="info"><b>生命保険の非課税枠に余裕あり：</b>あと <b>${yenT(insRoom)}</b> まで生命保険金を非課税で受け取れます。現預金でそのまま相続するより、同額を一時払終身保険等に移すと<b>${yenT(insRoom)}が課税対象から外れ</b>、相続税を圧縮できます（税率区分に応じて概ね ${yenT(Math.round(insRoom*0.15))}〜${yenT(Math.round(insRoom*0.3))}程度の節税目安）。これが生命保険を使う相続対策の基本形です。</div></div>`;
   }
 
   // 法定相続人と法定相続分
@@ -321,8 +324,8 @@ function render(r,noAdopt,cfg,insSouzoku,insIchiji){
   if(r.category==='children' && r.adoptedInput>0){
     html+=`<div class="sec-h">養子縁組の効果（税計算上の比較）</div>`;
     html+=`<div style="padding:8px 16px 16px;overflow-x:auto;"><table class="tbl"><thead><tr><th></th><th>法定相続人</th><th>基礎控除</th><th>生保非課税</th><th>相続税総額</th><th>納税額</th></tr></thead><tbody>`;
-    html+=`<tr><td>養子なし</td><td>${noAdopt.heirCount}人</td><td>${yen(noAdopt.kiso)}</td><td>${yen(noAdopt.hikazeiIns)}</td><td>${yen(noAdopt.total)}</td><td>${yen(noAdopt.nozei)}</td></tr>`;
-    html+=`<tr class="now"><td>養子あり（算入${r.adoptedCounted}人）</td><td>${r.heirCount}人</td><td>${yen(r.kiso)}</td><td>${yen(r.hikazeiIns)}</td><td>${yen(r.total)}</td><td>${yen(r.nozei)}</td></tr>`;
+    html+=`<tr><td>養子なし</td><td>${noAdopt.heirCount}人</td><td>${yenT(noAdopt.kiso)}</td><td>${yenT(noAdopt.hikazeiIns)}</td><td>${yenT(noAdopt.total)}</td><td>${yenT(noAdopt.nozei)}</td></tr>`;
+    html+=`<tr class="now"><td>養子あり（算入${r.adoptedCounted}人）</td><td>${r.heirCount}人</td><td>${yenT(r.kiso)}</td><td>${yenT(r.hikazeiIns)}</td><td>${yenT(r.total)}</td><td>${yenT(r.nozei)}</td></tr>`;
     html+=`</tbody></table></div>`;
   }
 
@@ -330,7 +333,7 @@ function render(r,noAdopt,cfg,insSouzoku,insIchiji){
   html+=`<div class="sec-h">計算の内訳</div>`;
   html+=`<div style="padding:8px 16px 16px;overflow-x:auto;"><table class="tbl"><tbody>`;
   html+=`<tr><td>財産（生保・退職金を除く）</td><td>${yen(cfg.assets)}円</td></tr>`;
-  html+=`<tr><td>＋ 生命保険金（非課税 ${yen(Math.min(r.insurance,r.hikazeiIns))}控除後）</td><td>${yen(r.taxIns)}円</td></tr>`;
+  html+=`<tr><td>＋ 生命保険金（非課税 ${yenT(Math.min(r.insurance,r.hikazeiIns))}控除後）</td><td>${yen(r.taxIns)}円</td></tr>`;
   html+=`<tr><td>＋ 死亡退職金（非課税控除後）</td><td>${yen(r.taxRet)}円</td></tr>`;
   html+=`<tr><td>− 債務・葬式費用</td><td>${yen(cfg.debts)}円</td></tr>`;
   html+=`<tr><td><b>課税価格の合計</b></td><td><b>${yen(r.kazeiKakaku)}円</b></td></tr>`;
@@ -470,6 +473,8 @@ function fpFmt(n){if(n===0)return '0';var r=Math.round(n*10000)/10000;return r.t
   return {init:init,clearAll:clearAll,saveFile:saveFile,loadFile:loadFile,printPDF:printPDF,save:save,openSettings:openSettings,closeSettings:closeSettings,toggleManual:toggleManual};
 })();
 FP.init('seiho', simulate);
+/* 表示単位(円/万円)確定後に再描画：文章中の金額(yenT)を現在の単位で出し直す（fp-deck取込前に実行） */
+simulate();
 </script>
 <script src="fp-deck.js?v=27"></script>
 <script src="fp-amount.js?v=5"></script>
