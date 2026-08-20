@@ -65,10 +65,11 @@ h3.sub{font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--mute);mar
 h3.sub:first-of-type{margin-top:4px}
 
 /* ---------- fields ---------- */
-.f{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0}
+.f{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:5px 0;max-width:560px}
 .f label{font-size:13.5px;color:var(--ink2);flex:1 1 auto}
 .f label small{display:block;font-size:11px;color:var(--mute);line-height:1.4}
 .f .in{flex:0 0 auto;display:flex;align-items:baseline;gap:4px}
+.f .in input[type=number],.f .in input[type=text]{max-width:150px}
 input[type=number],input[type=text],select{
   font:500 15px var(--mono);color:var(--ink);background:#F9FAFB;
   border:1px solid var(--line);border-bottom:2px solid var(--ink2);border-radius:2px;
