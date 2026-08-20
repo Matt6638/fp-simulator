@@ -99,6 +99,7 @@
 
 <div class="fpbar">
   <a class="fpbtn fphome" href="index.html">トップ</a>
+  <button type="button" class="fpbtn" id="unitToggle" onclick="toggleUnit()">円で表示</button>
   <button type="button" class="fpbtn" onclick="FP.toggleManual()">使い方</button>
   <button type="button" class="fpbtn" onclick="FP.clearAll()">クリア</button>
   <button type="button" class="fpbtn" onclick="FP.saveFile()">保存</button>
@@ -149,6 +150,7 @@
         <div class="field"><label class="lab">役員就任年齢</label><div class="inrow"><input type="text" inputmode="numeric" class="num" id="n_join" value="" placeholder="40"><span class="u">歳</span></div></div>
         <div class="field"><label class="lab">役員勇退年齢</label><div class="inrow"><input type="text" inputmode="numeric" class="num" id="n_ret" value="" placeholder="70"><span class="u">歳</span></div></div>
       </div>
+      <div class="field"><label class="lab" style="white-space:nowrap;">勤続年数（在任年数）</label><div class="inrow"><input type="text" inputmode="numeric" class="num" id="n_years" value="" placeholder="自動"><span class="u">年</span></div><div class="hint">直接入力できます。空欄なら「勇退−就任」で自動計算。</div></div>
       <div class="field"><label class="chk" style="font-size:12.5px;color:var(--ink-soft);display:flex;gap:7px;align-items:flex-start;cursor:pointer;"><input type="checkbox" id="n_yakuin" checked style="width:auto;margin-top:3px;"> 役員（勤続5年以下は1/2課税なし）</label></div>
       <div class="hint">希望する手取り額を実現するために必要な退職金（税引前の設定額）を逆算します。必要額は万円単位に切り上げます。</div>
     </div>
@@ -266,34 +268,36 @@ function renderTax(){
   var years = yInput!=='' ? Math.max(0,intV('t_years')) : Math.max(0,ret-join);
   var r=taishokuTax(gross,years,yk);
   var o='';
-  o+=row('退職金額',yen(gross)+' 円');
+  o+=row('退職金額',fmtN(gross)+' '+U());
   o+=row('勤続年数',years+' 年');
-  o+=row('退職所得控除額',yen(r.kojo)+' 円');
-  o+=row('課税退職所得金額',yen(r.kazei)+' 円'+(years<=5&&yk?'（5年以下＝1/2なし）':''));
-  o+=row('所得税＋復興特別所得税',yen(r.shotoku)+' 円');
-  o+=row('　└ 所得税',yen(r.st)+' 円');
-  o+=row('　└ 復興特別所得税',yen(r.fukko)+' 円');
-  o+=row('住民税',yen(r.jumin)+' 円');
-  o+=row('税額合計',yen(r.total)+' 円');
-  o+=hero('手取り額',yen(r.net)+'<small> 円</small>');
+  o+=row('退職所得控除額',fmtN(r.kojo)+' '+U());
+  o+=row('課税退職所得金額',fmtN(r.kazei)+' '+U()+(years<=5&&yk?'（5年以下＝1/2なし）':''));
+  o+=row('所得税＋復興特別所得税',fmtN(r.shotoku)+' '+U());
+  o+=row('　└ 所得税',fmtN(r.st)+' '+U());
+  o+=row('　└ 復興特別所得税',fmtN(r.fukko)+' '+U());
+  o+=row('住民税',fmtN(r.jumin)+' '+U());
+  o+=row('税額合計',fmtN(r.total)+' '+U());
+  o+=hero('手取り額',fmtN(r.net)+'<small> '+U()+'</small>');
   o+=row('対収入割合',(gross>0?pct(r.net/gross*100):'0.0')+' ％');
   g('t_out').innerHTML=o;
 }
 function renderNeed(){
   var netT=num('n_net'),join=intV('n_join'),ret=intV('n_ret'),yk=g('n_yakuin').checked;
-  var years=Math.max(0,ret-join);
+  var ny=g('n_years'), nyManual=ny.getAttribute('data-manual')==='1';
+  if(!nyManual){ var nAuto=(ret>join)?String(ret-join):''; if(ny.value!==nAuto){ny.value=nAuto;} if(nAuto){ny.setAttribute('data-fpt','1');}else{ny.removeAttribute('data-fpt');} }
+  var years = String(ny.value||'').trim()!=='' ? Math.max(0,intV('n_years')) : Math.max(0,ret-join);
   var gross=requiredGross(netT,years,yk);
   var r=taishokuTax(gross,years,yk);
   var o='';
-  o+=row('希望手取り額',yen(netT)+' 円');
-  o+=hero('必要な退職金額',yen(gross)+'<small> 円</small>');
+  o+=row('希望手取り額',fmtN(netT)+' '+U());
+  o+=hero('必要な退職金額',fmtN(gross)+'<small> '+U()+'</small>');
   o+=row('勤続年数',years+' 年');
-  o+=row('退職所得控除額',yen(r.kojo)+' 円');
-  o+=row('課税退職所得金額',yen(r.kazei)+' 円');
-  o+=row('所得税＋復興特別所得税',yen(r.shotoku)+' 円');
-  o+=row('住民税',yen(r.jumin)+' 円');
-  o+=row('税額合計',yen(r.total)+' 円');
-  o+=row('実際の手取り額',yen(r.net)+' 円');
+  o+=row('退職所得控除額',fmtN(r.kojo)+' '+U());
+  o+=row('課税退職所得金額',fmtN(r.kazei)+' '+U());
+  o+=row('所得税＋復興特別所得税',fmtN(r.shotoku)+' '+U());
+  o+=row('住民税',fmtN(r.jumin)+' '+U());
+  o+=row('税額合計',fmtN(r.total)+' '+U());
+  o+=row('実際の手取り額',fmtN(r.net)+' '+U());
   g('n_out').innerHTML=o;
 }
 function renderSave(){
@@ -313,11 +317,11 @@ function renderSave(){
   h+='<div class="sec-h">残り勤務 '+yrs+' 年（現在 '+age+' 歳 → 退職 '+ret+' 歳）／退職金の勤続年数 '+kinzoku+' 年</div>';
   h+='<div class="cmp">';
   h+='<div class="col"><div class="ttl">変更前（全額 給与）</div>'+
-     lin('給与収入 総額',yen(before.income))+lin('−税・社保 総額',yen(before.income-before.net))+
+     lin('給与収入 総額',before.income)+lin('−税・社保 総額',before.income-before.net)+
      '<div style="margin-top:8px;">手取り総額</div><div class="big">'+yen(before.net)+' 円</div>'+
      '<div class="hint" style="margin-top:4px;">対収入 '+(incBefore>0?pct(before.net/incBefore*100):'0')+'％</div></div>';
   h+='<div class="col"><div class="ttl">変更後（引下げ＋退職金）</div>'+
-     lin('給与手取り',yen(after.net))+lin('＋退職金手取り',yen(tr.net))+lin('（退職金 原資）',yen(taishoku))+
+     lin('給与手取り',after.net)+lin('＋退職金手取り',tr.net)+lin('（退職金 原資）',taishoku)+
      '<div style="margin-top:8px;">手取り総額</div><div class="big">'+yen(afterNetTotal)+' 円</div>'+
      '<div class="hint" style="margin-top:4px;">対収入 '+(incAfter>0?pct(afterNetTotal/incAfter*100):'0')+'％</div></div>';
   h+='</div>';
@@ -327,10 +331,17 @@ function renderSave(){
 }
 function row(k,v){return '<div class="orow"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';}
 function hero(k,v){return '<div class="orow hero"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';}
-function lin(k,v){return '<div class="lin"><span>'+k+'</span><span>'+v+' 円</span></div>';}
+function lin(k,v){return '<div class="lin"><span>'+k+'</span><span>'+fmtN(v)+' '+U()+'</span></div>';}
 
 var TAB='tax';
+var UNIT='man'; /* 退職金は既定=万円。切替で円 */
+window.__fpU=(UNIT==='man'?'man':'yen'); /* num()の×10000・単位ラベルに反映 */
+function fmtN(v){v=Math.round(v);return UNIT==='man'?(Math.round(v/1000)/10).toLocaleString('ja-JP',{maximumFractionDigits:1}):v.toLocaleString('ja-JP');}
+function U(){return UNIT==='man'?'万円':'円';}
 function recalc(){ try{renderTax();}catch(e){} try{renderNeed();}catch(e){} try{renderSave();}catch(e){} } /* フェイス変換でタブが1画面化されるため3計算を常時描画 */
+// 円/万円 切替（既定=万円）。入力欄の値も単位に合わせて変換し、単位ラベルも更新
+function applyUnitLabels(){document.querySelectorAll('input.yen').forEach(function(e){var u=e.parentElement&&e.parentElement.querySelector('.u,.yen-unit');if(u)u.textContent=U();});var b=document.getElementById('unitToggle');if(b)b.textContent=(UNIT==='man'?'円で表示':'万円で表示');}
+function toggleUnit(){var of=(UNIT==='man'?10000:1);UNIT=(UNIT==='man'?'yen':'man');var nf=(UNIT==='man'?10000:1);window.__fpU=(UNIT==='man'?'man':'yen');document.querySelectorAll('input.yen').forEach(function(e){var d=String(e.value).replace(/,/g,'');if(d.trim()!==''&&!isNaN(Number(d)))e.value=(Math.round(Number(d)*of/nf*10)/10).toLocaleString('ja-JP');});applyUnitLabels();recalc();}
 
 /* 配線：金額欄整形（全角対応・フォーカスでクリア） */
 function formatYen(el){var half=zen2han(el.value);var db=half.slice(0,el.selectionStart).replace(/[^\d.]/g,'').length;var raw=half.replace(/[^\d.]/g,'');el.value=raw?Number(raw).toLocaleString('ja-JP'):'';var pos=0,c=0;if(db>0){for(var i=0;i<el.value.length;i++){var ch=el.value.charCodeAt(i);if(ch>=48&&ch<=57)c++;if(c>=db){pos=i+1;break;}}if(c<db)pos=el.value.length;}try{el.setSelectionRange(pos,pos);}catch(e){}}
@@ -339,7 +350,7 @@ function attachNum(el){el.addEventListener('focus',function(){this.dataset.prev=
 document.querySelectorAll('input.yen').forEach(attachAmount);
 document.querySelectorAll('input.num').forEach(attachNum);
 // 在任年数を手入力したら「手動」フラグ（自動計算で上書きしない）。空にすれば自動へ復帰
-(function(){var ty=document.getElementById('t_years');if(ty)ty.addEventListener('input',function(){this.setAttribute('data-manual',this.value.trim()===''?'0':'1');},true);})();
+['t_years','n_years'].forEach(function(id){var ty=document.getElementById(id);if(ty)ty.addEventListener('input',function(){this.setAttribute('data-manual',this.value.trim()===''?'0':'1');},true);});
 document.querySelectorAll('input[type=checkbox]').forEach(function(c){c.addEventListener('change',recalc);});
 document.getElementById('tabs').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;TAB=b.dataset.t;[].forEach.call(this.children,function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});document.querySelectorAll('.tab-pane').forEach(function(p){p.classList.remove('on');});document.getElementById('pane-'+TAB).classList.add('on');recalc();});
 recalc();
@@ -454,6 +465,8 @@ function fpFmt(n){if(n===0)return '0';var r=Math.round(n*10000)/10000;return r.t
   return {init:init,clearAll:clearAll,saveFile:saveFile,loadFile:loadFile,printPDF:printPDF,save:save,openSettings:openSettings,closeSettings:closeSettings,toggleManual:toggleManual};
 })();
 FP.init('taishoku', recalc);
+// 既定=万円を反映（FP.initが__fpUを上書きするため後で再設定）
+window.__fpU=(UNIT==='man'?'man':'yen'); applyUnitLabels(); recalc();
 </script>
 <script src="fp-deck.js?v=26"></script>
 <script src="fp-amount.js?v=5"></script>
