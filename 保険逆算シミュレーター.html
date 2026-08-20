@@ -311,29 +311,40 @@ body.rep #report{display:block}
 @media (prefers-reduced-motion:no-preference){
   .headline .num{transition:color .2s ease}
 }
+/* ===== fp-deckフェイス化：用途(個人/法人)切替・冊子モード ===== */
+body.mode-corp .mode-p{display:none!important;}
+body:not(.mode-corp) .mode-c{display:none!important;}
+/* 用途セグ（デッキのドロワー内で見やすく） */
+.segmode{display:flex;gap:8px;flex-wrap:wrap;}
+.segmode label{flex:1 1 auto;}
+/* 冊子（資料）モード：アプリ面を隠して#reportだけ表示（.wrap外へ退避済み） */
+#report{display:none;}
+body.rep .side,body.rep .main,body.rep .fab-input,body.rep .deck-input{display:none!important;}
+body.rep{overflow:auto!important;height:auto!important;}
+body.rep .wrap{display:block!important;height:auto!important;overflow:visible!important;padding:0!important;}
+body.rep #report{display:block!important;}
 </style>
 </head>
 <body>
-<a href="index.html" style="position:fixed;top:10px;right:10px;z-index:9999;font:600 12px/1 -apple-system,system-ui,sans-serif;color:#1b2a4a;background:#fff;border:1px solid #d9d2c2;border-radius:8px;padding:8px 12px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.08);">← 一覧へ</a>
-
+<div class="wrap">
 <header>
-  <div class="hd">
-    <h1>保障ライン<span>／</span>いくらの財産まで守れるか</h1>
-    <p>加入中の死亡保障から、納税・返済・分割資金を賄える財産額の上限を逆算します。</p>
-    <div class="basis">
-      <b>相続税：令和7年4月1日現在法令等</b>
-      <b>出典確認日 2026-08-03</b>
-      <b>金額単位：万円</b>
-      <b>試算値（申告書ではありません）</b>
-    </div>
-    <div class="tabs" role="tablist">
-      <button role="tab" id="tab-p" aria-selected="true" aria-controls="pane-p">個人（相続税・分割）</button>
-      <button role="tab" id="tab-c" aria-selected="false" aria-controls="pane-c">法人（事業保障・自社株）</button>
-    </div>
-  </div>
+  <p class="eyebrow">保険で守れる財産額の逆算</p>
+  <h1>保障ライン／いくらの財産まで守れるか</h1>
+  <p class="sub">加入中の死亡保障から、納税・返済・分割資金を賄える財産額の上限を逆算します。<b>個人</b>（相続税・分割）と<b>法人</b>（事業保障・自社株）を切り替えて試算。相続税：令和7年4月1日現在法令等／金額単位：万円／試算値（申告書ではありません）。</p>
 </header>
 
-<div class="wrap">
+<div class="fpbar">
+  <a class="fpbtn fphome" href="index.html">トップ</a>
+  <button type="button" class="fpbtn" onclick="FP.toggleManual()">使い方</button>
+  <button type="button" class="fpbtn" onclick="FP.clearAll()">クリア</button>
+  <button type="button" class="fpbtn" onclick="FP.saveFile()">保存</button>
+  <button type="button" class="fpbtn" onclick="FP.loadFile()">読込</button>
+  <button type="button" class="fpbtn" onclick="openReport()">冊子作成</button>
+  <button type="button" class="fpbtn fpbtn-pdf" onclick="FP.printPDF()">PDF・共有</button>
+  <input type="file" id="fpLoadInput" accept=".json,application/json" style="display:none;">
+</div>
+
+<div id="fpManual" class="fp-manual" hidden><span class="tag">取扱説明書</span><h3>保障ラインの使い方</h3><p>加入中の死亡保障で、納税・返済・分割・生活資金を賄える<b>財産額の上限</b>を逆算します。左上の<b>個人／法人</b>切替で用途を選べます。</p><h4>入力のポイント</h4><ul><li><b>個人</b>：相続人の構成、死亡時に入るお金（保険金・退職金・弔慰金）、出ていくお金（葬式・生活費・代償金）、財産の内訳を入力。</li><li><b>法人</b>：法人受取の保険金、借入・運転資金、退職金・弔慰金、自社株の買取（金庫株）を入力。</li></ul><h4>結果の見方</h4><ul><li>「守れる財産額の上限」「必要保険金額の逆算」「保険の有無で売る財産の比較」「相続税の計算過程」を表示。</li><li>案件は保存して<b>比較表</b>で並べられます。「冊子作成」で提案資料（印刷用）を生成します。</li></ul><h4>注意</h4><ul><li>小規模宅地等の特例・生前贈与加算・二次相続等は未反映の概算です。金額単位は万円。</li></ul></div>
 <div class="casebar">
   <h3>案件<span id="caseStore"></span></h3>
   <div class="cases" id="cases"></div>
@@ -925,7 +936,7 @@ function render(){
   $("limitNum").innerHTML = sol.capped ? "上限なし" : ((limit<=0 ? "0" : fmt(limit)) + "<small>万円</small>");
   var P = num("ins"), R = num("ret"), C = num("cond");
   var atLimit = needAvail(limit);
-  var hl = $("hl"); hl.className = "headline" + (limit<=0 ? " short" : "");
+  var hl = $("hl"); hl.classList.add("headline"); hl.classList.remove("short","over"); if(limit<=0) hl.classList.add("short");
   if(sol.capped){
     $("limitNote").textContent = "30億円まで不足が生じませんでした。返済・生活費・代償金の入力と、相続人の設定をご確認ください。";
   } else if(limit<=0){
@@ -1128,7 +1139,7 @@ function renderCorp(){
   var shareLimit = num("cPrice")>0 ? Math.floor(buyLimit*10000/num("cPrice")) : 0;
 
   $("cLimitNum").innerHTML = fmt(buyLimit) + "<small>万円</small>";
-  $("cHl").className = "headline" + (buyLimit<=0 ? " short" : "");
+  var cHl=$("cHl"); cHl.classList.add("headline"); cHl.classList.remove("short","over"); if(buyLimit<=0) cHl.classList.add("short");
   $("cLimitNote").textContent = buyLimit<=0
     ? "借入返済・運転資金・退職金で保険金を使い切ります。自社株の買取資金は残りません。"
     : "1株 " + fmt(num("cPrice")) + " 円なら約 " + fmt(shareLimit) + " 株分。ご希望の " + fmt(num("cShares")) + " 株に対して"
@@ -1290,20 +1301,14 @@ function buildReport(){
   $("sheets").innerHTML = out;
   $("repInfo").textContent = "A4縦・全" + PAGE + "ページ";
 }
-$("mkReport").addEventListener("click", function(){
+function openReport(){
   render(); renderCorp();
   buildReport();
   document.body.classList.add("rep");
-  var kids = document.querySelectorAll(".wrap > *");
-  for(var i=0;i<kids.length;i++){ if(kids[i].id !== "report") kids[i].dataset.hid = kids[i].hidden ? "1" : "0", kids[i].hidden = true; }
-  document.querySelector("header").hidden = true;
   window.scrollTo(0,0);
-});
+}
 $("repBack").addEventListener("click", function(){
   document.body.classList.remove("rep");
-  var kids = document.querySelectorAll(".wrap > *");
-  for(var i=0;i<kids.length;i++){ if(kids[i].id !== "report") kids[i].hidden = (kids[i].dataset.hid === "1"); }
-  document.querySelector("header").hidden = false;
   $("printHint").hidden = true;
   window.scrollTo(0,0);
 });
@@ -1334,7 +1339,6 @@ $("repSave").addEventListener("click", function(){
   }
   $("printHint").hidden = false;
 });
-$("resetAll").addEventListener("click", function(){ location.reload(); });
 
 /* ---- 案件の保存・切替・比較 ---- */
 var CASES = [], ACTIVE = null;
@@ -1618,14 +1622,19 @@ $("fillIns").addEventListener("click", function(){
   $("ins").focus();
 });
 
-$("tab-p").addEventListener("click", function(){ switchTab(true); });
-$("tab-c").addEventListener("click", function(){ switchTab(false); });
+/* ===== 用途（個人/法人）切替：セグ＋body.mode-corp（fp-deckでタブが廃止されるため） ===== */
+function renderAll(){ try{render();}catch(e){} try{renderCorp();}catch(e){} }
+function applyMode(){
+  var rc=document.getElementById("mode-c");
+  var corp = !!(rc && rc.checked);
+  document.body.classList.toggle("mode-corp", corp);
+  renderAll();
+  if(window.__fpRepaginate) setTimeout(window.__fpRepaginate,0);
+}
 function switchTab(personal){
-  $("tab-p").setAttribute("aria-selected", personal);
-  $("tab-c").setAttribute("aria-selected", !personal);
-  $("pane-p").hidden = !personal;
-  $("pane-c").hidden = personal;
-  if(personal) render(); else renderCorp();
+  var rp=document.getElementById("mode-p"), rc=document.getElementById("mode-c");
+  if(rp&&rc){ rp.checked=!!personal; rc.checked=!personal; }
+  applyMode();
 }
 
 $("toPersonal").addEventListener("click", function(){
@@ -1636,13 +1645,148 @@ $("toPersonal").addEventListener("click", function(){
   $("cond").value = $("cCondPay").checked ? fmt(condLimit(sal, $("cGyomu").checked)) : "";
   $("cHeirs").value = $("nHeirs").textContent;
   switchTab(true);
-  window.scrollTo({top:0, behavior:"smooth"});
 });
 
 render();
 renderCorp();
 restore();
+
+/* ===== fp-deck フェイス化の下準備：DOMを分類してから共通デッキへ渡す ===== */
+(function fpDeckPrep(){
+  // 用途セグ（入力パネル）を先頭に挿入
+  var modePanel=document.createElement("section");
+  modePanel.className="panel"; modePanel.id="modePanel";
+  modePanel.innerHTML='<h2>用途</h2><div class="seg segmode" id="modeSeg">'
+    +'<input type="radio" name="mode" id="mode-p" value="p" checked><label for="mode-p">個人（相続税・分割）</label>'
+    +'<input type="radio" name="mode" id="mode-c" value="c"><label for="mode-c">法人（事業保障・自社株）</label></div>';
+  var cb=document.querySelector(".casebar");
+  if(cb){ cb.parentNode.insertBefore(modePanel, cb); cb.classList.add("panel"); }
+  var seg=document.getElementById("modeSeg"); if(seg) seg.addEventListener("change", applyMode);
+  // カード→パネル＋モードクラス（個人/法人）
+  document.querySelectorAll("#pane-p .card").forEach(function(c){ c.classList.remove("card"); c.classList.add("panel","mode-p"); });
+  document.querySelectorAll("#pane-c .card").forEach(function(c){ c.classList.remove("card"); c.classList.add("panel","mode-c"); });
+  // 見出し・ゲージ（グラフ）は結果パネルへ
+  document.querySelectorAll("#pane-p .headline").forEach(function(c){ c.classList.add("panel","result","mode-p"); });
+  document.querySelectorAll("#pane-p .gauge").forEach(function(c){ c.classList.add("panel","result","mode-p","chartwrap"); });
+  document.querySelectorAll("#pane-c .headline").forEach(function(c){ c.classList.add("panel","result","mode-c"); });
+  // 出典 details は結果パネルへ、リセット等のaction撤去、冊子(report)と電卓は.wrap外へ退避
+  var src=document.querySelector("details.src"); if(src) src.classList.add("panel","result");
+  var ft=document.querySelector(".wrap>footer"); if(ft) ft.classList.add("panel","result");
+  var rep=document.getElementById("report"); if(rep) document.body.appendChild(rep);
+})();
 </script>
+<script>
+/* ===== FPコア v2（全ツール共通：トップ/設定(単位・自動保存・提案者名)/自動保存/JSON/PDF・A4印刷/全角） ===== */
+window.FP=(function(){
+  var KEY='',RECALC=null,DEFAULTS={},obs=null,converting=false,SKEY='fp:settings';
+  function els(){return Array.prototype.slice.call(document.querySelectorAll('input[id],select[id],textarea[id]')).filter(function(e){return e.id!=='fpLoadInput'&&e.id!=='fpPresenter';});}
+  function ser(){var o={};els().forEach(function(e){if(e.type==='checkbox'){o[e.id]=e.checked;}else if(e.classList&&e.classList.contains('yen')){var d=String(e.value).replace(/[^\d.\-]/g,'');o[e.id]=(d===''?'':String(Math.round(parseFloat(d)*(window.__fpU==='man'?10000:1))));}else{o[e.id]=e.value;}});return o;}
+  function resx(o){els().forEach(function(e){if(Object.prototype.hasOwnProperty.call(o,e.id)){if(e.type==='checkbox'){e.checked=!!o[e.id];}else if(e.classList&&e.classList.contains('yen')){var raw=String(o[e.id]).replace(/,/g,'');if(raw===''||raw==='null'||isNaN(Number(raw))){e.value='';}else{e.value=fpFmt(Number(raw)/(window.__fpU==='man'?10000:1));}}else{e.value=o[e.id];}}});}
+  function getS(){try{return JSON.parse(localStorage.getItem(SKEY))||{};}catch(e){return {};}}
+  function setS(o){try{localStorage.setItem(SKEY,JSON.stringify(o));}catch(e){}}
+  function settings(){var s=getS();return {unit:s.unit==='man'?'man':'yen',autosave:s.autosave!==false,presenter:s.presenter||''};}
+  function save(){if(!settings().autosave)return;try{localStorage.setItem('fp:'+KEY,JSON.stringify(ser()));}catch(x){}}
+  function load(){try{var s=localStorage.getItem('fp:'+KEY);if(s){resx(JSON.parse(s));return true;}}catch(x){}return false;}
+  function clearAll(){if(!window.confirm('入力内容を初期状態に戻します。よろしいですか？'))return;resx(DEFAULTS);els().forEach(function(e){e.removeAttribute('data-fpt');});try{localStorage.removeItem('fp:'+KEY);}catch(x){}if(typeof STRUCT_KEY!=='undefined'){try{STRUCT_KEY=null;}catch(e){}}if(RECALC)RECALC();afterRender();}
+  function dl(name,text,mime){var b=new Blob([text],{type:mime});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u);},1500);}
+  function payload(){return JSON.stringify({tool:KEY,savedAt:new Date().toISOString(),inputs:ser()},null,2);}
+  function saveFile(){var name=KEY+'_'+new Date().toISOString().slice(0,10)+'.json';var data=payload();if(window.showSaveFilePicker){window.showSaveFilePicker({suggestedName:name,types:[{description:'FPシミュレーター データ',accept:{'application/json':['.json']}}]}).then(function(h){return h.createWritable();}).then(function(w){return w.write(data).then(function(){return w.close();});}).catch(function(){});}else{dl(name,data,'application/json');}}
+  function loadFile(){var fi=document.getElementById('fpLoadInput');if(fi)fi.click();}
+  function onFile(ev){var f=ev.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var o=JSON.parse(r.result);resx(o.inputs||o);els().forEach(function(e){e.setAttribute('data-fpt','1');});if(typeof STRUCT_KEY!=='undefined'){try{STRUCT_KEY=null;}catch(e){}}if(RECALC)RECALC();afterRender();save();}catch(x){window.alert('読み込みに失敗しました（ファイル形式が不正です）。');}};r.readAsText(f);ev.target.value='';}
+  function normZen(e){if(e&&e.isComposing)return;var el=e.target;if(!el||el.tagName!=='INPUT')return;if(el.type==='checkbox'||el.type==='radio'||el.type==='file')return;var v=el.value;var nv=v.replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);}).replace(/[．]/g,'.').replace(/[，、]/g,',');if(nv!==v){var p=el.selectionStart;el.value=nv;try{el.setSelectionRange(p,p);}catch(x){}}}
+  /* ---- 万円表示 ---- */
+  function toMan(str){var neg=/^\s*-/.test(str);var n=parseFloat(String(str).replace(/[^\d.]/g,''))||0;var m=n/10000;var s=(Math.round(m*10)/10).toLocaleString('ja-JP',{maximumFractionDigits:1});return (neg?'-':'')+s;}
+  function repl円(el){var w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null),n;while(n=w.nextNode()){if(n.nodeValue.indexOf('円')>=0){n.nodeValue=n.nodeValue.replace('円','万円');return;}}}
+  function convert(root){if(settings().unit!=='man')return;converting=true;try{
+    var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null),arr=[],n;while(n=w.nextNode())arr.push(n);
+    arr.forEach(function(t){var p=t.parentNode;if(!p||p.nodeType!==1)return;var tag=p.nodeName;
+      if(tag==='SCRIPT'||tag==='STYLE'||tag==='INPUT'||tag==='TEXTAREA')return;
+      if(p.closest&&(p.closest('.fp-modal')||p.closest('.fpbar')||p.closest('.fp-printhead')))return;
+      var v=t.nodeValue;
+      var mA=v.match(/^(\s*)(-?[\d,]+)\s*円(\s*)$/);
+      if(mA){t.nodeValue=mA[1]+toMan(mA[2])+'万円'+mA[3];return;}
+      if(/^\s*-?[\d,]{2,}\s*$/.test(v)){var sib=t.nextSibling;if(sib){var stx=(sib.textContent||'');if(/^\s*円/.test(stx)){t.nodeValue=v.replace(/-?[\d,]+/,toMan(v));repl円(sib);}}}
+    });
+  }finally{converting=false;}}
+  function startObs(){if(obs)return;obs=new MutationObserver(function(){if(converting)return;if(settings().unit!=='man')return;if(FP._raf)cancelAnimationFrame(FP._raf);FP._raf=requestAnimationFrame(function(){convert(document.body);});});obs.observe(document.body,{childList:true,subtree:true,characterData:true});}
+  function afterRender(){if(settings().unit==='man'){convert(document.body);startObs();}}
+  function applyUnit(){var nu=settings().unit,ou=window.__fpU||'yen';if(ou!==nu){var of=(ou==='man'?10000:1),nf=(nu==='man'?10000:1);document.querySelectorAll('input.yen').forEach(function(e){var d=String(e.value).replace(/,/g,'');if(d.trim()!==''&&!isNaN(Number(d)))e.value=fpFmt(Number(d)*of/nf);});window.__fpU=nu;fpRefreshLabels();}if(nu==='man'){if(RECALC)RECALC();convert(document.body);startObs();}else{if(obs){obs.disconnect();obs=null;}if(RECALC)RECALC();}}
+  /* ---- 設定モーダル ---- */
+  function seg(id,val){var g=document.getElementById(id);if(!g)return;Array.prototype.forEach.call(g.children,function(b){b.setAttribute('aria-pressed',b.dataset.v===val?'true':'false');});}
+  function syncModal(){var s=settings();seg('fpUnit',s.unit);seg('fpAuto',s.autosave?'on':'off');var p=document.getElementById('fpPresenter');if(p&&document.activeElement!==p)p.value=s.presenter;}
+  function buildModal(){if(document.getElementById('fpModal')){syncModal();return;}
+    var m=document.createElement('div');m.id='fpModal';m.className='fp-modal';
+    m.innerHTML='<div class="fp-card"><div class="fp-mh">設定<small>（全ツール共通）</small></div>'
+      +'<div class="fp-row"><div class="fp-lbl">表示単位</div><div class="fp-seg" id="fpUnit"><button type="button" data-v="yen">円</button><button type="button" data-v="man">万円</button></div></div>'
+      +'<div class="fp-hint">結果に表示される金額の単位を全ツールで切り替えます（入力欄は円のまま）。</div>'
+      +'<div class="fp-row"><div class="fp-lbl">入力の自動保存</div><div class="fp-seg" id="fpAuto"><button type="button" data-v="on">ON</button><button type="button" data-v="off">OFF</button></div></div>'
+      +'<div class="fp-hint">OFFにするとこの端末に入力を保存しません（共用端末向け）。</div>'
+      +'<div class="fp-row col"><div class="fp-lbl">提案者名・会社名</div><input type="text" id="fpPresenter" placeholder="例：○○生命 FP ○○"></div>'
+      +'<div class="fp-hint">PDF・印刷のヘッダーに表示されます。</div>'
+      +'<div class="fp-actions"><button type="button" class="fpbtn fpbtn-pdf" onclick="FP.closeSettings()">閉じる</button></div></div>';
+    document.body.appendChild(m);
+    m.addEventListener('click',function(e){if(e.target===m)closeSettings();});
+    document.getElementById('fpUnit').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var s=getS();s.unit=b.dataset.v;setS(s);syncModal();applyUnit();});
+    document.getElementById('fpAuto').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var s=getS();s.autosave=(b.dataset.v==='on');setS(s);syncModal();if(s.autosave)save();});
+    document.getElementById('fpPresenter').addEventListener('input',function(){var s=getS();s.presenter=this.value;setS(s);setPrintHead();});
+    syncModal();
+  }
+  function openSettings(){buildModal();document.getElementById('fpModal').style.display='flex';}
+  function closeSettings(){var m=document.getElementById('fpModal');if(m)m.style.display='none';}
+  /* ---- 印刷ヘッダー ---- */
+  function setPrintHead(){var h=document.getElementById('fpPrintHead');if(!h){h=document.createElement('div');h.id='fpPrintHead';h.className='fp-printhead';document.body.insertBefore(h,document.body.firstChild);}var t=document.querySelector('h1');var title=t?t.textContent:'FPシミュレーター';var p=settings().presenter;h.innerHTML='<span class="pt">'+title+'</span><span class="pp">'+(p?p+'　／　':'')+new Date().toLocaleDateString('ja-JP')+'</span>';}
+  function printPDF(){setPrintHead();window.print();}
+  function toggleManual(){var m=document.getElementById('fpManual');if(!m)return;m.hidden=!m.hidden;}
+function fpFmt(n){if(n===0)return '0';var r=Math.round(n*10000)/10000;return r.toLocaleString('ja-JP',{maximumFractionDigits:4});}
+  function fpMarkLabels(){document.querySelectorAll('input.yen').forEach(function(i){var s=i.nextElementSibling;if(s&&/^\s*円\s*$/.test(s.textContent||'')&&!s.getAttribute('data-fpu'))s.setAttribute('data-fpu','1');});}
+  function fpRefreshLabels(){document.querySelectorAll('[data-fpu]').forEach(function(e){e.textContent=(window.__fpU==='man'?'万円':'円');});}
+  function injectCSS(){var s=document.createElement('style');s.textContent=
+    'input:not([data-fpt]):not([type=checkbox]):not([type=radio]):not([type=file]),select:not([data-fpt]){color:#b3ab98!important;}'
+     +'.fpbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 20px;}'
+    +'.fpbtn{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-soft,#46506a);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);border-radius:7px;padding:8px 14px;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;line-height:1.4;}'
+    +'.fpbtn:hover{border-color:var(--brass,#9a7b4f);color:var(--ink,#1b2a4a);}'
+    +'.fphome{color:#fff;background:var(--ink,#1b2a4a);border-color:var(--ink,#1b2a4a);}'
+    +'.fphome:hover{color:#fff;background:#0f1830;}'
+    +'.fpbtn-pdf{background:var(--brass,#9a7b4f);color:#fff;border-color:var(--brass-deep,#7d6240);}'
+    +'.fpbtn-pdf:hover{background:var(--brass-deep,#7d6240);color:#fff;}'
+    +'.fp-modal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(20,28,48,.42);align-items:flex-start;justify-content:center;padding:8vh 16px;}'
+    +'.fp-card{background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(20,28,48,.3);width:100%;max-width:440px;padding:22px 22px 20px;font-family:var(--gothic,system-ui);}'
+    +'.fp-mh{font-family:var(--mincho,serif);font-size:18px;font-weight:600;color:var(--ink,#1b2a4a);margin-bottom:16px;}'
+    +'.fp-mh small{font-size:12px;color:#8a8470;font-weight:400;font-family:var(--gothic,system-ui);}'
+    +'.fp-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;}'
+    +'.fp-row.col{flex-direction:column;align-items:stretch;gap:7px;}'
+    +'.fp-lbl{font-size:13px;font-weight:600;color:var(--ink,#1b2a4a);}'
+    +'.fp-hint{font-size:11px;color:#8a8470;margin-top:5px;line-height:1.5;}'
+    +'.fp-seg{display:flex;gap:6px;}'
+    +'.fp-seg button{font-family:inherit;font-size:13px;font-weight:600;color:var(--ink-soft,#46506a);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);border-radius:7px;padding:8px 18px;cursor:pointer;}'
+    +'.fp-seg button[aria-pressed=true]{background:var(--ink,#1b2a4a);color:#fff;border-color:var(--ink,#1b2a4a);}'
+    +'#fpPresenter{width:100%;font-family:inherit;font-size:14px;color:var(--ink,#1b2a4a);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);border-radius:7px;padding:10px 12px;}'
+    +'.fp-actions{display:flex;justify-content:flex-end;margin-top:20px;}'
+    +'.fp-printhead{display:none;}'
+    +'.fp-manual{background:#fbf9f4;border:1px solid var(--rule,#e3ddcf);border-left:4px solid var(--brass,#9a7b4f);border-radius:10px;padding:18px 20px;margin:0 0 20px;font-size:13px;line-height:1.85;color:var(--ink,#1b2a4a);}'+'.fp-manual h3{font-family:var(--mincho,serif);font-size:15px;margin:0 0 10px;color:var(--brass-deep,#7d6240);}'+'.fp-manual h4{font-size:12.5px;margin:14px 0 4px;color:var(--ink,#1b2a4a);font-weight:700;}'+'.fp-manual ul{margin:4px 0 0;padding-left:1.25em;}.fp-manual li{margin:3px 0;}'+'.fp-manual .tag{display:inline-block;font-size:11px;color:#8a4b2f;background:#fbf1e8;border:1px solid #e3c3a8;border-radius:20px;padding:1px 9px;margin-bottom:10px;}'+'@page{size:A4;margin:12mm;}'
+    +'@media print{.fpbar,.back,.fphome,button,.fp-modal,.fp-manual{display:none!important;}'
+    +'html,body{background:#fff!important;}'
+    +'.wrap{max-width:100%!important;padding:0!important;margin:0!important;}'
+    +'.grid,.result-cards{display:block!important;}'
+    +'.panel,.card,.rc{box-shadow:none!important;border:1px solid #d8d2c2!important;break-inside:avoid;page-break-inside:avoid;margin:0 0 10px!important;}'
+    +'table,thead,tbody,tr,.orow,.field,svg,.info,.warn,.brk{break-inside:avoid;page-break-inside:avoid;}'
+    +'.fp-printhead{display:flex!important;justify-content:space-between;align-items:baseline;gap:12px;border-bottom:2px solid #1b2a4a;padding-bottom:7px;margin-bottom:12px;}'
+    +'.fp-printhead .pt{font-family:var(--mincho,serif);font-weight:600;font-size:15px;color:#1b2a4a;}'
+    +'.fp-printhead .pp{font-size:11px;color:#46506a;}'
+    +'h1{font-size:19px!important;}}';
+    document.head.appendChild(s);}
+  function init(key,recalc){KEY=key;RECALC=recalc;window.__fpU=settings().unit;injectCSS();fpMarkLabels();DEFAULTS=ser();
+    var fi=document.getElementById('fpLoadInput');if(fi)fi.addEventListener('change',onFile);
+    document.addEventListener('input',normZen,true);
+    document.addEventListener('input',save);document.addEventListener('change',save);document.addEventListener('input',function(e){var t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='SELECT'))t.setAttribute('data-fpt','1');},true);document.addEventListener('change',function(e){var t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='SELECT'))t.setAttribute('data-fpt','1');},true);document.addEventListener('focusin',function(e){var t=e.target;if(t&&t.tagName==='SELECT')t.setAttribute('data-fpt','1');},true);
+    window.addEventListener('storage',function(e){if(e.key===SKEY){applyUnit();setPrintHead();}});
+    if(load()){els().forEach(function(e){e.setAttribute('data-fpt','1');});if(RECALC)RECALC();}
+    setPrintHead();fpRefreshLabels();afterRender();}
+  return {init:init,clearAll:clearAll,saveFile:saveFile,loadFile:loadFile,printPDF:printPDF,save:save,openSettings:openSettings,closeSettings:closeSettings,toggleManual:toggleManual};
+})();
+FP.init('hoshou', renderAll);
+</script>
+<script src="fp-deck.js?v=27"></script>
 <script src="fp-amount.js?v=5"></script>
 <script src="fp-pwa.js?v=4"></script>
 </body>
