@@ -107,14 +107,14 @@
         <label class="lab">年齢</label>
         <div class="seg" id="ageSeg"><button data-v="65" aria-pressed="true">65歳以上</button><button data-v="64">65歳未満</button></div>
       </div>
-      <div class="row2">
+      <div class="row2" id="pensionRow">
         <div class="field"><label class="lab">老齢基礎年金（年額）</label><input type="text" inputmode="numeric" class="yen" id="kiso" value="" placeholder="0"></div>
         <div class="field"><label class="lab">老齢厚生年金（年額）</label><input type="text" inputmode="numeric" class="yen" id="kousei" value="" placeholder="0"></div>
       </div>
 
-      <div class="grp">就労（在職老齢年金）</div>
-      <div class="field"><label class="chk"><input type="checkbox" id="enrolled" checked> 厚生年金に加入して働く（在職老齢年金の対象）</label></div>
-      <div class="field"><label class="lab">給与収入（賞与込み・年額）</label><input type="text" inputmode="numeric" class="yen" id="salary" value="" placeholder="0"><div class="hint">総報酬月額相当額（≒年収/12）と老齢厚生年金の基本月額の合計が<b>月65万円</b>を超えると、超過分の半分だけ厚生年金が停止します（令和8年度）。</div></div>
+      <div class="grp" id="workGrp">就労（在職老齢年金）</div>
+      <div class="field" id="enrolledField"><label class="chk"><input type="checkbox" id="enrolled" checked> 厚生年金に加入して働く（在職老齢年金の対象）</label></div>
+      <div class="field"><label class="lab">給与収入（賞与込み・年額）</label><input type="text" inputmode="numeric" class="yen" id="salary" value="" placeholder="0"><div class="hint" id="salaryHint">総報酬月額相当額（≒年収/12）と老齢厚生年金の基本月額の合計が<b>月65万円</b>を超えると、超過分の半分だけ厚生年金が停止します（令和8年度）。</div></div>
 
       <div class="grp">不動産</div>
       <div class="row2">
@@ -217,10 +217,13 @@ function numV(id){var e=document.getElementById(id);var v=parseFloat(zen2han(_pv
 function segVal(id){const b=document.getElementById(id).querySelector('[aria-pressed=true]');return b?b.dataset.v:null;}
 let ready=false;
 
-function simulate(){
+function computeR(){
   const age65=segVal('ageSeg')==='65';
-  const kiso=Math.min(numV('kiso'), 847300), kousei=numV('kousei'); // 老齢基礎は令和8年度満額847,300円が上限
-  const enrolled=document.getElementById('enrolled').checked;
+  // 65歳未満＝年金未受給。老齢年金・在職老齢は0で計算し、関連入力欄も隠す（最低限のみ）
+  ['pensionRow','workGrp','enrolledField'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display=age65?'':'none';});
+  var sh=document.getElementById('salaryHint'); if(sh)sh.style.display=age65?'':'none';
+  const kiso=age65?Math.min(numV('kiso'), 847300):0, kousei=age65?numV('kousei'):0; // 老齢基礎は令和8年度満額847,300円が上限
+  const enrolled=age65 && document.getElementById('enrolled').checked;
   const salary=numV('salary');
   const rent=numV('rent'), rentExp=numV('rentExp');
   const kaiyaku=numV('kaiyaku'), premiums=numV('premiums');
@@ -284,19 +287,26 @@ function simulate(){
   const kaiyakuNet  = Math.max(0, kaiyaku - kaiyakuTax);           // 解約金の手残り（税引後）
   const effRate = incomeSum>0 ? taxTotal/incomeSum : 0;           // 全体の実効税率（対 収入合計）
 
-  render({age65,kiso,kousei,enrolled,salary,rent,rentExp,fudosan,kaiyaku,premiums,listed,otherDeduction,shakaihoken,
+  return {age65,kiso,kousei,enrolled,salary,rent,rentExp,fudosan,kaiyaku,premiums,listed,otherDeduction,shakaihoken,
     jishaSale,jishaCost,jishaCapital,jishaBuyer,deemedDiv,jishaTransferGain,jishaGain,
     teishiYear,actualKousei,actualPension,nenkinZatsu,kyuyoShotoku,ichijiRaw,ichijiHalf,sogoShotoku,kiso_st,taxableShotoku,shotoku,jumin,kabuTax,taxTotal,hokenGain,incomeSum,tedori,soho,kihonMonthly,
-    kaiyakuTax,kaiyakuRate,kaiyakuNet,effRate});
+    kaiyakuTax,kaiyakuRate,kaiyakuNet,effRate};
 }
 
 function yen(v){return Math.round(v).toLocaleString('ja-JP');}
 function man(v){return (v/10000).toFixed(0);}
+var LAST_R=null;
+function simulate(){ LAST_R=computeR(); render(LAST_R); return LAST_R; }
 function render(r){
   let html='';
   html+=`<div class="result-cards">
+    <div class="rc" style="grid-column:1/-1;background:#f3f6fb;border-color:#c3d2ea;"><div class="k">給与収入を動かして影響を確認（在職老齢年金・税・手取り）</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px;">
+        <input type="range" class="fp-resultedit js-salslider" min="0" max="15000000" step="100000" value="${Math.min(15000000,r.salary)}" style="flex:1 1 260px;accent-color:var(--brass);">
+        <span style="white-space:nowrap;"><input type="text" inputmode="numeric" class="fp-resultedit js-salinput" value="${yen(r.salary)}" style="width:130px;text-align:right;font-family:var(--mono);border:1px solid var(--rule);border-radius:6px;padding:5px 8px;"> 円/年</span>
+      </div></div>
     <div class="rc hero"><div class="k">この年の手取り（所得ベース・税と社保 控除後）</div>
-      <div class="v">${yen(r.tedori)}<small> 円</small></div>
+      <div class="v"><span class="js-tedori">${yen(r.tedori)}</span><small> 円</small></div>
       <div class="note">総収入（所得）${yen(r.incomeSum)}円 − 税 ${yen(r.taxTotal)}円 − 社会保険料 ${yen(r.shakaihoken)}円。株・保険は元本回収を除いた利益分で計算。</div></div>`;
 
   if(r.teishiYear>0){
@@ -306,7 +316,7 @@ function render(r){
   }
 
   html+=`<div class="rc"><div class="k">税金の合計</div><div class="v" style="font-size:18px;">${yen(r.taxTotal)}<small>円</small></div><div class="note">所得税 ${yen(r.shotoku)}＋住民税 ${yen(r.jumin)}＋株の分離課税 ${yen(r.kabuTax)}。実効税率 約${(r.effRate*100).toFixed(1)}%（対 収入合計）。</div></div>
-    <div class="rc"><div class="k">実際に受け取る公的年金</div><div class="v" style="font-size:18px;">${yen(r.actualPension)}<small>円/年</small></div><div class="note">基礎 ${yen(r.kiso)}＋厚生 ${yen(r.actualKousei)}（停止後）。</div></div>`;
+    <div class="rc"><div class="k">実際に受け取る公的年金</div><div class="v" style="font-size:18px;"><span class="js-pension">${yen(r.actualPension)}</span><small>円/年</small></div><div class="note">基礎 ${yen(r.kiso)}＋厚生 <span class="js-actkousei">${yen(r.actualKousei)}</span>（停止後）。</div></div>`;
   if(r.hokenGain>0){
     html+=`<div class="rc" style="background:#eef4ef;border-color:#c6e0cd;"><div class="k">保険を解約したらかかる税金</div>
       <div class="v" style="font-size:20px;color:var(--loss);">約 ${yen(r.kaiyakuTax)}<small> 円</small></div>
@@ -365,6 +375,10 @@ document.getElementById('calcBtn').addEventListener('click',simulate);
 const inputPanel=document.querySelectorAll('.panel')[0];
 inputPanel.addEventListener('input',()=>{if(ready)simulate();});
 inputPanel.addEventListener('change',()=>{if(ready)simulate();});
+// 結果画面の給与スライダー／直接入力：ドラッグ中は主要数値だけを直接書換（再クローンせずスライダーを保持）、離したら全体再描画
+function patchLive(r){function setTxt(sel,val){document.querySelectorAll('.deck-result '+sel).forEach(function(e){e.textContent=val;});}setTxt('.js-tedori',yen(r.tedori));setTxt('.js-pension',yen(r.actualPension));setTxt('.js-actkousei',yen(r.actualKousei));}
+document.addEventListener('input',function(e){var t=e.target;if(!t||!t.classList)return;if(t.classList.contains('js-salslider')||t.classList.contains('js-salinput')){var raw=t.classList.contains('js-salslider')?Number(t.value):(parseFloat(zen2han(t.value).replace(/,/g,''))||0);var salEl=document.getElementById('salary');if(salEl){salEl.value=Math.round(raw).toLocaleString('ja-JP');salEl.setAttribute('data-fpt','1');}document.querySelectorAll('.deck-result .js-salslider').forEach(function(s){if(s!==t)s.value=Math.min(15000000,raw);});document.querySelectorAll('.deck-result .js-salinput').forEach(function(i){if(i!==t)i.value=yen(raw);});if(ready){LAST_R=computeR();patchLive(LAST_R);}}},true);
+document.addEventListener('change',function(e){var t=e.target;if(t&&t.classList&&(t.classList.contains('js-salslider')||t.classList.contains('js-salinput'))){if(ready)simulate();}},true);
 ready=true;
 simulate();
 </script>
@@ -480,7 +494,7 @@ function fpFmt(n){if(n===0)return '0';var r=Math.round(n*10000)/10000;return r.t
 FP.init('retire', simulate);
 </script>
 <script>window.FP_DECK_STACK=true;/* 結果は数字→表の縦積み・全幅（課税方式表を広く） */</script>
-<script src="fp-deck.js?v=26"></script>
+<script src="fp-deck.js?v=27"></script>
 <script src="fp-amount.js?v=5"></script>
 <script src="fp-pwa.js?v=4"></script>
 </body>
