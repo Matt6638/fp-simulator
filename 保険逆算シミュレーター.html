@@ -321,8 +321,6 @@ body.rep #report{display:block}
   .headline .num{transition:color .2s ease}
 }
 /* ===== fp-deckフェイス化：用途(個人/法人)切替・冊子モード ===== */
-/* 結果デッキ（縦積み）をiPadでもなめらかに縦スクロール */
-.deck-result .rpage.fp-stacked{-webkit-overflow-scrolling:touch;scroll-behavior:smooth;}
 body.mode-corp .mode-p{display:none!important;}
 body:not(.mode-corp) .mode-c{display:none!important;}
 /* 用途セグ（デッキのドロワー内で見やすく） */
@@ -1864,7 +1862,7 @@ function fpFmt(n){if(n===0)return '0';var r=Math.round(n*10000)/10000;return r.t
 })();
 FP.init('hoshou', renderAll);
 </script>
-<script src="fp-deck.js?v=27"></script>
+<script src="fp-deck.js?v=28"></script>
 <script src="fp-amount.js?v=5"></script>
 <script src="fp-pwa.js?v=4"></script>
 </body>

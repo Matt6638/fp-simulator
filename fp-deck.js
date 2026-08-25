@@ -40,6 +40,10 @@
     +'.deck-result .rcol table{width:100%;font-size:10px;table-layout:fixed;}'
     // 縦積みモード：全幅1カラム。表は圧縮せず読みやすく
     +'.deck-result .rpage.fp-stacked{display:block;overflow-y:auto;}'
+    // 縦積み(既定)は横スワイプのスナップ入れ子スクロールをやめ、デッキ全体を素直に縦スクロール
+    // （縦に長い結果でiPad等の縦スワイプが横スナップと衝突して弾かれる＝ブルブル震えて戻る対策）
+    +'.deck-result .deck-scroll.deck-vscroll{display:block;overflow-x:hidden;overflow-y:auto;scroll-snap-type:none;-webkit-overflow-scrolling:touch;}'
+    +'.deck-result .deck-scroll.deck-vscroll>.rpage,.deck-result .deck-scroll.deck-vscroll>.rpage.fp-stacked{height:auto;min-height:0;overflow:visible;scroll-snap-align:none;}'
     +'.deck-result .rpage.fp-stacked .rcol{max-width:none;width:100%;}'
     +'.deck-result .rpage.fp-stacked table{table-layout:auto;font-size:12px;}'
     +'.deck-result .rpage.fp-stacked table th,.deck-result .rpage.fp-stacked table td{padding:5px 8px;white-space:normal;}'
@@ -226,6 +230,7 @@
       // スタックモード＝既定ON：グラフ・表を左右に並べて縮めず、縦積みで大きく表示。
       // 金額カードはコンパクトに折返し（D）、グラフ・表は全幅（A）。opt-out は window.FP_DECK_STACK=false。
       var stack = (window.FP_DECK_STACK!==false);
+      scrollEl.classList.toggle('deck-vscroll', stack); // 縦積み時はデッキ全体を縦スクロール（横スナップ無効）
       var hasKpi=(!stack) && srcBlocks.some(function(b){return isCls(b,'result-cards');});
       var restAvail=pageW-PAD-(hasKpi?KPIW+GAP:0);
       var K=Math.max(1, Math.floor((restAvail+GAP)/(COLW+GAP)));
