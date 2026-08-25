@@ -133,6 +133,15 @@ td.neg{color:var(--alert)} td.pos{color:var(--guard)}
 .pill{display:inline-block;font:500 11px var(--mono);padding:2px 7px;border-radius:2px}
 .pill.ok{background:var(--guard-bg);color:var(--guard)}
 .pill.ng{background:var(--alert-bg);color:var(--alert)}
+/* 早見表 */
+.tblctrl{display:flex;align-items:center;gap:10px;margin:2px 0 10px;font-size:13px;color:var(--ink2)}
+.tblctrl select{font:500 13px var(--mono);padding:6px 8px;border:1px solid var(--line);border-radius:var(--r);background:#fff}
+table.protect th{color:var(--ink2);font-weight:600}
+table.protect th:not(:first-child){text-align:right}
+table.protect td{font:500 13.5px var(--mono);font-feature-settings:"tnum"}
+table.protect td:first-child{font-weight:700;color:var(--ink)}
+table.protect tr.now td{background:var(--guard-bg);color:var(--guard)}
+table.protect tr.now td b{color:var(--guard)}
 
 .form{font:500 12px var(--mono);background:#F4F7F9;border-left:3px solid var(--rule);padding:8px 10px;margin:10px 0 0;color:var(--ink2);white-space:pre-wrap;line-height:1.85;overflow-x:auto}
 .warn{background:var(--alert-bg);border-left:3px solid var(--alert);padding:9px 11px;font-size:12.5px;color:#6E2415;margin-top:10px;border-radius:2px}
@@ -553,6 +562,22 @@ body.rep #report{display:block!important;}
     </div>
 
     <div class="card">
+      <h2>保険金Sを増やすと、守れる資産はいくらまで <em>早見表</em></h2>
+      <div class="tblctrl">
+        <label for="incStep">保険金の増加単位</label>
+        <select class="fp-resultedit js-incstep" id="incStep">
+          <option value="500">500万円ずつ</option>
+          <option value="1000">1,000万円ずつ</option>
+          <option value="2000">2,000万円ずつ</option>
+          <option value="3000">3,000万円ずつ</option>
+          <option value="5000">5,000万円ずつ</option>
+        </select>
+      </div>
+      <table id="tblProtect" class="protect"></table>
+      <div class="memo">保険金S（死亡保険金）を段階的に増やしたときに、納税・返済・分割・生活資金を賄える<b>守れる資産の上限</b>を示します。<b>現金（流動資産）</b>・退職金・弔慰金も充当資金に含めています。現在の保険金に最も近い行を強調表示。</div>
+    </div>
+
+    <div class="card">
       <h2>相続税の計算過程 <em>相法／No.4152・4155</em></h2>
       <table id="tblTax"></table>
       <div class="memo" id="taxMemo"></div>
@@ -842,6 +867,48 @@ function solveLimit(){
   }
   return { limit:lo, capped:false };
 }
+/* 保険金Sを指定して守れる資産上限を解く（早見表用） */
+function solveLimitForIns(insS){
+  var STEP = 500, MAX = 300000;
+  if(needAvail(0, insS).gap < 0) return { limit:0, capped:false };
+  var lo = 0, hi = null;
+  for(var x=STEP; x<=MAX; x+=STEP){ if(needAvail(x, insS).gap < 0){ hi = x; lo = x-STEP; break; } }
+  if(hi === null) return { limit:MAX, capped:true };
+  for(var i=0;i<60;i++){ var m=(lo+hi)/2; if(needAvail(m, insS).gap >= 0) lo=m; else hi=m; }
+  return { limit:lo, capped:false };
+}
+/* 早見表：保険金Sを増加単位ずつ増やし、守れる資産の上限を一覧化 */
+var TBL_STEP = 1000;
+function renderTable(){
+  var el = document.getElementById("tblProtect"); if(!el) return;
+  var sel = document.getElementById("incStep");
+  if(sel){ sel.value = String(TBL_STEP);
+    // クローン（結果デッキ）へ反映されるよう selected 属性も設定
+    Array.prototype.forEach.call(sel.options, function(o){ if(o.value===String(TBL_STEP)) o.setAttribute("selected","selected"); else o.removeAttribute("selected"); });
+  }
+  var step = TBL_STEP;
+  var curS = num("ins");
+  var cash = assetLiquid();
+  var R = num("ret"), C = num("cond");
+  var curRow = Math.round(curS/step);
+  var ROWS = 10;
+  var extra = R + C; // 退職金・弔慰金（保険金以外の充当・現金以外）
+  var h = '<tr><th>保険金 S</th><th>現金（流動資産）</th><th>守れる資産の上限</th><th>総資産ベース</th></tr>';
+  for(var i=0;i<ROWS;i++){
+    var s = i*step;
+    var sol = solveLimitForIns(s);
+    var capped = sol.capped;
+    var lim = capped ? "30億超" : fmt(sol.limit);
+    var gross = capped ? "—" : (fmt(sol.limit + s + R + C));
+    var isCur = (i===curRow && curS>0);
+    h += '<tr'+(isCur?' class="now"':'')+'>'
+      + '<td>'+fmt(s)+'</td>'
+      + '<td>'+fmt(cash)+'</td>'
+      + '<td><b>'+lim+'</b> 万円</td>'
+      + '<td>'+gross+(capped?'':' 万円')+'</td></tr>';
+  }
+  el.innerHTML = h;
+}
 
 /* ---- 必要保険金額の逆算（不動点）----
    保険金を増やすと非課税枠の超過分が課税価格に加わり税額も増えるため、
@@ -952,6 +1019,7 @@ function render(){
       + fmt(atLimit.r.payable) + "万円）。保険金・退職金を含めた総資産ベースでは約" + fmt(limit+P+R+C) + "万円です。";
   }
   drawChart(limit, sol.capped);
+  renderTable();
 
   /* 現状判定 */
   var cur = assetTotal(), d = needAvail(cur);
@@ -1171,6 +1239,14 @@ function renderCorp(){
 /* ============ 初期化 ============ */
 document.addEventListener("input", function(){ render(); renderCorp(); });
 document.addEventListener("change", function(){ render(); renderCorp(); });
+/* 早見表：増加単位セレクト（結果デッキの複製上で操作されるため委譲） */
+document.addEventListener("change", function(e){
+  var t = e.target;
+  if(t && t.tagName==="SELECT" && t.classList.contains("js-incstep")){
+    var v = parseInt(t.value,10);
+    if(v){ TBL_STEP = v; renderTable(); }
+  }
+}, true);
 
 /* ---- 資料（冊子）モード ---- */
 var PAGE = 0;
