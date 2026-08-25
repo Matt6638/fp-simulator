@@ -134,8 +134,12 @@ td.neg{color:var(--alert)} td.pos{color:var(--guard)}
 .pill.ok{background:var(--guard-bg);color:var(--guard)}
 .pill.ng{background:var(--alert-bg);color:var(--alert)}
 /* 早見表 */
-.tblctrl{display:flex;align-items:center;gap:10px;margin:2px 0 10px;font-size:13px;color:var(--ink2)}
-.tblctrl select{font:500 13px var(--mono);padding:6px 8px;border:1px solid var(--line);border-radius:var(--r);background:#fff}
+.tblctrl{display:flex;align-items:center;gap:10px;margin:2px 0 12px;font-size:13px;color:var(--ink2);flex-wrap:wrap}
+.tblctrl-lab{white-space:nowrap}
+.incbtns{display:inline-flex;flex-wrap:wrap;gap:6px}
+.incbtn{font:500 12.5px var(--mono);padding:8px 12px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink2);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.incbtn:hover{border-color:var(--rule)}
+.incbtn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 table.protect th{color:var(--ink2);font-weight:600}
 table.protect th:not(:first-child){text-align:right}
 table.protect td{font:500 13.5px var(--mono);font-feature-settings:"tnum"}
@@ -547,14 +551,14 @@ body.rep #report{display:block!important;}
     <div class="card">
       <h2>保険金Sを増やすと、守れる資産はいくらまで <em>早見表</em></h2>
       <div class="tblctrl">
-        <label for="incStep">保険金の増加単位</label>
-        <select class="fp-resultedit js-incstep" id="incStep">
-          <option value="500">500万円ずつ</option>
-          <option value="1000">1,000万円ずつ</option>
-          <option value="2000">2,000万円ずつ</option>
-          <option value="3000">3,000万円ずつ</option>
-          <option value="5000">5,000万円ずつ</option>
-        </select>
+        <span class="tblctrl-lab">保険金の増加単位</span>
+        <div class="incbtns" id="incBtns">
+          <button type="button" class="incbtn" data-step="500">500万</button>
+          <button type="button" class="incbtn" data-step="1000">1,000万</button>
+          <button type="button" class="incbtn" data-step="2000">2,000万</button>
+          <button type="button" class="incbtn" data-step="3000">3,000万</button>
+          <button type="button" class="incbtn" data-step="5000">5,000万</button>
+        </div>
       </div>
       <table id="tblProtect" class="protect"></table>
       <div class="memo">保険金S（死亡保険金）を段階的に増やしたときに、納税・返済・分割・生活資金を賄える<b>守れる資産の上限</b>を示します。<b>現金（流動資産）</b>・退職金・弔慰金も充当資金に含めています。<b>緑＝完全防衛額（財産を全て残す）</b>、<b>茶＝不足額を補う保険金（現金を納税充当）</b>の行を、その保険金額の位置に差し込んで強調しています（現在の保険金に最も近い段は「現在」）。※完全防衛額は現金を使わない前提のため、この早見表（現金も充当）では守れる上限に余裕が出ます。</div>
@@ -960,11 +964,10 @@ function renderFullDefense(){
 var TBL_STEP = 1000;
 function renderTable(){
   var el = document.getElementById("tblProtect"); if(!el) return;
-  var sel = document.getElementById("incStep");
-  if(sel){ sel.value = String(TBL_STEP);
-    // クローン（結果デッキ）へ反映されるよう selected 属性も設定
-    Array.prototype.forEach.call(sel.options, function(o){ if(o.value===String(TBL_STEP)) o.setAttribute("selected","selected"); else o.removeAttribute("selected"); });
-  }
+  // 増加単位ボタンのアクティブ表示（ドックの元要素＋デッキの複製 両方に反映）
+  Array.prototype.forEach.call(document.querySelectorAll(".incbtn"), function(b){
+    b.classList.toggle("on", b.getAttribute("data-step")===String(TBL_STEP));
+  });
   var step = TBL_STEP;
   var curS = num("ins");
   var cash = assetLiquid();
@@ -1335,13 +1338,10 @@ function renderCorp(){
 /* ============ 初期化 ============ */
 document.addEventListener("input", function(){ render(); renderCorp(); });
 document.addEventListener("change", function(){ render(); renderCorp(); });
-/* 早見表：増加単位セレクト（結果デッキの複製上で操作されるため委譲） */
-document.addEventListener("change", function(e){
-  var t = e.target;
-  if(t && t.tagName==="SELECT" && t.classList.contains("js-incstep")){
-    var v = parseInt(t.value,10);
-    if(v){ TBL_STEP = v; renderTable(); }
-  }
+/* 早見表：増加単位ボタン（結果デッキの複製上で操作されるため委譲・タップ即確定） */
+document.addEventListener("click", function(e){
+  var b = e.target.closest ? e.target.closest(".incbtn") : null;
+  if(b){ var v = parseInt(b.getAttribute("data-step"),10); if(v){ TBL_STEP = v; renderTable(); } }
 }, true);
 
 /* ---- 資料（冊子）モード ---- */
