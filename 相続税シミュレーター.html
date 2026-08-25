@@ -192,7 +192,7 @@
   <section class="panel">
     <div class="panel-head"><span class="no">02</span><h2>相続税額</h2></div>
     <div class="out-rows" id="outRows"></div>
-    <div class="sec-h">完全防衛額（財産を全て残すための生命保険金）</div>
+    <div class="sec-h">生命保険で備える納税資金（不足額を補う保険金・完全防衛額）</div>
     <div style="padding:8px 16px 14px;overflow-x:auto;" id="fullDefWrap"></div>
     <div class="sec-h">相続人ごとの納付税額（入力した取得割合に応じて計算）</div>
     <div style="padding:8px 16px 18px;overflow-x:auto;" id="heirTableWrap"></div>
@@ -429,14 +429,16 @@ function render(){
   {
     // 完全防衛額は「買う保険金額」なので万円（円モードは円）で切り上げ表示
     const fdAmt = y => (window.__fpU==='man') ? (Math.ceil(y/10000).toLocaleString('ja-JP')+'万円') : (Math.round(y).toLocaleString('ja-JP')+'円');
+    const shortfall = Math.max(0, st.total - cash); // 納税資金不足額 = 相続税総額 − 現金
     const fullS = fd.capped ? '算定不可' : fdAmt(fd.S);
-    const cashS = cashD.covered ? '現金だけで納税可（保険不要）' : fdAmt(cashD.S);
+    const cashS = cashD.covered ? ('0円（現金だけで納税可）') : fdAmt(cashD.S);
     let ft='<table class="fulldef-tbl"><tbody>';
     ft+=`<tr><td>相続財産（入力）</td><td>${yen(numV('assets'))}円</td></tr>`;
     ft+=`<tr><td>相続税の総額</td><td>${yen(st.total)}円</td></tr>`;
-    ft+=`<tr><td>現金（納税に充当できる額）</td><td>${yen(cash)}円</td></tr>`;
+    ft+=`<tr><td>現金（換金性資産・納税充当）</td><td>${yen(cash)}円</td></tr>`;
+    ft+=`<tr><td>納税資金不足額<small>（相続税−現金）</small></td><td>${yen(shortfall)}円</td></tr>`;
+    ft+=`<tr class="fd-hi2"><td>不足額を補う生命保険金額</td><td><b>${cashS}</b></td></tr>`;
     ft+=`<tr class="fd-hi"><td>完全防衛額<small>（財産を全て残す）</small></td><td><b>${fullS}</b></td></tr>`;
-    ft+=`<tr class="fd-hi2"><td>完全防衛額<small>（現金を納税に充当）</small></td><td><b>${cashS}</b></td></tr>`;
     ft+='</tbody></table>';
     document.getElementById('fullDefWrap').innerHTML=ft;
   }
@@ -461,7 +463,7 @@ function render(){
     n+=`<div class="warn">養子${st.adopted}人のうち、基礎控除・法定相続分の計算に算入できるのは<b>${st.adoptedCounted}人</b>まで（実子${document.getElementById('children').value}人）。残りは相続人ですが基礎控除の頭数には入りません。孫を養子にした場合、その孫養子の相続税は<b>2割加算</b>になります（代襲相続人を除く）。</div>`;
   }
   if(fd && !fd.capped && fd.S>0){
-    n+=`<div class="info" style="border-left-color:#1f7a4d;background:#eef6f1;"><b>完全防衛額</b>：<b>財産を全て残す</b>＝相続財産を1円も取り崩さず生命保険金だけで相続税（総額 ${yen(st.total)}円）を全額納税する額。<b>現金を納税に充当</b>＝現金（換金性資産）を全額納税に回し、残りを保険で賄う額。保険金にも相続税がかかる（非課税枠 500万×${st.heirCount}人＝${yen(5000000*st.heirCount)}円まで非課税）ため、税額そのものより大きくなります。配偶者の税額軽減は考慮しない保守的な総額ベースです。</div>`;
+    n+=`<div class="info" style="border-left-color:#1f7a4d;background:#eef6f1;"><b>不足額を補う生命保険金額</b>＝現金（換金性資産）を全額納税に回し、足りない分（納税資金不足額）を保険で賄う額。<b>完全防衛額</b>＝現金を使わず、相続財産を1円も取り崩さず生命保険金だけで相続税（総額 ${yen(st.total)}円）を全額納税する額。いずれも保険金に相続税がかかる（非課税枠 500万×${st.heirCount}人＝${yen(5000000*st.heirCount)}円まで非課税）ため、不足額・税額そのものより大きくなります。配偶者の税額軽減は考慮しない保守的な総額ベースです。</div>`;
   }
   n+=`<div class="info">相続税の総額 ${yen(st.total)}円 は税額控除前で、遺産分割に依らず一定です。上の「取得割合」を動かすと、相続人ごとの納付額と配偶者の税額軽減が実際の分割に応じて変わります。配偶者は<b>法定相続分（この例では${yen(st.kazei*st.spouseShare)}円）または1億6,000万円の多い方</b>まで取得しても相続税ゼロ。ただし一次相続で配偶者に寄せすぎると、二次相続（配偶者の相続）で軽減が使えず子の負担が増えるため、一次・二次の通算での最適割合の検討が重要です。生命保険の非課税枠（500万×法定相続人＝${yen(5000000*st.heirCount)}円）の活用余地も併せてご提案ください。</div>`;
   document.getElementById('notes').innerHTML=n;

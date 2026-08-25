@@ -557,7 +557,7 @@ body.rep #report{display:block!important;}
         </select>
       </div>
       <table id="tblProtect" class="protect"></table>
-      <div class="memo">保険金S（死亡保険金）を段階的に増やしたときに、納税・返済・分割・生活資金を賄える<b>守れる資産の上限</b>を示します。<b>現金（流動資産）</b>・退職金・弔慰金も充当資金に含めています。<b>緑＝完全防衛額（財産を全て残す）</b>、<b>茶＝完全防衛額（現金を納税に充当）</b>の行を、その保険金額の位置に差し込んで強調しています（現在の保険金に最も近い段は「現在」）。※上の表の完全防衛額は現金を使わない前提のため、この早見表（現金も充当）では守れる上限に余裕が出ます。</div>
+      <div class="memo">保険金S（死亡保険金）を段階的に増やしたときに、納税・返済・分割・生活資金を賄える<b>守れる資産の上限</b>を示します。<b>現金（流動資産）</b>・退職金・弔慰金も充当資金に含めています。<b>緑＝完全防衛額（財産を全て残す）</b>、<b>茶＝不足額を補う保険金（現金を納税充当）</b>の行を、その保険金額の位置に差し込んで強調しています（現在の保険金に最も近い段は「現在」）。※完全防衛額は現金を使わない前提のため、この早見表（現金も充当）では守れる上限に余裕が出ます。</div>
     </div>
 
     <div class="gauge">
@@ -940,19 +940,21 @@ function renderFullDefense(){
   var cashD = solveCashDefense();
   var h = heirs();
   var assets = assetTotal(), cash = assetLiquid(), base = full.base;
+  var shortfall = Math.max(0, Math.round(base) - cash); // 納税資金不足額 = 相続税総額 − 現金
   var fullS = full.capped ? "算定不可" : fmt(Math.ceil(full.S)) + " 万円";
-  var cashS = cashD.covered ? "現金だけで納税可（保険不要）" : fmt(Math.ceil(cashD.S)) + " 万円";
+  var cashS = cashD.covered ? "0 万円（現金だけで納税可）" : fmt(Math.ceil(cashD.S)) + " 万円";
   var o = "";
   o += '<tr><td>相続財産（入力）</td><td>' + fmt(assets) + ' 万円</td></tr>';
   o += '<tr><td>相続税の総額</td><td>' + fmt(Math.round(base)) + ' 万円</td></tr>';
-  o += '<tr><td>現金（納税に充当できる額）</td><td>' + fmt(cash) + ' 万円</td></tr>';
+  o += '<tr><td>現金（換金性資産・納税充当）</td><td>' + fmt(cash) + ' 万円</td></tr>';
+  o += '<tr><td>納税資金不足額<small>（相続税−現金）</small></td><td>' + fmt(shortfall) + ' 万円</td></tr>';
+  o += '<tr class="fd-hi2"><td>不足額を補う生命保険金額</td><td><b>' + cashS + '</b></td></tr>';
   o += '<tr class="fd-hi"><td>完全防衛額<small>（財産を全て残す）</small></td><td><b>' + fullS + '</b></td></tr>';
-  o += '<tr class="fd-hi2"><td>完全防衛額<small>（現金を納税に充当）</small></td><td><b>' + cashS + '</b></td></tr>';
   tbl.innerHTML = o;
   document.getElementById("fullDefNote").innerHTML =
-    "<b>財産を1円も取り崩さず</b>保険金だけで相続税を全額納税できる額が「財産を全て残す」。"
-    + "現金（流動資産）を全額納税に回し残りを保険で賄うのが「現金を納税に充当」です。"
-    + "保険金にも相続税がかかる（非課税枠 500万×" + h.n + "人＝" + fmt(HIKAZEI_PER*h.n) + "万円まで非課税）ため、税額そのものより大きくなります。";
+    "<b>不足額を補う生命保険金額</b>＝現金（換金性資産）を全額納税に回し、足りない分（納税資金不足額）を保険で賄う額。"
+    + "<b>完全防衛額</b>＝現金を使わず、<b>財産を1円も取り崩さず</b>保険金だけで相続税を全額納税する額。"
+    + "保険金にも相続税がかかる（非課税枠 500万×" + h.n + "人＝" + fmt(HIKAZEI_PER*h.n) + "万円まで非課税）ため、いずれも不足額・税額そのものより大きくなります。";
 }
 /* 早見表：保険金Sを増加単位ずつ増やし、守れる資産の上限を一覧化 */
 var TBL_STEP = 1000;
@@ -991,8 +993,8 @@ function renderTable(){
     var lim = sol.capped ? "30億超" : fmt(sol.limit);
     var gross = sol.capped ? "—" : (fmt(sol.limit + s + R + C));
     var cls = '', tag = '';
-    if(r.kind==='full'){ cls='fd-full'; tag=' <span class="fdtag">完全防衛（財産を全て残す）</span>'; }
-    else if(r.kind==='cash'){ cls='fd-cash'; tag=' <span class="fdtag2">完全防衛（現金を納税に充当）</span>'; }
+    if(r.kind==='full'){ cls='fd-full'; tag=' <span class="fdtag">完全防衛額</span>'; }
+    else if(r.kind==='cash'){ cls='fd-cash'; tag=' <span class="fdtag2">不足額を補う保険金</span>'; }
     else if(curS>0 && s===curStepS){ cls='now'; tag=' <span class="fdtag3">現在</span>'; }
     body += '<tr'+(cls?' class="'+cls+'"':'')+'>'
       + '<td>'+fmt(s)+tag+'</td>'
