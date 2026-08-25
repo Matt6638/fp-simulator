@@ -68,6 +68,10 @@
   .orow.hero .k{font-family:var(--mincho);font-size:15px;color:var(--ink);font-weight:600;}
   .orow.hero .v{font-family:var(--mincho);font-size:22px;color:var(--brass-deep);font-weight:600;}
   .orow.net .v{color:var(--loss);font-weight:700;}
+  .orow.fulldef{background:#eef6f1;border-bottom:none;margin-top:6px;border-radius:8px;padding:11px 12px;}
+  .orow.fulldef .k{color:#1f7a4d;}
+  .orow.fulldef .v{font-family:var(--mincho);font-size:20px;color:#1f7a4d;font-weight:700;}
+  .orow.fulldef .v small{color:#1f7a4d;}
   .orow .v small{font-size:12px;color:var(--ink-soft);font-family:var(--gothic);}
   table.tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
   table.tbl th{font-size:10.5px;font-weight:600;letter-spacing:.06em;color:#fff;background:var(--ink);padding:8px;text-align:right;}
@@ -276,9 +280,33 @@ function buildStruct(){
   const residualId = legals.length? legals[legals.length-1].id : (heirs.length? heirs[heirs.length-1].id : null);
 
   const structKey=[spouse,branch,branchCount,others].join('|');
-  return {kazei,heirCount,kiso,kazeiIsan,total,heirs,spouseShare,adopted,adoptedCounted,children,others,structKey,residualId};
+  return {kazei,heirCount,kiso,kazeiIsan,total,heirs,spouseShare,adopted,adoptedCounted,children,others,structKey,residualId,
+          spouse,branch,branchCount,branchShareTotal};
 }
 
+// 課税価格Kに対する相続税の総額（速算表・法定相続分課税方式）
+function totalTaxForKazei(K, st){
+  const kazeiIsan=Math.max(0, K - st.kiso);
+  let t=0;
+  if(st.heirCount>0 && kazeiIsan>0){
+    if(st.spouse) t+=sokusan(kazeiIsan*st.spouseShare);
+    for(let i=0;i<st.branchCount;i++) t+=sokusan(kazeiIsan*st.branchShareTotal/st.branchCount);
+  }
+  return floor100(t);
+}
+// 完全防衛額：保険金Sで相続税を全額まかない、財産を1円も取り崩さない額。
+// 保険金も課税対象（500万×法定相続人の非課税枠超）なので S = 総額(課税価格 + max(0,S-枠)) の不動点。
+function solveFullDefenseST(st){
+  const frame=5000000*st.heirCount;
+  function taxAt(S){ return totalTaxForKazei(st.kazei + Math.max(0, S-frame), st); }
+  const base=st.total;
+  if(base<=0) return {S:0, base:0, capped:false};
+  let lo=0, hi=Math.max(10000000, base*2+10000000), guard=0;
+  while(taxAt(hi)>hi && guard<100){ hi*=2; guard++; }
+  if(taxAt(hi)>hi) return {S:Infinity, base, capped:true};
+  for(let i=0;i<80;i++){ const m=(lo+hi)/2; if(taxAt(m)<=m) hi=m; else lo=m; }
+  return {S:hi, base, capped:false};
+}
 // 分割UI（取得割合の入力欄）を構成が変わったときだけ作り直す
 function syncSplitUI(st){
   if(st.structKey===STRUCT_KEY) return;
@@ -367,6 +395,8 @@ function render(){
   if(spouseCredit>0) o+=`<div class="orow"><span class="k">− 配偶者の税額軽減</span><span class="v">-${yen(spouseCredit)} 円</span></div>`;
   if(otherCredits>0) o+=`<div class="orow"><span class="k">− その他の税額控除</span><span class="v">-${yen(otherCredits)} 円</span></div>`;
   o+=`<div class="orow net"><span class="k" style="font-weight:600;">納付税額の合計</span><span class="v">${yen(netTotal)} 円</span></div>`;
+  const fd=solveFullDefenseST(st);
+  o+=`<div class="orow fulldef"><span class="k" style="font-weight:600;">完全防衛額 <small>（財産を全て残すための生命保険金）</small></span><span class="v">${fd.capped?'算定不可':yen(fd.S)}<small> 円</small></span></div>`;
   document.getElementById('outRows').innerHTML=o;
 
   // 相続人ごとの表
@@ -387,6 +417,9 @@ function render(){
   let n='';
   if(st.adopted>0 && st.adopted>st.adoptedCounted){
     n+=`<div class="warn">養子${st.adopted}人のうち、基礎控除・法定相続分の計算に算入できるのは<b>${st.adoptedCounted}人</b>まで（実子${document.getElementById('children').value}人）。残りは相続人ですが基礎控除の頭数には入りません。孫を養子にした場合、その孫養子の相続税は<b>2割加算</b>になります（代襲相続人を除く）。</div>`;
+  }
+  if(fd && !fd.capped && fd.S>0){
+    n+=`<div class="info" style="border-left-color:#1f7a4d;background:#eef6f1;"><b>完全防衛額 ${yen(fd.S)}円</b>：相続財産を<b>1円も取り崩さず</b>、生命保険金だけで相続税（総額 ${yen(st.total)}円）を全額納税するために必要な保険金額です。保険金にも相続税がかかる（非課税枠 500万×${st.heirCount}人＝${yen(5000000*st.heirCount)}円まで非課税）ため、税額そのものより大きくなります。配偶者の税額軽減は考慮しない保守的な額（S＝相続税総額(課税価格＋max(0,S−非課税枠))の不動点）です。</div>`;
   }
   n+=`<div class="info">相続税の総額 ${yen(st.total)}円 は税額控除前で、遺産分割に依らず一定です。上の「取得割合」を動かすと、相続人ごとの納付額と配偶者の税額軽減が実際の分割に応じて変わります。配偶者は<b>法定相続分（この例では${yen(st.kazei*st.spouseShare)}円）または1億6,000万円の多い方</b>まで取得しても相続税ゼロ。ただし一次相続で配偶者に寄せすぎると、二次相続（配偶者の相続）で軽減が使えず子の負担が増えるため、一次・二次の通算での最適割合の検討が重要です。生命保険の非課税枠（500万×法定相続人＝${yen(5000000*st.heirCount)}円）の活用余地も併せてご提案ください。</div>`;
   document.getElementById('notes').innerHTML=n;

@@ -142,6 +142,12 @@ table.protect td{font:500 13.5px var(--mono);font-feature-settings:"tnum"}
 table.protect td:first-child{font-weight:700;color:var(--ink)}
 table.protect tr.now td{background:var(--guard-bg);color:var(--guard)}
 table.protect tr.now td b{color:var(--guard)}
+/* 完全防衛額 */
+.fulldef-card{background:var(--guard-bg);border-color:#bcdccb}
+.fulldef-card > h2{color:var(--guard)}
+.fulldef-card .fd-num{font-family:var(--disp);font-size:clamp(30px,6vw,46px);font-weight:700;color:var(--guard);line-height:1.1;margin:2px 0 6px;font-feature-settings:"tnum"}
+.fulldef-card .fd-num small{font-size:.4em;font-weight:500;margin-left:6px;color:var(--guard)}
+.fulldef-card .fd-note{color:#345}
 
 .form{font:500 12px var(--mono);background:#F4F7F9;border-left:3px solid var(--rule);padding:8px 10px;margin:10px 0 0;color:var(--ink2);white-space:pre-wrap;line-height:1.85;overflow-x:auto}
 .warn{background:var(--alert-bg);border-left:3px solid var(--alert);padding:9px 11px;font-size:12.5px;color:#6E2415;margin-top:10px;border-radius:2px}
@@ -518,6 +524,12 @@ body.rep #report{display:block!important;}
       <div class="note" id="limitNote"></div>
     </div>
 
+    <div class="card fulldef-card">
+      <h2>完全防衛額 <em>財産を全て残すための保険金</em></h2>
+      <div class="fd-num" id="fullDefNum">—<small>万円</small></div>
+      <div class="note fd-note" id="fullDefNote"></div>
+    </div>
+
     <div class="card">
       <h2>保険金Sを増やすと、守れる資産はいくらまで <em>早見表</em></h2>
       <div class="tblctrl">
@@ -877,6 +889,34 @@ function solveLimitForIns(insS){
   for(var i=0;i<60;i++){ var m=(lo+hi)/2; if(needAvail(m, insS).gap >= 0) lo=m; else hi=m; }
   return { limit:lo, capped:false };
 }
+/* 完全防衛額：保険金Sだけで相続税を全額まかない、財産を1円も取り崩さない額。
+   保険金も課税対象（500万×法定相続人の非課税枠超）なので S = 納付税額(P=S) の不動点で解く。 */
+function solveFullDefense(){
+  var h = heirs();
+  var R = num("ret"), C = num("cond"), sal = num("salary"), g = $("gyomu").checked, fun = num("funeral");
+  var estate = assetTotal();
+  // 完全防衛は相続税「総額」ベース（配偶者軽減に依存しない・最も保守的な完全防衛）で算定
+  function payableAt(S){ return inheritanceTax(estate, h, S, R, C, sal, g, debtTotal(), fun, num("spRatio")).total; }
+  var base = payableAt(0);
+  if(base <= 0) return { S:0, base:0, tax:0, capped:false };
+  var lo = 0, hi = Math.max(1000, base*2 + 1000), guard = 0;
+  while(payableAt(hi) > hi && guard < 100){ hi *= 2; guard++; }
+  if(payableAt(hi) > hi) return { S:Infinity, base:base, capped:true };
+  for(var i=0;i<80;i++){ var m=(lo+hi)/2; if(payableAt(m) <= m) hi=m; else lo=m; }
+  return { S:hi, base:base, tax:payableAt(hi), capped:false };
+}
+function renderFullDefense(){
+  var el = document.getElementById("fullDefNum"); if(!el) return;
+  var d = solveFullDefense();
+  if(d.capped){ el.innerHTML = "算定不可"; document.getElementById("fullDefNote").textContent = "税率設定をご確認ください。"; return; }
+  el.innerHTML = fmt(Math.ceil(d.S)) + "<small>万円</small>";
+  var h = heirs();
+  document.getElementById("fullDefNote").innerHTML =
+    "相続財産 " + fmt(assetTotal()) + "万円（法定相続人 " + h.n + "人）にかかる相続税を、"
+    + "<b>財産を1円も取り崩さず保険金だけで全額納税</b>できる保険金額です。"
+    + "保険金にも相続税がかかる（非課税枠 500万円×" + h.n + "人＝" + fmt(HIKAZEI_PER*h.n) + "万円まで非課税）ため、"
+    + "税額そのもの（約" + fmt(Math.round(d.base)) + "万円）より大きくなります。";
+}
 /* 早見表：保険金Sを増加単位ずつ増やし、守れる資産の上限を一覧化 */
 var TBL_STEP = 1000;
 function renderTable(){
@@ -1019,6 +1059,7 @@ function render(){
       + fmt(atLimit.r.payable) + "万円）。保険金・退職金を含めた総資産ベースでは約" + fmt(limit+P+R+C) + "万円です。";
   }
   drawChart(limit, sol.capped);
+  renderFullDefense();
   renderTable();
 
   /* 現状判定 */
