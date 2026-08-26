@@ -134,7 +134,15 @@ td.neg{color:var(--alert)} td.pos{color:var(--guard)}
 .pill.ok{background:var(--guard-bg);color:var(--guard)}
 .pill.ng{background:var(--alert-bg);color:var(--alert)}
 /* 早見表 */
-.tblctrl-info{font-size:11.5px;color:var(--mute);margin:0 0 10px}
+.tblctrl-info{font-size:11px;color:var(--mute);margin:0 0 10px;line-height:1.5}
+.hy-edit{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin:4px 0 8px}
+.hy-cell{display:flex;align-items:center;gap:6px;font-size:12px;flex-wrap:wrap}
+.hy-cell>label{white-space:nowrap;color:var(--ink2)}
+.hy-inwrap{display:inline-flex;align-items:center;gap:3px;margin-left:auto}
+.hy-in{width:82px;font:600 13.5px var(--mono);text-align:right;padding:7px 8px;border:1px solid var(--line);border-radius:6px;background:#fffdf7;color:var(--ink)}
+.hy-in:focus{outline:none;border-color:var(--rule);box-shadow:0 0 0 2px rgba(184,135,59,.18)}
+.hy-inwrap i{font-style:normal;font-size:11px;color:var(--mute)}
+@media(max-width:520px){.hy-edit{grid-template-columns:1fr}}
 table.protect th{color:var(--ink2);font-weight:600}
 table.protect th:not(:first-child){text-align:right}
 table.protect td{font:500 13.5px var(--mono);font-feature-settings:"tnum"}
@@ -531,23 +539,6 @@ body.rep #report{display:block!important;}
       </div>
     </div>
 
-    <div class="card">
-      <h2>保険金の早見表 設定 <em>SETTINGS</em></h2>
-      <div class="f">
-        <label>増加単位<small>早見表で保険金Sを増やす刻み</small></label>
-        <div class="in"><select id="incStep">
-          <option value="500">500万円</option>
-          <option value="1000" selected>1,000万円</option>
-          <option value="2000">2,000万円</option>
-          <option value="3000">3,000万円</option>
-          <option value="5000">5,000万円</option>
-        </select></div>
-      </div>
-      <div class="f">
-        <label>任意の保険金額を追加<small>この金額の行を早見表に差し込みます</small></label>
-        <div class="in"><input type="text" inputmode="decimal" id="customS" placeholder="例 4,500"><span class="unit">万円</span></div>
-      </div>
-    </div>
   </div>
 
   <!-- 結果 -->
@@ -566,7 +557,13 @@ body.rep #report{display:block!important;}
 
     <div class="card">
       <h2>保険金Sを増やすと、守れる資産はいくらまで <em>早見表</em></h2>
-      <div class="tblctrl-info" id="tblStepInfo"></div>
+      <div class="hy-edit">
+        <span class="hy-cell"><label>総資産（相続財産）</label><span class="hy-inwrap"><input type="text" inputmode="decimal" class="fp-resultedit hy-in" data-hy="asset"><i>万円</i></span></span>
+        <span class="hy-cell"><label>（内現金）</label><span class="hy-inwrap"><input type="text" inputmode="decimal" class="fp-resultedit hy-in" data-hy="cash"><i>万円</i></span></span>
+        <span class="hy-cell"><label>保険金の増加額</label><span class="hy-inwrap"><input type="text" inputmode="decimal" class="fp-resultedit hy-in" data-hy="stepS"><i>万円</i></span></span>
+        <span class="hy-cell"><label>現金の増加額</label><span class="hy-inwrap"><input type="text" inputmode="decimal" class="fp-resultedit hy-in" data-hy="stepC"><i>万円</i></span></span>
+      </div>
+      <div class="tblctrl-info">数値を直接書き換えると早見表が更新されます。保険金の増加額は<b>完全防衛額が下から2番目付近</b>になるよう自動設定（変更可）。現金の増加額を入れると各行で現金も増えます。</div>
       <table id="tblProtect" class="protect"></table>
       <div class="memo">保険金S（死亡保険金）を段階的に増やしたときに、納税・返済・分割・生活資金を賄える<b>守れる資産の上限</b>を示します。<b>現金（流動資産）</b>・退職金・弔慰金も充当資金に含めています。<b>緑＝完全防衛額（財産を全て残す）</b>、<b>茶＝不足額を補う保険金（現金を納税充当）</b>の行を、その保険金額の位置に差し込んで強調しています（現在の保険金に最も近い段は「現在」）。※完全防衛額は現金を使わない前提のため、この早見表（現金も充当）では守れる上限に余裕が出ます。</div>
     </div>
@@ -914,6 +911,25 @@ function solveLimitForIns(insS){
   for(var i=0;i<60;i++){ var m=(lo+hi)/2; if(needAvail(m, insS).gap >= 0) lo=m; else hi=m; }
   return { limit:lo, capped:false };
 }
+/* 保険金S・現金cashVal を指定して守れる資産上限を解く（早見表で現金も増やすため） */
+function needAvail2(estate, insS, cashVal){
+  var h = heirs();
+  var R = num("ret"), C = num("cond"), sal = num("salary"), g = $("gyomu").checked;
+  var fun = num("funeral"), liv = num("living"), dai = num("daisho");
+  var r = inheritanceTax(estate, h, insS, R, C, sal, g, debtTotal(), fun, num("spRatio"));
+  var need = r.payable + debtRepay() + liv + dai;
+  var avail = insS + R + C + Math.min(cashVal, estate);
+  return { need:need, avail:avail, gap:avail-need };
+}
+function solveLimitForIns2(insS, cashVal){
+  var STEP = 500, MAX = 300000;
+  if(needAvail2(0, insS, cashVal).gap < 0) return { limit:0, capped:false };
+  var lo = 0, hi = null;
+  for(var x=STEP; x<=MAX; x+=STEP){ if(needAvail2(x, insS, cashVal).gap < 0){ hi = x; lo = x-STEP; break; } }
+  if(hi === null) return { limit:MAX, capped:true };
+  for(var i=0;i<60;i++){ var m=(lo+hi)/2; if(needAvail2(m, insS, cashVal).gap >= 0) lo=m; else hi=m; }
+  return { limit:lo, capped:false };
+}
 /* 完全防衛額：保険金Sだけで相続税を全額まかない、財産を1円も取り崩さない額。
    保険金も課税対象（500万×法定相続人の非課税枠超）なので S = 納付税額(P=S) の不動点で解く。 */
 function solveFullDefense(){
@@ -967,54 +983,69 @@ function renderFullDefense(){
     + "<b>完全防衛額</b>＝現金を使わず、<b>財産を1円も取り崩さず</b>保険金だけで相続税を全額納税する額。"
     + "保険金にも相続税がかかる（非課税枠 500万×" + h.n + "人＝" + fmt(HIKAZEI_PER*h.n) + "万円まで非課税）ため、いずれも不足額・税額そのものより大きくなります。";
 }
-/* 早見表：保険金Sを増加単位ずつ増やし、守れる資産の上限を一覧化 */
-var TBL_STEP = 1000;
+/* 早見表：保険金S（＋現金）を増加額ずつ増やし、守れる資産の上限を一覧化。結果画面で編集可。 */
+var TBL_STEP = null;   // 保険金の増加額（null=自動：完全防衛額が下から2番目付近になるよう調整）
+var TBL_STEPC = 0;     // 現金の増加額
+function niceStep(x){
+  if(!(x>0)) return 1000;
+  var mag = Math.pow(10, Math.floor(Math.log(x)/Math.LN10));
+  var n = x/mag;
+  var nice = n<=1?1 : n<=2?2 : n<=2.5?2.5 : n<=5?5 : 10;
+  return Math.max(100, Math.round(nice*mag));
+}
+function populateHy(key, val){
+  var nodes = document.querySelectorAll('[data-hy="'+key+'"]');
+  Array.prototype.forEach.call(nodes, function(inp){
+    if(document.activeElement===inp) return; // 編集中は上書きしない
+    inp.value = fmt(Math.round(val));
+  });
+}
 function renderTable(){
   var el = document.getElementById("tblProtect"); if(!el) return;
-  // 増加単位は入力ドロワーのセレクトから読む（結果デッキ上に操作要素を置かない＝ちらつき・選択不可の解消）
-  var selEl = document.getElementById("incStep");
-  var step = selEl ? (parseInt(selEl.value,10)||1000) : TBL_STEP;
-  TBL_STEP = step;
-  var info = document.getElementById("tblStepInfo");
-  if(info) info.textContent = "増加単位 " + fmt(step) + "万円ずつ（入力欄「早見表 設定」で変更・任意金額の追加も可）";
+  var baseAsset = assetTotal(), baseCash = assetLiquid();
   var curS = num("ins");
-  var custom = Math.round(num("customS")); // 任意で追加する保険金額
-  var cash = assetLiquid();
   var R = num("ret"), C = num("cond");
-  // 完全防衛額（2種）を計算し、Sの一覧に差し込む
   var full = solveFullDefense();
   var cashD = solveCashDefense();
   var S_full = full.capped ? null : Math.ceil(full.S);
   var S_cash = cashD.covered ? null : Math.ceil(cashD.S);
-  var top = Math.max(9*step, S_full||0, curS||0, custom||0);
-  var maxStep = Math.min(step*24, Math.ceil(top/step)*step); // ステップ行は最大24行に制限
+  // 増加額：自動（完全防衛額が下から2番目付近）または結果画面で入力された値
+  var autoStep = niceStep((S_full||8000)/7);
+  var step = (TBL_STEP!=null && TBL_STEP>0) ? TBL_STEP : autoStep;
+  var stepC = TBL_STEPC>0 ? TBL_STEPC : 0;
+  // 結果画面の編集欄へ現在値を反映
+  populateHy('asset', baseAsset); populateHy('cash', baseCash);
+  populateHy('stepS', step); populateHy('stepC', stepC);
+  // 行のS一覧：0→(完全防衛額の1段上)まで。完全防衛額・不足補填額を差し込む
+  // 完全防衛額の1段上までを表示（＝完全防衛額が下から2番目付近に来る）。現在Sもカバー。
+  var lastMul = (S_full!=null) ? Math.ceil((S_full+1)/step)*step : 9*step;
+  var maxStep = Math.min(step*24, Math.max(lastMul, Math.ceil(curS/step)*step, 5*step));
   var list = [];
-  for(var s=0; s<=maxStep; s+=step) list.push({s:s, kind:'step'});
+  for(var s=0; s<=maxStep; s+=step) list.push({s:s, kind:'step', i:Math.round(s/step)});
   if(S_cash!=null) list.push({s:S_cash, kind:'cash'});
   if(S_full!=null && S_full!==S_cash) list.push({s:S_full, kind:'full'});
-  if(custom>0) list.push({s:custom, kind:'custom'});
-  // 完全防衛額・任意額とちょうど同額のステップ行は重複するので除去（特別行を優先）
   var specialS = {}; list.forEach(function(r){ if(r.kind!=='step') specialS[r.s]=1; });
   list = list.filter(function(r){ return !(r.kind==='step' && specialS[r.s]); });
-  list.sort(function(a,b){ return a.s-b.s || (a.kind==='custom'?1:-1); });
+  list.sort(function(a,b){ return a.s-b.s; });
   var curStepS = Math.round(curS/step)*step;
-  var head = '<tr><th>保険金 S</th><th>現金（流動資産）</th><th>守れる資産の上限</th><th>総資産ベース</th></tr>';
+  // 列順（総資産の右横に内現金）：保険金S｜守れる資産の上限｜総資産ベース｜（内現金）
+  var head = '<tr><th>保険金 S</th><th>守れる資産の上限</th><th>総資産ベース</th><th>（内現金）</th></tr>';
   var body = '';
   list.forEach(function(r){
     var s = r.s;
-    var sol = solveLimitForIns(s);
+    var rowCash = (r.kind==='step' && stepC>0) ? (baseCash + r.i*stepC) : baseCash;
+    var sol = solveLimitForIns2(s, rowCash);
     var lim = sol.capped ? "30億超" : fmt(sol.limit);
     var gross = sol.capped ? "—" : (fmt(sol.limit + s + R + C));
     var cls = '', tag = '';
-    if(r.kind==='custom'){ cls='fd-custom'; tag=' <span class="fdtag4">指定した保険金額</span>'; }
-    else if(r.kind==='full'){ cls='fd-full'; tag=' <span class="fdtag">完全防衛額</span>'; }
+    if(r.kind==='full'){ cls='fd-full'; tag=' <span class="fdtag">完全防衛額</span>'; }
     else if(r.kind==='cash'){ cls='fd-cash'; tag=' <span class="fdtag2">不足額を補う保険金</span>'; }
     else if(curS>0 && s===curStepS){ cls='now'; tag=' <span class="fdtag3">現在</span>'; }
     body += '<tr'+(cls?' class="'+cls+'"':'')+'>'
       + '<td>'+fmt(s)+tag+'</td>'
-      + '<td>'+fmt(cash)+'</td>'
       + '<td><b>'+lim+'</b> 万円</td>'
-      + '<td>'+gross+(sol.capped?'':' 万円')+'</td></tr>';
+      + '<td>'+gross+(sol.capped?'':' 万円')+'</td>'
+      + '<td>'+fmt(rowCash)+' 万円</td></tr>';
   });
   el.innerHTML = head + body;
 }
@@ -1347,8 +1378,26 @@ function renderCorp(){
 }
 
 /* ============ 初期化 ============ */
-document.addEventListener("input", function(){ render(); renderCorp(); });
-document.addEventListener("change", function(){ render(); renderCorp(); });
+function isResultEdit(e){ return e && e.target && e.target.classList && e.target.classList.contains("fp-resultedit"); }
+document.addEventListener("input", function(e){ if(isResultEdit(e)) return; render(); renderCorp(); });
+document.addEventListener("change", function(e){ if(isResultEdit(e)) return; render(); renderCorp(); });
+/* 早見表の結果画面の編集欄（総資産・内現金・保険金の増加額・現金の増加額）：デバウンスで反映（ちらつき防止） */
+function setInputVal(id, val){ var e=document.getElementById(id); if(e){ e.value=fmt(Math.round(val)); } }
+function applyHy(key, val){
+  if(key==='asset'){ var am=document.getElementById('am2'); if(am){am.checked=true;} setInputVal('aTotal', val); }
+  else if(key==='cash'){ var am2=document.getElementById('am2'); if(am2){am2.checked=true;} setInputVal('aLiq', val); }
+  else if(key==='stepS'){ TBL_STEP = (val>0 ? val : null); }
+  else if(key==='stepC'){ TBL_STEPC = Math.max(0, val); }
+  try{render();}catch(e){} try{renderCorp();}catch(e){}
+}
+var _hyTimer=null;
+document.addEventListener("input", function(e){
+  var t=e.target; if(!t || !t.classList || !t.classList.contains("hy-in")) return;
+  var key=t.getAttribute("data-hy");
+  var val=parseFloat(zen2han(String(t.value)).replace(/[^\d.\-]/g,''))||0;
+  clearTimeout(_hyTimer);
+  _hyTimer=setTimeout(function(){ applyHy(key, val); }, 550);
+}, true);
 
 /* ---- 資料（冊子）モード ---- */
 var PAGE = 0;
