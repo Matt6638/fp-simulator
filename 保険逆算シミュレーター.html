@@ -134,12 +134,7 @@ td.neg{color:var(--alert)} td.pos{color:var(--guard)}
 .pill.ok{background:var(--guard-bg);color:var(--guard)}
 .pill.ng{background:var(--alert-bg);color:var(--alert)}
 /* 早見表 */
-.tblctrl{display:flex;align-items:center;gap:10px;margin:2px 0 12px;font-size:13px;color:var(--ink2);flex-wrap:wrap}
-.tblctrl-lab{white-space:nowrap}
-.incbtns{display:inline-flex;flex-wrap:wrap;gap:6px}
-.incbtn{font:500 12.5px var(--mono);padding:8px 12px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink2);cursor:pointer;-webkit-tap-highlight-color:transparent}
-.incbtn:hover{border-color:var(--rule)}
-.incbtn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tblctrl-info{font-size:11.5px;color:var(--mute);margin:0 0 10px}
 table.protect th{color:var(--ink2);font-weight:600}
 table.protect th:not(:first-child){text-align:right}
 table.protect td{font:500 13.5px var(--mono);font-feature-settings:"tnum"}
@@ -149,6 +144,9 @@ table.protect tr.fd-full td{background:var(--guard-bg);color:var(--guard);font-w
 table.protect tr.fd-full td b{color:var(--guard)}
 table.protect tr.fd-cash td{background:#f6efe6;color:var(--brass-deep,#7d6240);font-weight:600}
 table.protect tr.fd-cash td b{color:var(--brass-deep,#7d6240)}
+table.protect tr.fd-custom td{background:#eaf1fb;color:#185fa5;font-weight:600}
+table.protect tr.fd-custom td b{color:#185fa5}
+.fdtag4{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:#185fa5;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle;white-space:nowrap}
 .fdtag{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:var(--guard,#1b6b53);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle;white-space:nowrap}
 .fdtag2{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:var(--brass-deep,#7d6240);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle;white-space:nowrap}
 .fdtag3{display:inline-block;font-size:10px;font-weight:700;color:var(--ink-soft,#46506a);background:#e7e1d2;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle;white-space:nowrap}
@@ -532,6 +530,24 @@ body.rep #report{display:block!important;}
         <b>団体信用生命保険で返済が免除される住宅ローンは、この欄に入力しないでください。</b>相続人が支払う必要のない債務にあたり、債務控除の対象になりません（国税庁「相続税の申告書作成時の誤りやすい事例集」事例13）。<br>明細と総額はボタンで切り替えられます。明細では区分ごとにチェック、総額では「うち流動資産」の欄が納税・返済への充当額になります。初期状態は充当ゼロ（保険金だけで賄う前提）です。
       </div>
     </div>
+
+    <div class="card">
+      <h2>保険金の早見表 設定 <em>SETTINGS</em></h2>
+      <div class="f">
+        <label>増加単位<small>早見表で保険金Sを増やす刻み</small></label>
+        <div class="in"><select id="incStep">
+          <option value="500">500万円</option>
+          <option value="1000" selected>1,000万円</option>
+          <option value="2000">2,000万円</option>
+          <option value="3000">3,000万円</option>
+          <option value="5000">5,000万円</option>
+        </select></div>
+      </div>
+      <div class="f">
+        <label>任意の保険金額を追加<small>この金額の行を早見表に差し込みます</small></label>
+        <div class="in"><input type="text" inputmode="decimal" id="customS" placeholder="例 4,500"><span class="unit">万円</span></div>
+      </div>
+    </div>
   </div>
 
   <!-- 結果 -->
@@ -550,16 +566,7 @@ body.rep #report{display:block!important;}
 
     <div class="card">
       <h2>保険金Sを増やすと、守れる資産はいくらまで <em>早見表</em></h2>
-      <div class="tblctrl">
-        <span class="tblctrl-lab">保険金の増加単位</span>
-        <div class="incbtns" id="incBtns">
-          <button type="button" class="incbtn" data-step="500">500万</button>
-          <button type="button" class="incbtn" data-step="1000">1,000万</button>
-          <button type="button" class="incbtn" data-step="2000">2,000万</button>
-          <button type="button" class="incbtn" data-step="3000">3,000万</button>
-          <button type="button" class="incbtn" data-step="5000">5,000万</button>
-        </div>
-      </div>
+      <div class="tblctrl-info" id="tblStepInfo"></div>
       <table id="tblProtect" class="protect"></table>
       <div class="memo">保険金S（死亡保険金）を段階的に増やしたときに、納税・返済・分割・生活資金を賄える<b>守れる資産の上限</b>を示します。<b>現金（流動資産）</b>・退職金・弔慰金も充当資金に含めています。<b>緑＝完全防衛額（財産を全て残す）</b>、<b>茶＝不足額を補う保険金（現金を納税充当）</b>の行を、その保険金額の位置に差し込んで強調しています（現在の保険金に最も近い段は「現在」）。※完全防衛額は現金を使わない前提のため、この早見表（現金も充当）では守れる上限に余裕が出ます。</div>
     </div>
@@ -964,12 +971,14 @@ function renderFullDefense(){
 var TBL_STEP = 1000;
 function renderTable(){
   var el = document.getElementById("tblProtect"); if(!el) return;
-  // 増加単位ボタンのアクティブ表示（ドックの元要素＋デッキの複製 両方に反映）
-  Array.prototype.forEach.call(document.querySelectorAll(".incbtn"), function(b){
-    b.classList.toggle("on", b.getAttribute("data-step")===String(TBL_STEP));
-  });
-  var step = TBL_STEP;
+  // 増加単位は入力ドロワーのセレクトから読む（結果デッキ上に操作要素を置かない＝ちらつき・選択不可の解消）
+  var selEl = document.getElementById("incStep");
+  var step = selEl ? (parseInt(selEl.value,10)||1000) : TBL_STEP;
+  TBL_STEP = step;
+  var info = document.getElementById("tblStepInfo");
+  if(info) info.textContent = "増加単位 " + fmt(step) + "万円ずつ（入力欄「早見表 設定」で変更・任意金額の追加も可）";
   var curS = num("ins");
+  var custom = Math.round(num("customS")); // 任意で追加する保険金額
   var cash = assetLiquid();
   var R = num("ret"), C = num("cond");
   // 完全防衛額（2種）を計算し、Sの一覧に差し込む
@@ -977,16 +986,17 @@ function renderTable(){
   var cashD = solveCashDefense();
   var S_full = full.capped ? null : Math.ceil(full.S);
   var S_cash = cashD.covered ? null : Math.ceil(cashD.S);
-  var top = Math.max(9*step, S_full||0, curS||0);
+  var top = Math.max(9*step, S_full||0, curS||0, custom||0);
   var maxStep = Math.min(step*24, Math.ceil(top/step)*step); // ステップ行は最大24行に制限
   var list = [];
   for(var s=0; s<=maxStep; s+=step) list.push({s:s, kind:'step'});
   if(S_cash!=null) list.push({s:S_cash, kind:'cash'});
   if(S_full!=null && S_full!==S_cash) list.push({s:S_full, kind:'full'});
-  // 完全防衛額とちょうど同額のステップ行は重複するので除去（特別行を優先）
+  if(custom>0) list.push({s:custom, kind:'custom'});
+  // 完全防衛額・任意額とちょうど同額のステップ行は重複するので除去（特別行を優先）
   var specialS = {}; list.forEach(function(r){ if(r.kind!=='step') specialS[r.s]=1; });
   list = list.filter(function(r){ return !(r.kind==='step' && specialS[r.s]); });
-  list.sort(function(a,b){ return a.s-b.s; });
+  list.sort(function(a,b){ return a.s-b.s || (a.kind==='custom'?1:-1); });
   var curStepS = Math.round(curS/step)*step;
   var head = '<tr><th>保険金 S</th><th>現金（流動資産）</th><th>守れる資産の上限</th><th>総資産ベース</th></tr>';
   var body = '';
@@ -996,7 +1006,8 @@ function renderTable(){
     var lim = sol.capped ? "30億超" : fmt(sol.limit);
     var gross = sol.capped ? "—" : (fmt(sol.limit + s + R + C));
     var cls = '', tag = '';
-    if(r.kind==='full'){ cls='fd-full'; tag=' <span class="fdtag">完全防衛額</span>'; }
+    if(r.kind==='custom'){ cls='fd-custom'; tag=' <span class="fdtag4">指定した保険金額</span>'; }
+    else if(r.kind==='full'){ cls='fd-full'; tag=' <span class="fdtag">完全防衛額</span>'; }
     else if(r.kind==='cash'){ cls='fd-cash'; tag=' <span class="fdtag2">不足額を補う保険金</span>'; }
     else if(curS>0 && s===curStepS){ cls='now'; tag=' <span class="fdtag3">現在</span>'; }
     body += '<tr'+(cls?' class="'+cls+'"':'')+'>'
@@ -1338,11 +1349,6 @@ function renderCorp(){
 /* ============ 初期化 ============ */
 document.addEventListener("input", function(){ render(); renderCorp(); });
 document.addEventListener("change", function(){ render(); renderCorp(); });
-/* 早見表：増加単位ボタン（結果デッキの複製上で操作されるため委譲・タップ即確定） */
-document.addEventListener("click", function(e){
-  var b = e.target.closest ? e.target.closest(".incbtn") : null;
-  if(b){ var v = parseInt(b.getAttribute("data-step"),10); if(v){ TBL_STEP = v; renderTable(); } }
-}, true);
 
 /* ---- 資料（冊子）モード ---- */
 var PAGE = 0;
