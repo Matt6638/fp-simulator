@@ -102,13 +102,14 @@
   a.card{flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:0;padding:15px 10px;min-height:72px;position:relative;background:var(--tint,#fff);border:1px solid var(--line,var(--rule));border-top:4px solid var(--cc,var(--rule));box-shadow:0 1px 2px rgba(27,42,74,.05);}
   a.card:hover{transform:translateY(-2px);border-color:var(--cc,var(--brass));box-shadow:0 7px 16px rgba(27,42,74,.13);}
   a.card .no,a.card .drag,a.card .movebtns{display:none!important;}
-  a.card h2{white-space:normal;overflow:visible;text-overflow:clip;font-size:14px;line-height:1.34;text-align:center;width:100%;letter-spacing:.01em;word-break:keep-all;line-break:strict;overflow-wrap:anywhere;}
+  a.card h2{white-space:normal;overflow:visible;text-overflow:clip;font-size:14px;line-height:1.34;text-align:center;width:100%;letter-spacing:.01em;word-break:keep-all;line-break:strict;}
   a.card .stat{position:absolute;top:8px;right:8px;margin:0;padding:0;border:none!important;background:none!important;}
   a.card .stat.on{width:9px;height:9px;border-radius:50%;background:#3f8a68!important;box-shadow:0 0 0 2px #fff;}
   a.card.dragging{position:relative;z-index:8;transform:scale(1.06);opacity:.97;box-shadow:0 16px 40px rgba(27,42,74,.34)!important;border-color:var(--cc);cursor:grabbing;transition:transform .12s ease,box-shadow .12s ease;}
   a.card.card-ghost{opacity:.32;box-shadow:none!important;}
   a.card.card-clone{opacity:.98;box-shadow:0 20px 44px rgba(27,42,74,.34)!important;transition:none!important;transform-origin:top left;}
   .cclabel{display:block;font-size:9.5px;font-weight:700;letter-spacing:.06em;color:var(--cc);margin-bottom:4px;line-height:1.1;}
+  a.card h2 .tp{white-space:nowrap;}
   .cards.reordering a.card{transition:transform .16s ease;}
   .cards.reordering a.card.dragging{transition:none;}
   .cards.reordering a.card:hover{transform:none;}
@@ -171,13 +172,13 @@
     <h2>遺族年金</h2>
   </a>
   <a class="card cat-pension" href="年金繰上げ繰下げシミュレーター.html">
-    <h2>年金繰上げ・繰下げ</h2>
+    <h2><span class="tp">年金繰上げ・繰下げ</span></h2>
   </a>
   <a class="card cat-souzoku" href="相続税シミュレーター.html">
     <h2>相続税</h2>
   </a>
   <a class="card cat-souzoku" href="相続シミュレーター.html">
-    <h2>生命保険 受取課税 比較</h2>
+    <h2><span class="tp">生命保険</span> <span class="tp">受取課税</span> <span class="tp">比較</span></h2>
   </a>
   <a class="card cat-souzoku" href="贈与税シミュレーター.html">
     <h2>贈与税</h2>
@@ -189,25 +190,25 @@
     <h2>妻の収入</h2>
   </a>
   <a class="card cat-corp" href="法人活用シミュレーター.html">
-    <h2>法人活用・所得分散</h2>
+    <h2><span class="tp">法人活用・所得分散</span></h2>
   </a>
   <a class="card cat-corp" href="役員報酬シミュレーター.html">
-    <h2>妻の役員報酬・健保（単純ケース）</h2>
+    <h2><span class="tp">妻の役員報酬・健保</span><wbr><span class="tp">（単純ケース）</span></h2>
   </a>
   <a class="card cat-corp" href="退職金シミュレーター.html">
     <h2>退職金</h2>
   </a>
   <a class="card cat-hoken" href="保険逆算シミュレーター.html">
-    <h2>保険逆算（必要保障額）</h2>
+    <h2><span class="tp">保険逆算</span><wbr><span class="tp">（必要保障額）</span></h2>
   </a>
   <a class="card cat-life" href="老後資金シミュレーター.html">
-    <h2>老後資金 積立</h2>
+    <h2><span class="tp">老後資金</span> <span class="tp">積立</span></h2>
   </a>
   <a class="card cat-hoken" href="変額年金シミュレーター.html">
-    <h2>変額年金 単独（プルデンシャル）</h2>
+    <h2><span class="tp">変額年金 単独</span><wbr><span class="tp">（プルデンシャル）</span></h2>
   </a>
   <a class="card cat-fudosan" href="不動産損益シミュレーター.html">
-    <h2>不動産 損益・売却判断</h2>
+    <h2><span class="tp">不動産</span> <span class="tp">損益・売却判断</span></h2>
   </a>
 </div>
 
