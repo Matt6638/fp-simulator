@@ -5,6 +5,25 @@
 (function(){
   if(window.__fpDeck) return; window.__fpDeck=true;
 
+  // 入力欄以外での「左スワイプ」でトップ(index.html)へ戻る（全ツール共通）
+  (function backSwipe(){
+    if(window.__fpBackSwipe) return; window.__fpBackSwipe=true;
+    var x0=0,y0=0,t0=0,armed=false;
+    function skip(t){ return t && t.closest && t.closest('input,select,textarea,button,a,[contenteditable],.deck-input,.fab-input,.fp-pull,.chartwrap,.deck-scroll:not(.deck-vscroll)'); }
+    window.addEventListener('touchstart',function(e){
+      if(e.touches.length!==1){armed=false;return;}
+      var t=e.touches[0]; x0=t.clientX; y0=t.clientY; t0=Date.now();
+      var d=document.getElementById('deckInput');
+      armed = !(d&&d.classList.contains('open')) && !skip(e.target);
+    },{passive:true});
+    window.addEventListener('touchend',function(e){
+      if(!armed)return; armed=false;
+      var t=e.changedTouches&&e.changedTouches[0]; if(!t)return;
+      var dx=t.clientX-x0, dy=t.clientY-y0, dt=Date.now()-t0;
+      if(dx<-95 && Math.abs(dx)>Math.abs(dy)*1.7 && dt<620){ location.href='index.html'; }
+    },{passive:true});
+  })();
+
   function inject(){
     if(document.getElementById('fpDeckCSS')) return;
     var css=''
