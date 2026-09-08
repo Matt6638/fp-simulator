@@ -94,6 +94,8 @@
   .combo-note{font-size:12px;background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:8px 11px;margin:8px 0;}
   #reportView{display:none;}
   @media print{ body{background:#fff;} .wrap{display:none!important;} }
+  /* iPhone: 入力ズーム防止（16px未満だとフォーカスで自動ズーム） */
+  @media(max-width:700px){input[type=text],input[type=number],input[inputmode],input.yen,input.num,select,textarea{font-size:16px!important;}}
 </style>
 <script src="config.js"></script>
 <script>if((window.FP_SB_URL||"").indexOf("http")===0)document.documentElement.style.visibility="hidden";</script>

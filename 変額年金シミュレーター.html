@@ -84,6 +84,8 @@
   .note-list li{margin:2px 0;}
   .crash-note{font-size:12px;background:#fbecec;border:1px solid #e6c9c9;border-radius:8px;padding:7px 10px;color:var(--loss);margin:6px 0;}
   footer{margin-top:26px;font-size:10.5px;color:var(--ink-soft);border-top:1px solid var(--rule);padding-top:10px;}
+  /* iPhone: 入力ズーム防止（16px未満だとフォーカスで自動ズーム） */
+  @media(max-width:700px){input[type=text],input[type=number],input[inputmode],input.yen,input.num,select,textarea{font-size:16px!important;}}
 </style>
 <script src="config.js"></script>
 <script>if((window.FP_SB_URL||"").indexOf("http")===0)document.documentElement.style.visibility="hidden";</script>

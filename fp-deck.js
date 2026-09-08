@@ -114,6 +114,15 @@
     +'@media (max-width:700px){'
     +'.wrap{flex-direction:column!important;gap:0!important;padding:0!important;}'
     +'.main{height:100vh!important;gap:6px;padding:6px 8px 0!important;}'
+    // ① iOS入力ズーム防止：フォーム部品を16px（未満だとフォーカスで自動ズーム）
+    +'.deck-input input,.deck-input select,.deck-input textarea,.fp-resultedit,input.yen,input.num,input[inputmode],select,textarea{font-size:16px!important;}'
+    // ② 結果KPIカードのiPhone最適化：3列固定などを「主役=全幅／その他=2列」に。細長を解消
+    +'.result-cards,.summary-cards{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;width:100%!important;max-width:none!important;}'
+    +'.result-cards>.hero,.result-cards>.rc.hero,.summary-cards>.hero,.summary-cards>.rc.hero{grid-column:1/-1!important;}'
+    +'.result-cards>*,.summary-cards>*{min-width:0!important;max-width:none!important;margin:0!important;}'
+    // 数値の折返しでの縦伸びを抑える（半幅でも読める大きさに）
+    +'.result-cards .v,.summary-cards .v{font-size:clamp(18px,6.4vw,30px)!important;line-height:1.15!important;word-break:normal!important;}'
+    +'.result-cards .k,.summary-cards .k{line-height:1.35!important;}'
     +'.side{position:fixed;left:0;right:0;top:0;z-index:60;flex:0 0 auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:7px;'
       +'padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 12px;background:var(--surface,#fff);'
       +'border-bottom:1px solid var(--rule,#e3ddcf);box-shadow:0 16px 34px -18px rgba(0,0,0,.55);'

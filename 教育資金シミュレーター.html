@@ -304,6 +304,14 @@
   #reportView .chartwrap svg{width:100%;height:auto;display:block;}
   #reportView .legend{font-size:9px;color:var(--ink-soft);display:flex;gap:12px;flex-wrap:wrap;margin-top:3px;padding:0;}
   #reportView .legend i{display:inline-block;width:13px;height:9px;border-radius:2px;margin-right:3px;vertical-align:middle;}
+  /* ▼ iPhone最適化：①入力ズーム防止（16px）②KPIカードは主役=全幅／他=2列（3列固定の細長を解消） */
+  @media(max-width:700px){
+    input[type=text],input[type=number],input[inputmode],input.yen,select,textarea{font-size:16px!important;}
+    .deck-scroll>.rpage:first-child .result-cards,.result-cards,.summary-cards{grid-template-columns:1fr 1fr!important;}
+    .result-cards>.hero,.result-cards>.rc.hero,.summary-cards>.rc.hero{grid-column:1/-1!important;}
+    .result-cards>*,.summary-cards>*{min-width:0!important;}
+    .summary-cards .v,.result-cards .v{word-break:normal!important;}
+  }
 </style>
 <!-- FP Auth (Phase1: login gate + usage log) -->
 <script src="config.js"></script>

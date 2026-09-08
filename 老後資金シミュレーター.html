@@ -113,6 +113,8 @@
   @media print{ body{background:#fff;} .wrap{display:none!important;} #reportView{display:block!important;} @page{size:A4 landscape;margin:8mm;} }
   #reportView .rp-h{font-family:var(--mincho);font-size:20px;border-bottom:2px solid var(--brass);padding-bottom:5px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-end;}
   #reportView .rp-sub{font-size:11px;color:var(--ink-soft);}
+  /* iPhone: 入力ズーム防止（16px未満だとフォーカスで自動ズーム） */
+  @media(max-width:700px){input[type=text],input[type=number],input[inputmode],input.yen,input.num,select,textarea{font-size:16px!important;}}
 </style>
 <script src="config.js"></script>
 <script>if((window.FP_SB_URL||"").indexOf("http")===0)document.documentElement.style.visibility="hidden";</script>
