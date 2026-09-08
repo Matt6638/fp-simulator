@@ -25,6 +25,14 @@
     },{passive:true});
   })();
 
+  /* ---- 入力ドロワーを上いっぱいまで拡張（全独自ツール共通） ---- */
+  (function drawerTall(){
+    if(document.getElementById('fpDrawerCSS')) return;
+    var st=document.createElement('style'); st.id='fpDrawerCSS';
+    st.textContent='@media (max-width:1024px){.deck-input{height:calc(100dvh - 34px)!important;max-height:none!important;}}';
+    (document.head||document.documentElement).appendChild(st);
+  })();
+
   /* ---- ② 引き下ろしレール（FP_RAILIZE 指定時のみ） ---- */
   if(!window.FP_RAILIZE) return;
   function railize(){

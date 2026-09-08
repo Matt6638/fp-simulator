@@ -55,7 +55,8 @@
   .card .movebtn:hover{background:var(--brass);color:#fff;border-color:var(--brass-deep);}
   .card .movebtn:active{transform:scale(.94);}
   .card.dragging{opacity:.7;border-color:var(--brass);box-shadow:0 12px 28px rgba(27,42,74,.22);}
-  .cards.reordering a.card{transition:none;}
+  .cards.reordering a.card{transition:transform .16s ease;}
+  .cards.reordering a.card.dragging{transition:none;}
   .cards.reordering a.card:hover{transform:none;}
   .rehint{font-size:11.5px;color:#8a8470;margin:0 0 12px;display:flex;align-items:center;gap:6px;}
   /* splash */
@@ -84,12 +85,12 @@
   .card .stat.on{color:#25406b;background:#eef2fa;border:1px solid #c3d2ea;}
 
   /* ===== トップ：カテゴリ色分けグリッド（番号なし・中央揃え・ドラッグ並べ替え） ===== */
-  .cat-life{--cc:#3f8a68;--tint:#eff5f1;--line:#d1e1d9;}
-  .cat-pension{--cc:#3d6ea6;--tint:#eef2f9;--line:#d0dbec;}
-  .cat-souzoku{--cc:#8a5670;--tint:#f4edf1;--line:#e2cdd8;}
-  .cat-hoken{--cc:#b5862f;--tint:#f7f1e1;--line:#e7d9b6;}
-  .cat-corp{--cc:#565f8c;--tint:#eeeff7;--line:#d3d6ea;}
-  .cat-fudosan{--cc:#b5623a;--tint:#f6ece5;--line:#e6cbba;}
+  .cat-life{--cc:#2e8b63;--tint:#e7f3ec;--line:#bfdccd;}
+  .cat-pension{--cc:#2f7cb8;--tint:#e5f0f9;--line:#bcd8ee;}
+  .cat-souzoku{--cc:#a8547e;--tint:#f7e8f0;--line:#e8c7da;}
+  .cat-hoken{--cc:#c07d1a;--tint:#faf0d9;--line:#edd6a6;}
+  .cat-corp{--cc:#6a5bb0;--tint:#efebf9;--line:#d7d0ef;}
+  .cat-fudosan{--cc:#bd5a34;--tint:#f8e9e1;--line:#edc8b6;}
   .toptools{margin:2px 0 12px;display:flex;flex-direction:column;gap:8px;}
   .catlegend{display:flex;flex-wrap:wrap;gap:6px 13px;}
   .clg{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink-soft);}
@@ -98,14 +99,18 @@
   .legend2 .lg-dot{width:9px;height:9px;border-radius:50%;background:#3f8a68;box-shadow:0 0 0 2px #e7f0ea;display:inline-block;flex:0 0 auto;}
   .legend2 .lg-sep{opacity:.45;}
   .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:9px;}
-  a.card{flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:0;padding:15px 10px;min-height:64px;position:relative;background:var(--tint,#fff);border:1px solid var(--line,var(--rule));border-top:3px solid var(--cc,var(--rule));box-shadow:0 1px 2px rgba(27,42,74,.05);}
+  a.card{flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:0;padding:15px 10px;min-height:72px;position:relative;background:var(--tint,#fff);border:1px solid var(--line,var(--rule));border-top:4px solid var(--cc,var(--rule));box-shadow:0 1px 2px rgba(27,42,74,.05);}
   a.card:hover{transform:translateY(-2px);border-color:var(--cc,var(--brass));box-shadow:0 7px 16px rgba(27,42,74,.13);}
   a.card .no,a.card .drag,a.card .movebtns{display:none!important;}
-  a.card h2{white-space:normal;overflow:visible;text-overflow:clip;font-size:14px;line-height:1.32;text-align:center;width:100%;letter-spacing:.01em;}
+  a.card h2{white-space:normal;overflow:visible;text-overflow:clip;font-size:14px;line-height:1.34;text-align:center;width:100%;letter-spacing:.01em;word-break:keep-all;line-break:strict;overflow-wrap:anywhere;}
   a.card .stat{position:absolute;top:8px;right:8px;margin:0;padding:0;border:none!important;background:none!important;}
   a.card .stat.on{width:9px;height:9px;border-radius:50%;background:#3f8a68!important;box-shadow:0 0 0 2px #fff;}
-  a.card.dragging{opacity:.82;transform:scale(1.04);z-index:6;box-shadow:0 14px 30px rgba(27,42,74,.24)!important;border-color:var(--cc);}
-  .cards.reordering a.card{transition:none;}
+  a.card.dragging{position:relative;z-index:8;transform:scale(1.06);opacity:.97;box-shadow:0 16px 40px rgba(27,42,74,.34)!important;border-color:var(--cc);cursor:grabbing;transition:transform .12s ease,box-shadow .12s ease;}
+  a.card.card-ghost{opacity:.32;box-shadow:none!important;}
+  a.card.card-clone{opacity:.98;box-shadow:0 20px 44px rgba(27,42,74,.34)!important;transition:none!important;transform-origin:top left;}
+  .cclabel{display:block;font-size:9.5px;font-weight:700;letter-spacing:.06em;color:var(--cc);margin-bottom:4px;line-height:1.1;}
+  .cards.reordering a.card{transition:transform .16s ease;}
+  .cards.reordering a.card.dragging{transition:none;}
   .cards.reordering a.card:hover{transform:none;}
   body.dragging-cards{cursor:grabbing;-webkit-user-select:none;user-select:none;}
   @media(max-width:700px){
@@ -241,7 +246,8 @@ window.FPS=(function(){
 </script>
 <script>(function(){var sp=document.getElementById("splash");if(!sp)return;if(sessionStorage.getItem("fp_splash")){sp.remove();return;}sessionStorage.setItem("fp_splash","1");setTimeout(function(){if(sp&&sp.parentNode)sp.remove();},2600);})();</script>
 <script>
-/* トップ：カードのドラッグ&ドロップ並び替え（タッチ=長押し／マウス=ドラッグ）。順序は fp:order に保存。番号・▲▼は廃止。 */
+/* トップ：カードのドラッグ&ドロップ並び替え（フローティング＋ドロップ位置表示）。順序は fp:order に保存。
+   タッチ=長押し(200ms)で持ち上げ／PC=ドラッグ。カテゴリ名ラベルも付与。 */
 (function(){
   var cards=document.querySelector('.cards'); if(!cards) return;
   var KEY='fp:order';
@@ -249,42 +255,66 @@ window.FPS=(function(){
   function save(){try{localStorage.setItem(KEY,JSON.stringify(items().map(function(c){return c.getAttribute('href');})));}catch(e){}}
   (function applySaved(){try{var arr=JSON.parse(localStorage.getItem(KEY)||'null');if(arr&&arr.length){arr.forEach(function(h){var c=cards.querySelector('a.card[href="'+String(h).replace(/"/g,'\\"')+'"]');if(c)cards.appendChild(c);});items().forEach(function(c){if(arr.indexOf(c.getAttribute('href'))<0)cards.appendChild(c);});}}catch(e){}})();
 
-  var dragEl=null,holdT=null,sx=0,sy=0,dragging=false,moved=false,pid=null,isMouse=false,suppress=false;
-  var LONG=250,START=6,CANCEL=14;
-  function clearHold(){if(holdT){clearTimeout(holdT);holdT=null;}}
-  function begin(){dragging=true;dragEl.classList.add('dragging');cards.classList.add('reordering');document.body.classList.add('dragging-cards');}
-  function autoScroll(y){var m=72,sp=0;if(y<m)sp=-(m-y)/3.2;else if(y>window.innerHeight-m)sp=(y-(window.innerHeight-m))/3.2;if(sp)window.scrollBy(0,sp);}
-  function place(x,y){
+  // カテゴリ名ラベルを各カードに付与
+  var CATLABEL={life:'家計・教育・老後',pension:'年金',souzoku:'相続・贈与',hoken:'保険',corp:'法人・経営者',fudosan:'不動産'};
+  items().forEach(function(c){
+    var m=(c.className||'').match(/cat-([a-z]+)/); if(!m) return;
+    if(c.querySelector('.cclabel')) return;
+    var s2=document.createElement('span'); s2.className='cclabel'; s2.textContent=CATLABEL[m[1]]||'';
+    var h=c.querySelector('h2'); if(h) c.insertBefore(s2,h);
+  });
+
+  var el=null,ph=null,holdT=null,sx=0,sy=0,ox=0,oy=0,W=0,H=0,dragging=false,moved=false,pid=null,isMouse=false,suppress=false,downE=null,lastE=null;
+  var LONG=160,START=5,HOLDMOVE=14;
+  function begin(e){
+    dragging=true;
+    try{cards.setPointerCapture(pid);}catch(_){}
+    el.classList.add('dragging');
+    cards.classList.add('reordering');
+    document.body.classList.add('dragging-cards');
+    try{ if(navigator.vibrate) navigator.vibrate(15); }catch(_){}
+  }
+  function moveEl(x,y){}
+  function nearest(x,y){
     var best=null,bd=Infinity,after=false;
-    items().forEach(function(c){ if(c===dragEl)return; var b=c.getBoundingClientRect(); var cx=b.left+b.width/2,cy=b.top+b.height/2; var d=(x-cx)*(x-cx)+(y-cy)*(y-cy);
-      if(d<bd){bd=d;best=c;after=(y>cy+2)||(Math.abs(y-cy)<=b.height*0.6&&x>cx);} });
-    if(!best)return;
-    if(after){ if(best.nextElementSibling!==dragEl)cards.insertBefore(dragEl,best.nextElementSibling); }
-    else { if(best!==dragEl)cards.insertBefore(dragEl,best); }
+    items().forEach(function(c){ if(c===el)return; var b=c.getBoundingClientRect(); var cx=b.left+b.width/2,cy=b.top+b.height/2; var d=(x-cx)*(x-cx)+(y-cy)*(y-cy);
+      if(d<bd){bd=d;best=c;after=(y>cy)||(Math.abs(y-cy)<=b.height*0.55&&x>cx);} });
+    return best?{el:best,after:after}:null;
+  }
+  function autoScroll(y){var m=84,sp=0;if(y<m)sp=-(m-y)/3;else if(y>window.innerHeight-m)sp=(y-(window.innerHeight-m))/3;if(sp)window.scrollBy(0,sp);}
+  function clearHold(){if(holdT){clearTimeout(holdT);holdT=null;}}
+  function drop(){
+    clearHold();
+    if(dragging){
+      el.classList.remove('dragging');
+      cards.classList.remove('reordering');
+      document.body.classList.remove('dragging-cards');
+      save(); suppress=true;
+    }
+    el=null; dragging=false;
   }
   cards.addEventListener('pointerdown',function(e){
     var c=e.target.closest('a.card'); if(!c)return;
-    dragEl=c;moved=false;dragging=false;sx=e.clientX;sy=e.clientY;pid=e.pointerId;isMouse=(e.pointerType==='mouse');
-    if(!isMouse){clearHold();holdT=setTimeout(function(){ if(dragEl&&!dragging){ begin(); try{cards.setPointerCapture(pid);}catch(x){} } },LONG);}
+    el=c; moved=false; dragging=false; sx=e.clientX; sy=e.clientY; pid=e.pointerId; isMouse=(e.pointerType==='mouse'); downE=e; lastE=e;
+    if(!isMouse){ clearHold(); holdT=setTimeout(function(){ if(el&&!dragging){ begin(lastE||downE); } },LONG); }
   });
-  cards.addEventListener('pointermove',function(e){
-    if(!dragEl)return;
+  window.addEventListener('pointermove',function(e){
+    lastE=e;
+    if(!el)return;
     var dist=Math.abs(e.clientX-sx)+Math.abs(e.clientY-sy);
     if(!dragging){
-      if(isMouse){ if(dist>START){ begin(); try{cards.setPointerCapture(pid);}catch(x){} } }
-      else { if(dist>CANCEL){ clearHold(); dragEl=null; } }
+      if(isMouse){ if(dist>START){ begin(e); } }
+      else { if(dist>HOLDMOVE){ clearHold(); el=null; } }  // 長押し前に動かした=スクロール意図
       if(!dragging)return;
     }
-    e.preventDefault();moved=true;
-    place(e.clientX,e.clientY);autoScroll(e.clientY);
+    e.preventDefault(); moved=true;
+    moveEl(e.clientX,e.clientY);
+    var n=nearest(e.clientX,e.clientY);
+    if(n){ if(n.after){ if(n.el.nextSibling!==el) n.el.parentNode.insertBefore(el,n.el.nextSibling); } else { if(n.el.previousSibling!==el) n.el.parentNode.insertBefore(el,n.el); } }
+    autoScroll(e.clientY);
   });
-  function endDrag(){
-    clearHold();
-    if(dragging){ dragEl.classList.remove('dragging'); cards.classList.remove('reordering'); document.body.classList.remove('dragging-cards'); save(); suppress=true; }
-    dragEl=null;dragging=false;
-  }
-  cards.addEventListener('pointerup',endDrag);
-  cards.addEventListener('pointercancel',endDrag);
+  window.addEventListener('pointerup',drop);
+  window.addEventListener('pointercancel',drop);
   cards.addEventListener('click',function(e){ if(suppress||moved){ e.preventDefault(); e.stopPropagation(); suppress=false; moved=false; } },true);
 })();
 </script>
