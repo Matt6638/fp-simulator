@@ -106,7 +106,28 @@
     +'.deck-result .panel{box-shadow:none;border:1px solid var(--rule,#e3ddcf);}'
     +'.deck-result .fp-dock{position:fixed;left:-100000px;top:0;width:360px;visibility:hidden;pointer-events:none;}'
     +'.deck-result .rcol>.panel-head{display:none;}' // 分割で露出したデッキ見出し（結果）と重複するため非表示
-    +'@media print{.side,.deck-input,.fab-input{display:none!important;}.wrap{display:block!important;height:auto!important;overflow:visible!important;}.deck-result{border:none;box-shadow:none;}.deck-scroll{overflow:visible!important;}}';
+    // ▼ 引き下ろしグリップ（モバイルのみ表示）。上端中央のつまみ＝サイドメニューの開閉ハンドル
+    +'.fp-pull{display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:61;width:78px;height:26px;border:0;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:6px 0 0;align-items:flex-start;justify-content:center;}'
+    +'.fp-pull .fp-pull-bar{display:block;width:40px;height:5px;border-radius:3px;background:var(--brass,#9a7b4f);opacity:.5;box-shadow:0 1px 3px rgba(0,0,0,.28);transition:opacity .2s ease,width .2s ease;}'
+    +'.fp-pull.on .fp-pull-bar{opacity:.92;width:54px;}'
+    // ▼ iPhone等（狭幅）：左レールを廃し、上部から引き下ろすメニューシートに。入力欄が横幅をフル活用できる
+    +'@media (max-width:700px){'
+    +'.wrap{flex-direction:column!important;gap:0!important;padding:0!important;}'
+    +'.main{height:100vh!important;gap:6px;padding:6px 8px 0!important;}'
+    +'.side{position:fixed;left:0;right:0;top:0;z-index:60;flex:0 0 auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:7px;'
+      +'padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 12px;background:var(--surface,#fff);'
+      +'border-bottom:1px solid var(--rule,#e3ddcf);box-shadow:0 16px 34px -18px rgba(0,0,0,.55);'
+      +'transform:translateY(-102%);transition:transform .28s ease;max-height:82vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}'
+    +'.side.side-open{transform:translateY(0);}'
+    +'.side-eyebrow{display:none;}'
+    +'.side-tt{writing-mode:horizontal-tb!important;text-orientation:mixed!important;font-size:16px;line-height:1.1;margin:0 8px 0 2px;white-space:nowrap;}'
+    +'.fp-sidebtns{flex:1 1 100%;flex-direction:row;flex-wrap:wrap;gap:7px;width:auto;align-items:stretch;}'
+    +'.fp-sidebtns .fpbtn{width:auto!important;flex:0 0 auto;text-align:center;padding:9px 14px!important;font-size:12.5px!important;}'
+    +'.fp-sidebtns input[type=text]{flex:1 1 140px;min-width:120px;}'
+    +'.build-stamp{flex:0 0 auto;margin:0 0 0 auto;padding:0;text-align:right;}'
+    +'.fp-pull{display:flex!important;}'
+    +'}'
+    +'@media print{.side,.deck-input,.fab-input,.fp-pull{display:none!important;}.wrap{display:block!important;height:auto!important;overflow:visible!important;}.deck-result{border:none;box-shadow:none;}.deck-scroll{overflow:visible!important;}}';
     var st=document.createElement('style'); st.id='fpDeckCSS'; st.textContent=css; document.head.appendChild(st);
   }
 
@@ -187,6 +208,7 @@
     var fab=document.createElement('button'); fab.type='button'; fab.className='fab-input'; fab.id='fabInput'; fab.setAttribute('aria-label','入力を開く（ドラッグで移動）'); fab.title='タップで入力／ドラッグで移動'; fab.innerHTML='<span class="fab-plus">＋</span>';
     document.body.appendChild(fab);
     makeFabDraggable();
+    initMobileRail(side);
     var lm=document.lastModified||''; var mm=lm.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})[ ,]+(\d{1,2}):(\d{2})/); stamp.textContent=mm?('更新 '+mm[1]+'/'+mm[2]+'\n'+mm[4]+':'+mm[5]):'';
     // 結果を1画面ごとの横ページに分割（あふれたら次ページ＝右スワイプ）
     // 実データはドックに保持し、可視ページには複製を配置。再計算のたびに再分割する。
@@ -320,6 +342,44 @@
   function toggleInput(){var d=document.getElementById('deckInput');if(d&&d.classList.contains('open'))closeInput();else openInput();}
   window.fpToggleInput=toggleInput;
   document.addEventListener('keydown',function(e){if(e.key==='Escape')closeInput();});
+
+  // iPhone等（狭幅）：左レールを上部「引き下ろしメニュー」に。下スワイプで出す／上スワイプで消す。
+  function initMobileRail(side){
+    if(!side || document.getElementById('fpPull')) return;
+    var mq=window.matchMedia('(max-width:700px)');
+    var grip=document.createElement('button');
+    grip.type='button'; grip.id='fpPull'; grip.className='fp-pull';
+    grip.setAttribute('aria-label','メニューを開く'); grip.title='メニュー（下スワイプで表示）';
+    grip.innerHTML='<span class="fp-pull-bar"></span>';
+    document.body.appendChild(grip);
+    function openRail(){ side.classList.add('side-open'); grip.classList.add('on'); grip.setAttribute('aria-label','メニューを閉じる'); }
+    function closeRail(){ side.classList.remove('side-open'); grip.classList.remove('on'); grip.setAttribute('aria-label','メニューを開く'); }
+    function isOpen(){ return side.classList.contains('side-open'); }
+    grip.addEventListener('click',function(e){ e.preventDefault(); isOpen()?closeRail():openRail(); });
+    // メニュー内のコマンド（トップ/使い方/保存等）を押したら自動で収納。姓入力欄は開いたまま
+    side.addEventListener('click',function(e){
+      var t=e.target;
+      if(t.closest && t.closest('input,textarea,select,label')) return;
+      if(t.closest && t.closest('button,.fpbtn,a')){ setTimeout(closeRail,180); }
+    });
+    // 画面幅が広く戻ったら開閉状態をリセット（デスクトップ表示の左レールへ）
+    try{ mq.addEventListener('change',function(){ if(!mq.matches) closeRail(); }); }catch(e){}
+
+    var y0=0,x0=0,tracking=false,fromTop=false,fired=false;
+    window.addEventListener('touchstart',function(e){
+      if(!mq.matches){ tracking=false; return; }
+      var t=e.touches[0]; y0=t.clientY; x0=t.clientX; tracking=true; fired=false;
+      fromTop=(y0<=64); // 画面上端起点のみ「下スワイプで出す」対象（本文スクロールと衝突させない）
+    },{passive:true});
+    window.addEventListener('touchmove',function(e){
+      if(!mq.matches||!tracking||fired) return;
+      var t=e.touches[0], dy=t.clientY-y0, dx=t.clientX-x0;
+      if(Math.abs(dy)<26 || Math.abs(dx)>Math.abs(dy)) return; // 縦方向の明確な意図のみ
+      if(dy>0){ if(!isOpen() && fromTop){ openRail(); fired=true; } }   // 下スワイプ＝出す
+      else { if(isOpen()){ closeRail(); fired=true; } }                 // 上スワイプ＝消す
+    },{passive:true});
+    window.addEventListener('touchend',function(){ tracking=false; },{passive:true});
+  }
 
   function makeFabDraggable(){
     // 位置は positionFab() が結果に合わせて都度自動配置する。ここではタップ＝入力開閉のみ。
