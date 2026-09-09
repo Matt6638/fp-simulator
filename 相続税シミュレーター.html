@@ -168,6 +168,18 @@
       </div>
 
       <div class="field" style="margin-top:18px;">
+        <label class="lab">特別受益（相続人への生前贈与） <span class="q">贈与から10年で遺留分の基礎財産から外れます（消滅）</span></label>
+        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="tokuben" value="" placeholder="0"><span class="u">円</span></div>
+        <div class="inrow" style="margin-top:8px;flex-wrap:wrap;gap:4px;">贈与
+          <input type="text" inputmode="numeric" class="num" id="tokubenY" value="" placeholder="2020" style="max-width:78px;"><span class="u">年</span>
+          <input type="text" inputmode="numeric" class="num" id="tokubenM" value="" placeholder="1" style="max-width:56px;"><span class="u">月</span>
+          <span style="margin-left:8px;">受益者</span>
+          <select id="tokubenWho" style="width:auto;"><option value="child">子</option><option value="spouse">配偶者</option><option value="parent">直系尊属</option></select>
+        </div>
+        <div class="hint">相続人が受けた特別受益（婚姻・生計資本などの生前贈与）は、相続開始前<b>10年以内</b>のものだけ遺留分の基礎財産に算入。10年を過ぎると外れ（消滅）、遺留分侵害額が下がります。金額と贈与年月を入れると、結果に消滅年月と時系列の侵害額を表示します。</div>
+      </div>
+
+      <div class="field" style="margin-top:18px;">
         <label class="lab">遺産分割（各相続人の取得割合）
           <button type="button" id="resetSplit" style="float:right;font-size:11px;font-weight:600;color:var(--brass-deep);background:#fcfbf8;border:1px solid var(--rule);border-radius:6px;padding:3px 9px;cursor:pointer;">法定相続分に戻す</button>
         </label>
@@ -198,6 +210,8 @@
     <div style="padding:8px 16px 18px;overflow-x:auto;" id="heirTableWrap"></div>
     <div class="sec-h">遺留分（相続人が最低限確保できる取り分）</div>
     <div style="padding:8px 16px 18px;overflow-x:auto;" id="iryuunWrap"></div>
+    <div class="sec-h" id="tokubenHead" style="display:none;">特別受益と遺留分侵害額の時系列（相続人への生前贈与）</div>
+    <div style="padding:8px 16px 18px;overflow-x:auto;" id="tokubenWrap"></div>
     <div style="padding:0 20px 20px;" id="notes"></div>
   </section>
 </div>
@@ -306,6 +320,53 @@ function renderIryuun(st){
   });
   h+=`</tbody><tfoot><tr><td>遺留分の合計</td><td>${toFrac(totalFrac)}</td><td>${yen(Math.round(totalAmt))}円</td></tr></tfoot></table>`;
   h+=`<div class="hint">総体的遺留分＝<b>${toFrac(soutai)}</b>（${st.branch==='parent'&&!st.spouse?'相続人が直系尊属のみのため1/3':'配偶者・子などがいるため1/2'}）。個別の遺留分＝総体的遺留分×各人の法定相続分。<br>基礎財産（概算）＝相続財産 ${yen(assets)}円 − 債務 ${yen(debts)}円 ＝ <b>${yen(base)}円</b>。<br>※本来の遺留分の基礎財産は「相続開始時の財産＋一定の生前贈与−債務」。生命保険金（受取人固有）は原則含めず、生前贈与・特別受益は未加算の概算です。兄弟姉妹に遺留分はありません。遺留分侵害額請求は相続開始・侵害を知ってから1年以内。</div>`;
+  wrap.innerHTML=h;
+}
+// 特別受益（相続人への生前贈与）の遺留分算入と、消滅（贈与から10年）の時系列
+function renderTokuben(st){
+  const head=document.getElementById('tokubenHead'), wrap=document.getElementById('tokubenWrap');
+  if(!wrap) return;
+  const G=numV('tokuben');
+  const y=parseInt((document.getElementById('tokubenY')||{}).value)||0;
+  const m=Math.min(12,Math.max(1,parseInt((document.getElementById('tokubenM')||{}).value)||1));
+  const who=(document.getElementById('tokubenWho')||{}).value||'child';
+  if(G<=0 || !y){ if(head)head.style.display='none'; wrap.innerHTML=''; return; }
+  if(head)head.style.display='';
+  const soutai=iryuunSoutai(st);
+  if(soutai<=0){ wrap.innerHTML='<div class="hint">遺留分権利者がいないため、特別受益の時系列は表示されません。</div>'; return; }
+  const assets=numV('assets'), debts=numV('debts');
+  const N=Math.max(0, assets-debts);
+  const exY=y+10, exM=m;
+  const now=new Date(); const nowYM=now.getFullYear()*12+(now.getMonth()+1); const exYM=exY*12+exM;
+  const inNow = nowYM < exYM;
+  const bn = st.branch==='child'?'子':st.branch==='parent'?'直系尊属':'';
+  // 遺留分権利者リスト（兄弟姉妹・その他は除く）
+  const list=[];
+  if(st.spouse) list.push({key:'spouse',label:'配偶者',legalFrac:st.spouseShare});
+  if((st.branch==='child'||st.branch==='parent') && st.branchCount>0){
+    const per=st.branchShareTotal/st.branchCount;
+    for(let i=0;i<st.branchCount;i++) list.push({key:'branch',label:bn+(st.branchCount>1?`（${i+1}）`:''),legalFrac:per});
+  }
+  // 受益者＝選択タイプの最初の1人
+  let benIdx=-1;
+  if(who==='spouse') benIdx=list.findIndex(h=>h.key==='spouse');
+  else benIdx=list.findIndex(h=>h.key==='branch' && ((who==='child'&&st.branch==='child')||(who==='parent'&&st.branch==='parent')));
+  let h=`<div class="hint" style="margin-bottom:8px;">贈与：<b>${y}年${m}月</b>（${who==='spouse'?'配偶者':who==='parent'?'直系尊属':'子'}へ ${yen(G)}円）／遺留分に算入される期限（<b>消滅</b>）：<b>${exY}年${exM}月</b>（贈与から10年）。`
+   +`${inNow?`現在（${now.getFullYear()}年${now.getMonth()+1}月）は<b style="color:#7d3f26;">算入期間内</b>。`:`現在は<b style="color:#1f7a4d;">10年経過済（消滅後）</b>。`}</div>`;
+  h+=`<table class="tbl"><thead><tr><th>相続人</th><th>消滅前の侵害額<br><small>（〜${exY}年${exM}月）</small></th><th>消滅後の侵害額<br><small>（${exY}年${exM}月〜）</small></th><th>差</th></tr></thead><tbody>`;
+  list.forEach((hh,i)=>{
+    const isBen=(i===benIdx);
+    const before=(N+G)*soutai*hh.legalFrac, after=N*soutai*hh.legalFrac;
+    if(isBen){
+      h+=`<tr><td>${hh.label}<small>（受益者）</small></td><td colspan="3" style="color:var(--ink-soft);">特別受益 ${yen(G)}円 を受領済み（請求される側）</td></tr>`;
+    } else {
+      h+=`<tr><td>${hh.label}</td><td>${yen(Math.round(before))}円</td><td>${yen(Math.round(after))}円</td><td>${before-after>0?('-'+yen(Math.round(before-after))+'円'):'—'}</td></tr>`;
+    }
+  });
+  // 受益者以外の合計
+  let tb=0,ta=0; list.forEach((hh,i)=>{ if(i===benIdx)return; tb+=(N+G)*soutai*hh.legalFrac; ta+=N*soutai*hh.legalFrac; });
+  h+=`</tbody><tfoot><tr><td>受益者以外 計</td><td>${yen(Math.round(tb))}円</td><td>${yen(Math.round(ta))}円</td><td>${tb-ta>0?('-'+yen(Math.round(tb-ta))+'円'):'—'}</td></tr></tfoot></table>`;
+  h+=`<div class="hint">侵害額は「特別受益を受けた相続人に財産が集中し、他の相続人が遺産をほとんど取得しない場合」に各人が請求できる<b>上限の目安</b>（＝遺留分額）。特別受益が<b>消滅（贈与から10年）</b>すると基礎財産（遺産${yen(N)}円＋特別受益${yen(G)}円→遺産のみ${yen(N)}円）から外れ、侵害額は受益者以外で計 <b>${yen(Math.round(tb-ta))}円</b> 縮小します。実際は遺産分割・遺贈・持戻し・債務で変動。相続人以外への贈与は相続開始前1年以内分のみ算入。遺留分侵害額請求の時効は「相続開始と侵害を知ってから1年（かつ相続開始から10年）」。</div>`;
   wrap.innerHTML=h;
 }
 function buildStruct(){
@@ -520,6 +581,7 @@ function render(){
   }
   n+=`<div class="info">相続税の総額 ${yen(st.total)}円 は税額控除前で、遺産分割に依らず一定です。上の「取得割合」を動かすと、相続人ごとの納付額と配偶者の税額軽減が実際の分割に応じて変わります。配偶者は<b>法定相続分（この例では${yen(st.kazei*st.spouseShare)}円）または1億6,000万円の多い方</b>まで取得しても相続税ゼロ。ただし一次相続で配偶者に寄せすぎると、二次相続（配偶者の相続）で軽減が使えず子の負担が増えるため、一次・二次の通算での最適割合の検討が重要です。生命保険の非課税枠（500万×法定相続人＝${yen(5000000*st.heirCount)}円）の活用余地も併せてご提案ください。</div>`;
   renderIryuun(st);
+  renderTokuben(st);
   document.getElementById('notes').innerHTML=n;
 }
 
@@ -533,6 +595,7 @@ document.querySelectorAll('input.num').forEach(el=>{
   el.addEventListener('input',()=>{el.value=zen2han(el.value).replace(/[^\d]/g,'');recalc();});
 });
 document.getElementById('spouse').addEventListener('change',recalc);
+document.getElementById('tokubenWho').addEventListener('change',recalc);
 document.getElementById('splitSection').addEventListener('input',e=>{
   const el=e.target.closest('input.share'); if(!el)return;
   const v=zen2han(el.value).trim();
