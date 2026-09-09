@@ -24,6 +24,14 @@
     },{passive:true});
   })();
 
+  // 文字サイズ設定（fp:settings.fontScale）を結果・入力デッキに適用（全ツール共通）
+  function applyFontScale(){
+    var sc=1; try{ var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); if([1,1.15,1.3].indexOf(o.fontScale)>=0) sc=o.fontScale; }catch(e){}
+    document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll').forEach(function(el){ el.style.zoom=sc; });
+  }
+  window.__fpApplyFontScale=applyFontScale;
+  window.addEventListener('storage',function(e){ if(e.key==='fp:settings') applyFontScale(); });
+
   function inject(){
     if(document.getElementById('fpDeckCSS')) return;
     var css=''
@@ -243,7 +251,7 @@
     // 結果を1画面ごとの横ページに分割（あふれたら次ページ＝右スワイプ）
     // 実データはドックに保持し、可視ページには複製を配置。再計算のたびに再分割する。
     var rScroll=deckR.querySelector('.deck-scroll');
-    var repag=function(){ repaginate(rScroll,'fpRDots',dock); };
+    var repag=function(){ repaginate(rScroll,'fpRDots',dock); applyFontScale(); };
     repag();
     var rzT; window.addEventListener('resize',function(){ clearTimeout(rzT); rzT=setTimeout(repag,120); });
     try{

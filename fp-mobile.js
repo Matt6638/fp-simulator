@@ -25,6 +25,16 @@
     },{passive:true});
   })();
 
+  /* ---- 文字サイズ設定（fp:settings.fontScale）を適用（全独自ツール共通） ---- */
+  function applyFontScale(){
+    var sc=1; try{ var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); if([1,1.15,1.3].indexOf(o.fontScale)>=0) sc=o.fontScale; }catch(e){}
+    document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll').forEach(function(el){ el.style.zoom=sc; });
+  }
+  window.addEventListener('storage',function(e){ if(e.key==='fp:settings') applyFontScale(); });
+  if(document.readyState!=='loading') setTimeout(applyFontScale,80); else window.addEventListener('DOMContentLoaded',function(){setTimeout(applyFontScale,80);});
+  // 結果再描画後にも再適用（MutationObserverで軽く）
+  try{ var mo=new MutationObserver(function(){ clearTimeout(window.__fpFsT); window.__fpFsT=setTimeout(applyFontScale,120); }); window.addEventListener('DOMContentLoaded',function(){ var r=document.querySelector('.deck-result .deck-scroll'); if(r) mo.observe(r,{childList:true,subtree:true}); }); }catch(e){}
+
   /* ---- 入力ドロワーを上いっぱいまで拡張（全独自ツール共通） ---- */
   (function drawerTall(){
     if(document.getElementById('fpDrawerCSS')) return;
