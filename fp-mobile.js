@@ -27,7 +27,7 @@
 
   /* ---- 文字サイズ設定（fp:settings.fontScale）＝ページ全体を一律ズーム（全独自ツール共通） ---- */
   function applyFontScale(){
-    var sc=1; try{ var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); if([1,1.25,1.5].indexOf(o.fontScale)>=0) sc=o.fontScale; }catch(e){}
+    var sc=1; try{ var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); if([1,1.25,1.5,1.75].indexOf(o.fontScale)>=0) sc=o.fontScale; }catch(e){}
     document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll').forEach(function(el){ if(el.style.zoom) el.style.zoom=''; });
     document.documentElement.style.zoom = (sc===1?'':sc);
     try{ document.documentElement.style.setProperty('--fp-vh', (window.innerHeight/sc)+'px'); }catch(e){}
@@ -55,16 +55,30 @@
         +'body.fp-hints .hint,body.fp-hints .fp-intro,body.fp-hints .fp-sub,body.fp-hints .deck-result .info{display:block!important;}'
         +'body.fp-hints .field .q,body.fp-hints .heircell .q{display:inline!important;}'
         +'.fp-hintbtn{margin-left:8px;font:600 11px var(--gothic,sans-serif);color:var(--brass-deep,#7d6240);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);border-radius:6px;padding:4px 10px;cursor:pointer;white-space:nowrap;flex:0 0 auto;}'
-        +'.fp-hintbtn.on{background:var(--brass,#9a7b4f);color:#fff;border-color:var(--brass-deep,#7d6240);}';
+        +'.fp-hintbtn.on{background:var(--brass,#9a7b4f);color:#fff;border-color:var(--brass-deep,#7d6240);}'
+        +'.fp-fontui{display:inline-flex;align-items:center;gap:0;margin-left:8px;flex:0 0 auto;}'
+        +'.fp-fontbtn{font:700 12px var(--gothic,sans-serif);color:var(--ink,#1b2a4a);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);width:34px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;}'
+        +'.fp-fontbtn:first-child{border-radius:7px 0 0 7px;}.fp-fontbtn:last-child{border-radius:0 7px 7px 0;border-left:none;}'
+        +'.fp-fontbtn:active{background:var(--brass,#9a7b4f);color:#fff;}';
       document.head.appendChild(st);
     }
+    var SC=[1,1.25,1.5,1.75];
+    function curSc(){ try{ var v=JSON.parse(localStorage.getItem('fp:settings')||'{}').fontScale; return SC.indexOf(v)>=0?v:1; }catch(e){ return 1; } }
+    function setSc(v){ try{ var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); o.fontScale=v; localStorage.setItem('fp:settings',JSON.stringify(o)); }catch(e){} applyFontScale(); }
     document.querySelectorAll('.deck .deck-head').forEach(function(head){
       if(head.querySelector('.fp-hintbtn')) return;
+      var fu=document.createElement('span'); fu.className='fp-fontui';
+      var mi=document.createElement('button'); mi.type='button'; mi.className='fp-fontbtn'; mi.textContent='A−'; mi.title='文字を小さく';
+      var pl=document.createElement('button'); pl.type='button'; pl.className='fp-fontbtn'; pl.textContent='A＋'; pl.title='文字を大きく';
+      mi.addEventListener('click',function(){ var i=SC.indexOf(curSc()); if(i>0) setSc(SC[i-1]); });
+      pl.addEventListener('click',function(){ var i=SC.indexOf(curSc()); if(i<SC.length-1) setSc(SC[i+1]); });
+      fu.appendChild(mi); fu.appendChild(pl);
       var b=document.createElement('button'); b.type='button'; b.className='fp-hintbtn'; b.title='用語や補足の説明を表示／非表示';
       b.addEventListener('click',function(){ var now=!document.body.classList.contains('fp-hints');
         try{ var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); o.showHints=now; localStorage.setItem('fp:settings',JSON.stringify(o)); }catch(e){}
         syncHints(); });
-      var done=head.querySelector('.deck-close'); if(done) head.insertBefore(b,done); else head.appendChild(b);
+      var done=head.querySelector('.deck-close');
+      if(done){ head.insertBefore(fu,done); head.insertBefore(b,done); } else { head.appendChild(fu); head.appendChild(b); }
     });
     syncHints();
   }
