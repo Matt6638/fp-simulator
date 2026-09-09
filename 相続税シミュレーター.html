@@ -91,6 +91,26 @@
   .divider-note{font-size:11.5px;color:#8a8470;margin:0 0 14px;}
   input::placeholder{color:#c0baa8;} /*FPPH-GREY*/
   @media screen and (min-width:901px){.grid{align-items:start;}.grid>.panel:last-child{position:sticky;top:14px;align-self:start;max-height:calc(100vh - 28px);overflow:auto;}}
+
+  /* 財産計算機（内訳合計） */
+  .inrow{position:relative;}
+  .calcbtn{margin-left:6px;font:600 12px var(--gothic,sans-serif);color:var(--brass-deep,#7d6240);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);border-radius:6px;padding:5px 9px;cursor:pointer;white-space:nowrap;}
+  .calcbtn:hover{background:var(--brass,#9a7b4f);color:#fff;border-color:var(--brass-deep,#7d6240);}
+  .fpcalc{position:fixed;inset:0;z-index:9998;background:rgba(20,28,48,.42);display:none;align-items:center;justify-content:center;padding:16px;}
+  .fpcalc.open{display:flex;}
+  .fpcalc .cbx{background:var(--surface,#fff);border-radius:14px;box-shadow:0 20px 60px rgba(20,28,48,.35);width:100%;max-width:460px;max-height:86vh;display:flex;flex-direction:column;overflow:hidden;}
+  .fpcalc .chd{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid var(--rule,#e3ddcf);}
+  .fpcalc .chd b{font-family:var(--mincho,serif);font-size:15px;color:var(--ink,#1b2a4a);flex:1;}
+  .fpcalc .chd .x{font-size:20px;line-height:1;background:none;border:none;color:var(--ink-soft,#46506a);cursor:pointer;padding:2px 6px;}
+  .fpcalc .crows{padding:10px 16px;overflow-y:auto;flex:1;}
+  .fpcalc .crow{display:flex;gap:6px;align-items:center;margin-bottom:7px;}
+  .fpcalc .crow .cnm{flex:1 1 auto;min-width:0;font-size:14px;border:1px solid var(--rule,#e3ddcf);border-radius:7px;padding:8px 10px;}
+  .fpcalc .crow .cvl{flex:0 0 130px;font-size:16px;text-align:right;font-family:var(--mono,monospace);border:1px solid var(--rule,#e3ddcf);border-radius:7px;padding:8px 10px;}
+  .fpcalc .crow .cdel{flex:0 0 auto;background:none;border:none;color:#b5623a;font-size:18px;cursor:pointer;padding:0 4px;}
+  .fpcalc .cadd{margin:2px 16px 0;font-size:13px;font-weight:600;color:var(--brass-deep,#7d6240);background:#fcfbf8;border:1px dashed var(--rule,#e3ddcf);border-radius:8px;padding:9px;cursor:pointer;width:calc(100% - 32px);}
+  .fpcalc .cft{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-top:1px solid var(--rule,#e3ddcf);}
+  .fpcalc .cft .sum{font-size:14px;color:var(--ink,#1b2a4a);} .fpcalc .cft .sum b{font-family:var(--mono,monospace);font-size:18px;color:var(--brass-deep,#7d6240);}
+  .fpcalc .cft .apply{font:600 14px var(--gothic,sans-serif);background:var(--brass,#9a7b4f);color:#fff;border:1px solid var(--brass-deep,#7d6240);border-radius:9px;padding:10px 16px;cursor:pointer;}
 </style>
 <!-- FP Auth (Phase1: login gate + usage log) -->
 <script src="config.js"></script>
@@ -168,18 +188,6 @@
       </div>
 
       <div class="field wide" style="margin-top:18px;">
-        <label class="lab">特別受益（相続人への生前贈与） <span class="q">贈与から10年で遺留分の基礎財産から外れます（消滅）</span></label>
-        <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="tokuben" value="" placeholder="0"><span class="u">円</span></div>
-        <div class="inrow" style="margin-top:8px;flex-wrap:wrap;gap:4px;">贈与
-          <input type="text" inputmode="numeric" class="num" id="tokubenY" value="" placeholder="2020" style="max-width:78px;"><span class="u">年</span>
-          <input type="text" inputmode="numeric" class="num" id="tokubenM" value="" placeholder="1" style="max-width:56px;"><span class="u">月</span>
-          <span style="margin-left:8px;">受益者</span>
-          <select id="tokubenWho" style="width:auto;"><option value="child">子</option><option value="spouse">配偶者</option><option value="parent">直系尊属</option></select>
-        </div>
-        <div class="hint">相続人が受けた特別受益（婚姻・生計資本などの生前贈与）は、相続開始前<b>10年以内</b>のものだけ遺留分の基礎財産に算入。10年を過ぎると外れ（消滅）、遺留分侵害額が下がります。金額と贈与年月を入れると、結果に消滅年月と時系列の侵害額を表示します。</div>
-      </div>
-
-      <div class="field wide" style="margin-top:18px;">
         <label class="lab">遺産分割（各相続人の取得割合）
           <button type="button" id="resetSplit" style="float:right;font-size:11px;font-weight:600;color:var(--brass-deep);background:#fcfbf8;border:1px solid var(--rule);border-radius:6px;padding:3px 9px;cursor:pointer;">法定相続分に戻す</button>
         </label>
@@ -210,7 +218,7 @@
     <div style="padding:8px 16px 18px;overflow-x:auto;" id="heirTableWrap"></div>
     <div class="sec-h">遺留分（相続人が最低限確保できる取り分）</div>
     <div style="padding:8px 16px 18px;overflow-x:auto;" id="iryuunWrap"></div>
-    <div class="sec-h" id="tokubenHead" style="display:none;">特別受益と遺留分侵害額の時系列（相続人への生前贈与）</div>
+    <div class="sec-h" id="tokubenHead" style="display:none;">相続人ごとの取得額・遺留分侵害額（遺言なし／あり・特別受益は編集可）</div>
     <div style="padding:8px 16px 18px;overflow-x:auto;" id="tokubenWrap"></div>
     <div style="padding:0 20px 20px;" id="notes"></div>
   </section>
@@ -268,107 +276,91 @@ function sokusan(x){
 
 /* ===== 計算 ===== */
 let userShares={};   // ユーザーが上書きした取得割合(%) を heirId で保持
+let userTB={};       // 相続人ごとの特別受益 {amt(円), y, m} を heirId で保持
 let STRUCT_KEY=null;  // 相続人構成が変わったら分割UIを作り直す
 
 // 構成・相続税の総額・相続人リストを算定
-// 総体的遺留分率（民法1042）：直系尊属のみ=1/3、それ以外（配偶者・子等がいる）=1/2。兄弟姉妹は遺留分なし。
+// 総体的遺留分率（民法1042）：直系尊属のみ=1/3、それ以外（配偶者・子等）=1/2。兄弟姉妹は遺留分なし。
 function iryuunSoutai(st){
   const hasReserved = st.spouse || st.branch==='child' || st.branch==='parent';
   if(!hasReserved) return 0;
   if(st.branch==='parent' && !st.spouse) return 1/3;
   return 1/2;
 }
-// 小数→きれいな分数表記（分母48まで）。合わない場合は%。
-function toFrac(x){
-  if(x<=0) return '0';
-  for(let q=1;q<=48;q++){ const p=Math.round(x*q); if(p>0 && Math.abs(p/q-x)<1e-9) return p+'/'+q; }
-  return (Math.round(x*1000)/10)+'%';
-}
-// 遺留分（割合と金額）を描画
+function toFrac(x){ if(x<=0) return '0'; for(let q=1;q<=48;q++){ const p=Math.round(x*q); if(p>0 && Math.abs(p/q-x)<1e-9) return p+'/'+q; } return (Math.round(x*1000)/10)+'%'; }
+function tbOf(id){ var t=userTB[id]; return {amt:(t&&t.amt)||0, y:(t&&t.y)||0, m:(t&&t.m)||0}; }
+function tbDisp(amt){ if(!amt) return ''; var v=(window.__fpU==='man')?amt/10000:amt; return v.toLocaleString('ja-JP'); }
+function tbInSum(st){ var now=new Date(); var nowYM=now.getFullYear()*12+(now.getMonth()+1); var s=0;
+  st.heirs.forEach(function(h){ var t=tbOf(h.id); if(t.amt>0 && t.y){ var exYM=(t.y+10)*12+(t.m||1); if(nowYM<exYM) s+=t.amt; } }); return s; }
+function iryuunBase(st){ var assets=numV('assets'),debts=numV('debts'); return Math.max(0,(assets-debts))+tbInSum(st); }
+
 function renderIryuun(st){
   const wrap=document.getElementById('iryuunWrap'); if(!wrap) return;
   const soutai=iryuunSoutai(st);
-  const assets=numV('assets'), debts=numV('debts');
-  const base=Math.max(0, assets-debts);           // 遺留分算定の基礎財産（概算）
-  if(soutai<=0){
-    wrap.innerHTML=`<div class="hint">この相続人構成では遺留分はありません（${st.branch==='sibling'?'兄弟姉妹には遺留分が認められていません':'遺留分権利者（配偶者・子・直系尊属）がいません'}）。</div>`;
-    return;
-  }
+  const assets=numV('assets'), debts=numV('debts'); const tbin=tbInSum(st);
+  const base=Math.max(0,(assets-debts))+tbin;
+  if(soutai<=0){ wrap.innerHTML=`<div class="hint">この相続人構成では遺留分はありません（${st.branch==='sibling'?'兄弟姉妹には遺留分が認められていません':'遺留分権利者（配偶者・子・直系尊属）がいません'}）。</div>`; return; }
   const bn = st.branch==='child'?'子':st.branch==='parent'?'直系尊属':st.branch==='sibling'?'兄弟姉妹':'';
   const rows=[];
   if(st.spouse){ const r=soutai*st.spouseShare; rows.push({label:'配偶者', frac:r, amt:base*r}); }
   const branchHas=(st.branch==='child'||st.branch==='parent');
   if(st.branchCount>0){
-    if(branchHas){
-      const per=soutai*(st.branchShareTotal/st.branchCount), grp=soutai*st.branchShareTotal;
-      rows.push({branch:true, count:st.branchCount, frac:per, amt:base*per, grpFrac:grp, grpAmt:base*grp});
-    } else {
-      rows.push({none:true, label:bn});
-    }
+    if(branchHas){ const per=soutai*(st.branchShareTotal/st.branchCount), grp=soutai*st.branchShareTotal;
+      rows.push({branch:true, count:st.branchCount, frac:per, amt:base*per, grpFrac:grp, grpAmt:base*grp}); }
+    else { rows.push({none:true, label:bn}); }
   }
   let totalFrac=0; rows.forEach(r=>{ if(r.none)return; totalFrac += r.branch ? r.grpFrac : r.frac; });
-  const totalAmt=base*totalFrac;
   let h=`<table class="tbl"><thead><tr><th>相続人</th><th>遺留分の割合</th><th>遺留分額（概算）</th></tr></thead><tbody>`;
   rows.forEach(r=>{
     if(r.none){ h+=`<tr><td>${r.label}</td><td>なし</td><td>—</td></tr>`; return; }
-    if(r.branch){
-      h+=`<tr><td>${bn}<small>（1人あたり）</small></td><td>${toFrac(r.frac)}</td><td>${yen(Math.round(r.amt))}円</td></tr>`;
-      if(r.count>1) h+=`<tr><td>${bn} 計<small>（${r.count}人）</small></td><td>${toFrac(r.grpFrac)}</td><td>${yen(Math.round(r.grpAmt))}円</td></tr>`;
-    } else {
-      h+=`<tr><td>${r.label}</td><td>${toFrac(r.frac)}</td><td>${yen(Math.round(r.amt))}円</td></tr>`;
-    }
+    if(r.branch){ h+=`<tr><td>${bn}<small>（1人あたり）</small></td><td>${toFrac(r.frac)}</td><td>${yen(Math.round(r.amt))}円</td></tr>`;
+      if(r.count>1) h+=`<tr><td>${bn} 計<small>（${r.count}人）</small></td><td>${toFrac(r.grpFrac)}</td><td>${yen(Math.round(r.grpAmt))}円</td></tr>`; }
+    else { h+=`<tr><td>${r.label}</td><td>${toFrac(r.frac)}</td><td>${yen(Math.round(r.amt))}円</td></tr>`; }
   });
-  h+=`</tbody><tfoot><tr><td>遺留分の合計</td><td>${toFrac(totalFrac)}</td><td>${yen(Math.round(totalAmt))}円</td></tr></tfoot></table>`;
-  h+=`<div class="hint">総体的遺留分＝<b>${toFrac(soutai)}</b>（${st.branch==='parent'&&!st.spouse?'相続人が直系尊属のみのため1/3':'配偶者・子などがいるため1/2'}）。個別の遺留分＝総体的遺留分×各人の法定相続分。<br>基礎財産（概算）＝相続財産 ${yen(assets)}円 − 債務 ${yen(debts)}円 ＝ <b>${yen(base)}円</b>。<br>※本来の遺留分の基礎財産は「相続開始時の財産＋一定の生前贈与−債務」。生命保険金（受取人固有）は原則含めず、生前贈与・特別受益は未加算の概算です。兄弟姉妹に遺留分はありません。遺留分侵害額請求は相続開始・侵害を知ってから1年以内。</div>`;
+  h+=`</tbody><tfoot><tr><td>遺留分の合計</td><td>${toFrac(totalFrac)}</td><td>${yen(Math.round(base*totalFrac))}円</td></tr></tfoot></table>`;
+  h+=`<div class="hint">総体的遺留分＝<b>${toFrac(soutai)}</b>。基礎財産（概算）＝相続財産 ${yen(assets)}円 − 債務 ${yen(debts)}円${tbin>0?(' ＋ 算入する特別受益 '+yen(tbin)+'円'):''} ＝ <b>${yen(base)}円</b>。生命保険金（受取人固有）は原則含めず、特別受益は相続開始前10年以内分のみ算入。兄弟姉妹に遺留分はありません。</div>`;
   wrap.innerHTML=h;
 }
-// 特別受益（相続人への生前贈与）の遺留分算入と、消滅（贈与から10年）の時系列
-function renderTokuben(st){
-  const head=document.getElementById('tokubenHead'), wrap=document.getElementById('tokubenWrap');
-  if(!wrap) return;
-  const G=numV('tokuben');
-  const y=parseInt((document.getElementById('tokubenY')||{}).value)||0;
-  const m=Math.min(12,Math.max(1,parseInt((document.getElementById('tokubenM')||{}).value)||1));
-  const who=(document.getElementById('tokubenWho')||{}).value||'child';
-  if(G<=0 || !y){ if(head)head.style.display='none'; wrap.innerHTML=''; return; }
+
+function renderInherit(st){
+  const head=document.getElementById('tokubenHead'), wrap=document.getElementById('tokubenWrap'); if(!wrap) return;
+  const legals = st.heirs.filter(h=>h.isLegal);
+  if(!legals.length){ if(head)head.style.display='none'; wrap.innerHTML=''; return; }
   if(head)head.style.display='';
   const soutai=iryuunSoutai(st);
-  if(soutai<=0){ wrap.innerHTML='<div class="hint">遺留分権利者がいないため、特別受益の時系列は表示されません。</div>'; return; }
-  const assets=numV('assets'), debts=numV('debts');
-  const N=Math.max(0, assets-debts);
-  const exY=y+10, exM=m;
-  const now=new Date(); const nowYM=now.getFullYear()*12+(now.getMonth()+1); const exYM=exY*12+exM;
-  const inNow = nowYM < exYM;
-  const bn = st.branch==='child'?'子':st.branch==='parent'?'直系尊属':'';
-  // 遺留分権利者リスト（兄弟姉妹・その他は除く）
-  const list=[];
-  if(st.spouse) list.push({key:'spouse',label:'配偶者',legalFrac:st.spouseShare});
-  if((st.branch==='child'||st.branch==='parent') && st.branchCount>0){
-    const per=st.branchShareTotal/st.branchCount;
-    for(let i=0;i<st.branchCount;i++) list.push({key:'branch',label:bn+(st.branchCount>1?`（${i+1}）`:''),legalFrac:per});
-  }
-  // 受益者＝選択タイプの最初の1人
-  let benIdx=-1;
-  if(who==='spouse') benIdx=list.findIndex(h=>h.key==='spouse');
-  else benIdx=list.findIndex(h=>h.key==='branch' && ((who==='child'&&st.branch==='child')||(who==='parent'&&st.branch==='parent')));
-  let h=`<div class="hint" style="margin-bottom:8px;">贈与：<b>${y}年${m}月</b>（${who==='spouse'?'配偶者':who==='parent'?'直系尊属':'子'}へ ${yen(G)}円）／遺留分に算入される期限（<b>消滅</b>）：<b>${exY}年${exM}月</b>（贈与から10年）。`
-   +`${inNow?`現在（${now.getFullYear()}年${now.getMonth()+1}月）は<b style="color:#7d3f26;">算入期間内</b>。`:`現在は<b style="color:#1f7a4d;">10年経過済（消滅後）</b>。`}</div>`;
-  h+=`<table class="tbl"><thead><tr><th>相続人</th><th>消滅前の侵害額<br><small>（〜${exY}年${exM}月）</small></th><th>消滅後の侵害額<br><small>（${exY}年${exM}月〜）</small></th><th>差</th></tr></thead><tbody>`;
-  list.forEach((hh,i)=>{
-    const isBen=(i===benIdx);
-    const before=(N+G)*soutai*hh.legalFrac, after=N*soutai*hh.legalFrac;
-    if(isBen){
-      h+=`<tr><td>${hh.label}<small>（受益者）</small></td><td colspan="3" style="color:var(--ink-soft);">特別受益 ${yen(G)}円 を受領済み（請求される側）</td></tr>`;
-    } else {
-      h+=`<tr><td>${hh.label}</td><td>${yen(Math.round(before))}円</td><td>${yen(Math.round(after))}円</td><td>${before-after>0?('-'+yen(Math.round(before-after))+'円'):'—'}</td></tr>`;
-    }
+  const assets=numV('assets'), debts=numV('debts'); const N=Math.max(0,assets-debts);
+  const sh=computeShares(st);
+  const totalTB=legals.reduce((a,h)=>a+tbOf(h.id).amt,0);
+  const minashi=N+totalTB;
+  const base=iryuunBase(st);
+  const now=new Date(); const nowYM=now.getFullYear()*12+(now.getMonth()+1);
+  const isRes=(h)=> h.isSpouse || (st.branch==='child'||st.branch==='parent');
+  let h=`<div class="hint" style="margin-bottom:8px;">「遺言なし」＝法定相続分に特別受益を<b>持戻した</b>具体的相続分。「遺言あり」＝上の<b>取得割合</b>どおりに遺産（${yen(N)}円）を分けた額。<b>特別受益は各行で編集</b>でき、結果に即反映します。</div>`;
+  h+=`<table class="tbl" style="min-width:600px;"><thead><tr><th>相続人</th><th>特別受益額<br><small>（贈与年月）</small></th><th>算入期限<br><small>（消滅）</small></th><th>遺言なし<br>取得額</th><th>遺言あり<br>取得額</th><th>遺留分</th><th>侵害額<br><small>（遺言あり）</small></th></tr></thead><tbody>`;
+  legals.forEach(he=>{
+    const t=tbOf(he.id);
+    const ippan=minashi*he.legalFrac;
+    const guta=Math.max(0, ippan - t.amt);
+    const willAmt=N*(sh.frac[he.id]||0);
+    const res=isRes(he);
+    const iryuun= res ? base*soutai*he.legalFrac : 0;
+    const shortfall= res ? Math.max(0, iryuun - t.amt - willAmt) : 0;
+    let exStr='—';
+    if(t.amt>0 && t.y){ const exY=t.y+10, exM=t.m||1; const exYM=exY*12+exM; exStr=`${exY}年${exM}月`+(nowYM>=exYM?'<br><small>（消滅済）</small>':''); }
+    const ymVal=(t.amt>0&&t.y)?`${t.y}/${t.m||1}`:'';
+    h+=`<tr><td>${he.label}</td>`
+     +`<td style="white-space:nowrap;"><input type="text" inputmode="numeric" class="tb-amt fp-resultedit" data-id="${he.id}" value="${tbDisp(t.amt)}" placeholder="0" style="width:76px;text-align:right;font-family:var(--mono);border:1px solid var(--rule);border-radius:5px;padding:3px 5px;"><br><input type="text" class="tb-ym fp-resultedit" data-id="${he.id}" value="${ymVal}" placeholder="2020/1" style="width:76px;text-align:center;font-size:11px;border:1px solid var(--rule);border-radius:5px;padding:2px 4px;margin-top:3px;"></td>`
+     +`<td>${exStr}</td>`
+     +`<td>${yen(Math.round(guta))}円</td>`
+     +`<td>${yen(Math.round(willAmt))}円</td>`
+     +`<td>${res?(yen(Math.round(iryuun))+'円'):'なし'}</td>`
+     +`<td>${res?(shortfall>0?('<b style="color:#b5623a;">'+yen(Math.round(shortfall))+'円</b>'):'—'):'—'}</td></tr>`;
   });
-  // 受益者以外の合計
-  let tb=0,ta=0; list.forEach((hh,i)=>{ if(i===benIdx)return; tb+=(N+G)*soutai*hh.legalFrac; ta+=N*soutai*hh.legalFrac; });
-  h+=`</tbody><tfoot><tr><td>受益者以外 計</td><td>${yen(Math.round(tb))}円</td><td>${yen(Math.round(ta))}円</td><td>${tb-ta>0?('-'+yen(Math.round(tb-ta))+'円'):'—'}</td></tr></tfoot></table>`;
-  h+=`<div class="hint">侵害額は「特別受益を受けた相続人に財産が集中し、他の相続人が遺産をほとんど取得しない場合」に各人が請求できる<b>上限の目安</b>（＝遺留分額）。特別受益が<b>消滅（贈与から10年）</b>すると基礎財産（遺産${yen(N)}円＋特別受益${yen(G)}円→遺産のみ${yen(N)}円）から外れ、侵害額は受益者以外で計 <b>${yen(Math.round(tb-ta))}円</b> 縮小します。実際は遺産分割・遺贈・持戻し・債務で変動。相続人以外への贈与は相続開始前1年以内分のみ算入。遺留分侵害額請求の時効は「相続開始と侵害を知ってから1年（かつ相続開始から10年）」。</div>`;
+  h+=`</tbody></table>`;
+  h+=`<div class="hint">侵害額（遺言あり）＝遺留分 −（その人の特別受益＋遺言での取得額）。特別受益は<b>遺産分割では持戻し（期間制限なし）</b>、<b>遺留分では相続開始前10年以内</b>のみ算入（消滅後は基礎財産から外れ侵害額が下がります）。「遺言あり取得額」は上の<b>取得割合</b>（各行で編集可）に連動。実際は債務・遺贈・持戻し免除で変動します。</div>`;
   wrap.innerHTML=h;
 }
+
 function buildStruct(){
   const assets=numV('assets'), hikazei=numV('hikazei'), debts=numV('debts');
   const gift3=numV('gift3'), gift47=numV('gift47'), seisan=numV('seisan');
@@ -581,7 +573,7 @@ function render(){
   }
   n+=`<div class="info">相続税の総額 ${yen(st.total)}円 は税額控除前で、遺産分割に依らず一定です。上の「取得割合」を動かすと、相続人ごとの納付額と配偶者の税額軽減が実際の分割に応じて変わります。配偶者は<b>法定相続分（この例では${yen(st.kazei*st.spouseShare)}円）または1億6,000万円の多い方</b>まで取得しても相続税ゼロ。ただし一次相続で配偶者に寄せすぎると、二次相続（配偶者の相続）で軽減が使えず子の負担が増えるため、一次・二次の通算での最適割合の検討が重要です。生命保険の非課税枠（500万×法定相続人＝${yen(5000000*st.heirCount)}円）の活用余地も併せてご提案ください。</div>`;
   renderIryuun(st);
-  renderTokuben(st);
+  renderInherit(st);
   document.getElementById('notes').innerHTML=n;
 }
 
@@ -595,7 +587,6 @@ document.querySelectorAll('input.num').forEach(el=>{
   el.addEventListener('input',()=>{el.value=zen2han(el.value).replace(/[^\d]/g,'');recalc();});
 });
 document.getElementById('spouse').addEventListener('change',recalc);
-document.getElementById('tokubenWho').addEventListener('change',recalc);
 document.getElementById('splitSection').addEventListener('input',e=>{
   const el=e.target.closest('input.share'); if(!el)return;
   const v=zen2han(el.value).trim();
@@ -616,6 +607,14 @@ document.addEventListener('input',function(e){
   const v=zen2han(el.value).trim();
   if(v==='') delete userShares[el.dataset.id]; else userShares[el.dataset.id]=parseFloat(v)||0;
   clearTimeout(_share2Timer); _share2Timer=setTimeout(function(){ render(); }, 550);
+});
+let _tbTimer=null;
+document.addEventListener('input',function(e){
+  const el=e.target&&e.target.closest?e.target.closest('input.tb-amt,input.tb-ym'):null; if(!el) return;
+  const id=el.dataset.id; if(!userTB[id]) userTB[id]={amt:0,y:0,m:0};
+  if(el.classList.contains('tb-amt')){ var num=parseFloat(zen2han(el.value).replace(/,/g,''))||0; if(window.__fpU==='man') num*=10000; userTB[id].amt=num; }
+  else { var mm=zen2han(el.value).match(/(\d{4})\D+(\d{1,2})/)||zen2han(el.value).match(/(\d{4})/); if(mm){ userTB[id].y=parseInt(mm[1]); userTB[id].m=mm[2]?Math.min(12,Math.max(1,parseInt(mm[2]))):1; } else { userTB[id].y=0; userTB[id].m=0; } }
+  clearTimeout(_tbTimer); _tbTimer=setTimeout(function(){ render(); }, 550);
 });
 document.addEventListener('focusin',function(e){ const el=e.target&&e.target.closest?e.target.closest('input.share2'):null; if(el) setTimeout(function(){try{el.select();}catch(_){}} ,0); });
 render();
@@ -748,5 +747,46 @@ FP.init('souzokuzei', recalc);
 <script src="fp-deck.js?v=28"></script>
 <script src="fp-amount.js?v=5"></script>
 <script src="fp-pwa.js?v=4"></script>
+<div id="fpCalc" class="fpcalc" aria-hidden="true">
+  <div class="cbx">
+    <div class="chd"><b id="calcTitle">内訳を合計して入力</b><button type="button" class="x" id="calcClose" aria-label="閉じる">×</button></div>
+    <div class="crows" id="calcRows"></div>
+    <button type="button" class="cadd" id="calcAdd">＋ 行を追加</button>
+    <div class="cft"><span class="sum">合計 <b id="calcTotal">0</b> <span id="calcUnit">円</span></span><button type="button" class="apply" id="calcApply">この金額を入力</button></div>
+  </div>
+</div>
+<script>
+(function(){
+  var MONEY=['assets','hikazei','debts','cash','gift3','gift47','seisan'];
+  var target=null;
+  function unitLabel(){ return (window.__fpU==='man')?'万円':'円'; }
+  function fmt(n){ return (Math.round(n*100)/100).toLocaleString('ja-JP'); }
+  function rowsEl(){ return document.getElementById('calcRows'); }
+  function addRow(nm,vl){ var d=document.createElement('div'); d.className='crow';
+    d.innerHTML='<input class="cnm" type="text" placeholder="項目（任意）"><input class="cvl" type="text" inputmode="decimal" placeholder="0"><button class="cdel" type="button" aria-label="削除">×</button>';
+    if(nm)d.querySelector('.cnm').value=nm; if(vl!=null)d.querySelector('.cvl').value=vl;
+    rowsEl().appendChild(d); return d; }
+  function total(){ var s=0; rowsEl().querySelectorAll('.cvl').forEach(function(i){ var v=parseFloat((typeof zen2han==='function'?zen2han(i.value):i.value).replace(/,/g,''))||0; s+=v; }); return s; }
+  function refresh(){ document.getElementById('calcTotal').textContent=fmt(total()); document.getElementById('calcUnit').textContent=unitLabel(); }
+  function open(el){ target=el; rowsEl().innerHTML=''; 
+    var cur=parseFloat((typeof zen2han==='function'?zen2han(el.value):el.value||'').replace(/,/g,''))||0;
+    addRow('', cur?fmt(cur):''); addRow(''); 
+    var lb=el.closest('.field'); var t=lb?lb.querySelector('.lab'):null;
+    document.getElementById('calcTitle').textContent=(t?t.childNodes[0].nodeValue.trim():'金額')+' の内訳合計';
+    refresh(); document.getElementById('fpCalc').classList.add('open'); }
+  function close(){ document.getElementById('fpCalc').classList.remove('open'); target=null; }
+  function apply(){ if(target){ target.value=fmt(total()); target.dispatchEvent(new Event('input',{bubbles:true})); target.dispatchEvent(new Event('change',{bubbles:true})); } close(); }
+  function attach(){ MONEY.forEach(function(id){ var el=document.getElementById(id); if(!el||el._calc)return; el._calc=1;
+    var b=document.createElement('button'); b.type='button'; b.className='calcbtn'; b.textContent='計'; b.title='複数の金額を足して入力';
+    b.addEventListener('click',function(){ open(el); }); el.parentNode.appendChild(b); }); }
+  document.getElementById('calcAdd').addEventListener('click',function(){ addRow(''); refresh(); });
+  document.getElementById('calcClose').addEventListener('click',close);
+  document.getElementById('calcApply').addEventListener('click',apply);
+  document.getElementById('fpCalc').addEventListener('click',function(e){ if(e.target===this) close(); });
+  document.getElementById('calcRows').addEventListener('input',refresh);
+  document.getElementById('calcRows').addEventListener('click',function(e){ var d=e.target.closest('.cdel'); if(d){ d.closest('.crow').remove(); refresh(); } });
+  if(document.readyState!=='loading') setTimeout(attach,200); else window.addEventListener('DOMContentLoaded',function(){setTimeout(attach,200);});
+})();
+</script>
 </body>
 </html>
