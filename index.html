@@ -351,7 +351,7 @@ document.getElementById("hubLoad").addEventListener("change",HUB.onFile);
 HUB.refresh();
 </script>
 <script>
-window.applyFontScale=function(){var sc=1;try{var o=JSON.parse(localStorage.getItem('fp:settings')||'{}');if([1,1.25,1.5].indexOf(o.fontScale)>=0)sc=o.fontScale;}catch(e){}var c=document.querySelector('.cards');if(c)c.style.zoom=sc;};
+window.applyFontScale=function(){var sc=1;try{var o=JSON.parse(localStorage.getItem('fp:settings')||'{}');if([1,1.25,1.5].indexOf(o.fontScale)>=0)sc=o.fontScale;}catch(e){}var c=document.querySelector('.cards');if(c)c.style.zoom='';document.documentElement.style.zoom=(sc===1?'':sc);};
 applyFontScale();
 window.addEventListener('storage',function(e){if(e.key==='fp:settings')applyFontScale();});
 </script>

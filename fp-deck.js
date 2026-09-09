@@ -24,13 +24,46 @@
     },{passive:true});
   })();
 
-  // 文字サイズ設定（fp:settings.fontScale）を結果・入力デッキに適用（全ツール共通）
+  // 文字サイズ設定（fp:settings.fontScale）＝ページ全体を一律ズーム（全ツール共通）。
+  // 固定ドロワーはズーム分だけ縦が伸びるため、実ビューポート/ズームを --fp-vh に入れて高さを補正。
   function applyFontScale(){
     var sc=1; try{ var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); if([1,1.25,1.5].indexOf(o.fontScale)>=0) sc=o.fontScale; }catch(e){}
-    document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll').forEach(function(el){ el.style.zoom=sc; });
+    // 旧方式（スクロール個別ズーム）が残っていれば解除
+    document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll').forEach(function(el){ if(el.style.zoom) el.style.zoom=''; });
+    document.documentElement.style.zoom = (sc===1?'':sc);
+    try{ document.documentElement.style.setProperty('--fp-vh', (window.innerHeight/sc)+'px'); }catch(e){}
+    try{ positionFab(); }catch(e){}
   }
   window.__fpApplyFontScale=applyFontScale;
-  window.addEventListener('storage',function(e){ if(e.key==='fp:settings') applyFontScale(); });
+  window.addEventListener('storage',function(e){ if(e.key==='fp:settings'){ applyFontScale(); syncHints(); } });
+  window.addEventListener('resize',function(){ clearTimeout(window.__fpFsRz); window.__fpFsRz=setTimeout(applyFontScale,150); });
+
+  // 細かい説明文（.hint / .q / 導入文 / 注記）は既定で隠し、「❔説明」で表示（全ツール共通）
+  function hintsOn(){ try{ return !!(JSON.parse(localStorage.getItem('fp:settings')||'{}').showHints); }catch(e){ return false; } }
+  function syncHints(){ var on=hintsOn(); document.body.classList.toggle('fp-hints',on);
+    document.querySelectorAll('.fp-hintbtn').forEach(function(b){ b.classList.toggle('on',on); b.textContent=on?'説明を隠す':'❔ 説明'; }); }
+  function initHints(){
+    if(!document.getElementById('fpHintsCSS')){
+      var st=document.createElement('style'); st.id='fpHintsCSS';
+      st.textContent='.hint,.fp-intro,.fp-sub,.deck-result .info,.field .q,.heircell .q{display:none!important;}'
+        +'body.fp-hints .hint,body.fp-hints .fp-intro,body.fp-hints .fp-sub,body.fp-hints .deck-result .info{display:block!important;}'
+        +'body.fp-hints .field .q,body.fp-hints .heircell .q{display:inline!important;}'
+        +'.fp-hintbtn{margin-left:8px;font:600 11px var(--gothic,sans-serif);color:var(--brass-deep,#7d6240);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);border-radius:6px;padding:4px 10px;cursor:pointer;white-space:nowrap;flex:0 0 auto;}'
+        +'.fp-hintbtn.on{background:var(--brass,#9a7b4f);color:#fff;border-color:var(--brass-deep,#7d6240);}';
+      document.head.appendChild(st);
+    }
+    document.querySelectorAll('.deck .deck-head').forEach(function(head){
+      if(head.querySelector('.fp-hintbtn')) return;
+      var b=document.createElement('button'); b.type='button'; b.className='fp-hintbtn'; b.title='用語や補足の説明を表示／非表示';
+      b.addEventListener('click',function(){ var now=!document.body.classList.contains('fp-hints');
+        try{ var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); o.showHints=now; localStorage.setItem('fp:settings',JSON.stringify(o)); }catch(e){}
+        syncHints(); });
+      // 「完了」ボタンの手前に入れる（入力ヘッダ）／結果ヘッダは末尾
+      var done=head.querySelector('.deck-close'); if(done) head.insertBefore(b,done); else head.appendChild(b);
+    });
+    syncHints();
+  }
+  window.__fpInitHints=initHints;
 
   function inject(){
     if(document.getElementById('fpDeckCSS')) return;
@@ -164,7 +197,7 @@
     +'.fp-pull{display:flex!important;}'
     +'}'
     // 入力ドロワーを上いっぱいまで拡張（スマホ・タブレット）。入力欄を広く使える
-    +'@media (max-width:1024px){.deck-input{height:calc(100dvh - 34px)!important;max-height:none!important;}}'
+    +'@media (max-width:1024px){.deck-input{height:calc(var(--fp-vh, 100dvh) - 34px)!important;max-height:none!important;}}'
     +'@media print{.side,.deck-input,.fab-input,.fp-pull{display:none!important;}.wrap{display:block!important;height:auto!important;overflow:visible!important;}.deck-result{border:none;box-shadow:none;}.deck-scroll{overflow:visible!important;}}';
     var st=document.createElement('style'); st.id='fpDeckCSS'; st.textContent=css; document.head.appendChild(st);
   }
@@ -247,6 +280,7 @@
     document.body.appendChild(fab);
     makeFabDraggable();
     initMobileRail(side);
+    initHints();
     var lm=document.lastModified||''; var mm=lm.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})[ ,]+(\d{1,2}):(\d{2})/); stamp.textContent=mm?('更新 '+mm[1]+'/'+mm[2]+'\n'+mm[4]+':'+mm[5]):'';
     // 結果を1画面ごとの横ページに分割（あふれたら次ページ＝右スワイプ）
     // 実データはドックに保持し、可視ページには複製を配置。再計算のたびに再分割する。

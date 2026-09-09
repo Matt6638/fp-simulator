@@ -25,23 +25,51 @@
     },{passive:true});
   })();
 
-  /* ---- 文字サイズ設定（fp:settings.fontScale）を適用（全独自ツール共通） ---- */
+  /* ---- 文字サイズ設定（fp:settings.fontScale）＝ページ全体を一律ズーム（全独自ツール共通） ---- */
   function applyFontScale(){
     var sc=1; try{ var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); if([1,1.25,1.5].indexOf(o.fontScale)>=0) sc=o.fontScale; }catch(e){}
-    document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll').forEach(function(el){ el.style.zoom=sc; });
+    document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll').forEach(function(el){ if(el.style.zoom) el.style.zoom=''; });
+    document.documentElement.style.zoom = (sc===1?'':sc);
+    try{ document.documentElement.style.setProperty('--fp-vh', (window.innerHeight/sc)+'px'); }catch(e){}
   }
   window.addEventListener('storage',function(e){ if(e.key==='fp:settings') applyFontScale(); });
+  window.addEventListener('resize',function(){ clearTimeout(window.__fpFsRz); window.__fpFsRz=setTimeout(applyFontScale,150); });
   if(document.readyState!=='loading') setTimeout(applyFontScale,80); else window.addEventListener('DOMContentLoaded',function(){setTimeout(applyFontScale,80);});
-  // 結果再描画後にも再適用（MutationObserverで軽く）
-  try{ var mo=new MutationObserver(function(){ clearTimeout(window.__fpFsT); window.__fpFsT=setTimeout(applyFontScale,120); }); window.addEventListener('DOMContentLoaded',function(){ var r=document.querySelector('.deck-result .deck-scroll'); if(r) mo.observe(r,{childList:true,subtree:true}); }); }catch(e){}
 
   /* ---- 入力ドロワーを上いっぱいまで拡張（全独自ツール共通） ---- */
   (function drawerTall(){
     if(document.getElementById('fpDrawerCSS')) return;
     var st=document.createElement('style'); st.id='fpDrawerCSS';
-    st.textContent='@media (max-width:1024px){.deck-input{height:calc(100dvh - 34px)!important;max-height:none!important;}}';
+    st.textContent='@media (max-width:1024px){.deck-input{height:calc(var(--fp-vh, 100dvh) - 34px)!important;max-height:none!important;}}';
     (document.head||document.documentElement).appendChild(st);
   })();
+
+  /* ---- 細かい説明文を既定で隠し「❔説明」で表示（全独自ツール共通） ---- */
+  function hintsOn(){ try{ return !!(JSON.parse(localStorage.getItem('fp:settings')||'{}').showHints); }catch(e){ return false; } }
+  function syncHints(){ var on=hintsOn(); document.body.classList.toggle('fp-hints',on);
+    document.querySelectorAll('.fp-hintbtn').forEach(function(b){ b.classList.toggle('on',on); b.textContent=on?'説明を隠す':'❔ 説明'; }); }
+  function initHints(){
+    if(!document.getElementById('fpHintsCSS')){
+      var st=document.createElement('style'); st.id='fpHintsCSS';
+      st.textContent='.hint,.fp-intro,.fp-sub,.deck-result .info,.field .q,.heircell .q{display:none!important;}'
+        +'body.fp-hints .hint,body.fp-hints .fp-intro,body.fp-hints .fp-sub,body.fp-hints .deck-result .info{display:block!important;}'
+        +'body.fp-hints .field .q,body.fp-hints .heircell .q{display:inline!important;}'
+        +'.fp-hintbtn{margin-left:8px;font:600 11px var(--gothic,sans-serif);color:var(--brass-deep,#7d6240);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);border-radius:6px;padding:4px 10px;cursor:pointer;white-space:nowrap;flex:0 0 auto;}'
+        +'.fp-hintbtn.on{background:var(--brass,#9a7b4f);color:#fff;border-color:var(--brass-deep,#7d6240);}';
+      document.head.appendChild(st);
+    }
+    document.querySelectorAll('.deck .deck-head').forEach(function(head){
+      if(head.querySelector('.fp-hintbtn')) return;
+      var b=document.createElement('button'); b.type='button'; b.className='fp-hintbtn'; b.title='用語や補足の説明を表示／非表示';
+      b.addEventListener('click',function(){ var now=!document.body.classList.contains('fp-hints');
+        try{ var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); o.showHints=now; localStorage.setItem('fp:settings',JSON.stringify(o)); }catch(e){}
+        syncHints(); });
+      var done=head.querySelector('.deck-close'); if(done) head.insertBefore(b,done); else head.appendChild(b);
+    });
+    syncHints();
+  }
+  window.addEventListener('storage',function(e){ if(e.key==='fp:settings') syncHints(); });
+  if(document.readyState!=='loading') setTimeout(initHints,120); else window.addEventListener('DOMContentLoaded',function(){setTimeout(initHints,120);});
 
   /* ---- ② 引き下ろしレール（FP_RAILIZE 指定時のみ） ---- */
   if(!window.FP_RAILIZE) return;
