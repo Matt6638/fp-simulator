@@ -28,10 +28,13 @@
   // 固定ドロワーはズーム分だけ縦が伸びるため、実ビューポート/ズームを --fp-vh に入れて高さを補正。
   function applyFontScale(){
     var sc=1; try{ var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); if([1,1.25,1.5,1.75].indexOf(o.fontScale)>=0) sc=o.fontScale; }catch(e){}
-    // 旧方式（スクロール個別ズーム）が残っていれば解除
-    document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll').forEach(function(el){ if(el.style.zoom) el.style.zoom=''; });
-    document.documentElement.style.zoom = (sc===1?'':sc);
-    try{ document.documentElement.style.setProperty('--fp-vh', (window.innerHeight/sc)+'px'); }catch(e){}
+    // <html>ズームは一部のiOS Safariで不安定＋固定FABの位置計算を壊すため使わない。
+    // 表示コンテンツ（結果・入力・見出し・サイド）を個別にズーム＝FAB/ドロワーは無傷。
+    try{ document.documentElement.style.zoom=''; document.documentElement.style.removeProperty('--fp-vh'); }catch(e){}
+    try{ document.documentElement.style.setProperty('--fp-scale', sc); }catch(e){}
+    var z=(sc===1?'':sc);
+    // 表示コンテンツ＋サイドレールの内側ブロックを個別ズーム（レール幅は--fp-scaleでCSS側が拡張）
+    document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll,.deck-head,aside.side .side-tt,aside.side .side-eyebrow,aside.side .fp-sidebtns,aside.side .fpbar,aside.side .build-stamp').forEach(function(el){ el.style.zoom=z; });
     try{ positionFab(); }catch(e){}
   }
   window.__fpApplyFontScale=applyFontScale;
@@ -85,7 +88,7 @@
     +'html,body{height:100%;margin:0;}'
     +'body{overflow:hidden;}'
     +'.wrap{height:100vh!important;max-width:none!important;margin:0!important;padding:8px 10px!important;display:flex!important;gap:10px;align-items:stretch;overflow:hidden!important;}'
-    +'.side{flex:0 0 66px;display:flex;flex-direction:column;align-items:center;gap:9px;padding-top:4px;}'
+    +'.side{flex:0 0 calc(66px * var(--fp-scale,1));display:flex;flex-direction:column;align-items:center;gap:9px;padding-top:4px;}'
     +'.side-eyebrow{font-family:var(--mincho,serif);font-size:10px;letter-spacing:.3em;color:var(--brass-deep,#7d6240);margin:0;}'
     +'.side-tt{font-family:var(--mincho,serif);font-weight:600;font-size:17px;color:var(--ink,#1b2a4a);writing-mode:vertical-rl;text-orientation:upright;letter-spacing:.05em;line-height:1;margin:0 0 6px;white-space:nowrap;}'
     +'.fp-sidebtns{display:flex;flex-direction:column;align-items:stretch;gap:6px;width:100%;}'
@@ -211,7 +214,7 @@
     +'.fp-pull{display:flex!important;}'
     +'}'
     // 入力ドロワーを上いっぱいまで拡張（スマホ・タブレット）。入力欄を広く使える
-    +'@media (max-width:1024px){.deck-input{height:calc(var(--fp-vh, 100dvh) - 34px)!important;max-height:none!important;}}'
+    +'@media (max-width:1024px){.deck-input{height:calc(100dvh - 34px)!important;max-height:none!important;}}'
     +'@media print{.side,.deck-input,.fab-input,.fp-pull{display:none!important;}.wrap{display:block!important;height:auto!important;overflow:visible!important;}.deck-result{border:none;box-shadow:none;}.deck-scroll{overflow:visible!important;}}';
     var st=document.createElement('style'); st.id='fpDeckCSS'; st.textContent=css; document.head.appendChild(st);
   }

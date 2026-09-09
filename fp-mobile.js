@@ -28,9 +28,10 @@
   /* ---- 文字サイズ設定（fp:settings.fontScale）＝ページ全体を一律ズーム（全独自ツール共通） ---- */
   function applyFontScale(){
     var sc=1; try{ var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); if([1,1.25,1.5,1.75].indexOf(o.fontScale)>=0) sc=o.fontScale; }catch(e){}
-    document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll').forEach(function(el){ if(el.style.zoom) el.style.zoom=''; });
-    document.documentElement.style.zoom = (sc===1?'':sc);
-    try{ document.documentElement.style.setProperty('--fp-vh', (window.innerHeight/sc)+'px'); }catch(e){}
+    try{ document.documentElement.style.zoom=''; document.documentElement.style.removeProperty('--fp-vh'); }catch(e){}
+    try{ document.documentElement.style.setProperty('--fp-scale', sc); }catch(e){}
+    var z=(sc===1?'':sc);
+    document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll,.deck-head,aside.side .side-tt,aside.side .side-eyebrow,aside.side .fp-sidebtns,aside.side .fpbar,aside.side .build-stamp').forEach(function(el){ el.style.zoom=z; });
   }
   window.addEventListener('storage',function(e){ if(e.key==='fp:settings') applyFontScale(); });
   window.addEventListener('resize',function(){ clearTimeout(window.__fpFsRz); window.__fpFsRz=setTimeout(applyFontScale,150); });
@@ -40,7 +41,7 @@
   (function drawerTall(){
     if(document.getElementById('fpDrawerCSS')) return;
     var st=document.createElement('style'); st.id='fpDrawerCSS';
-    st.textContent='@media (max-width:1024px){.deck-input{height:calc(var(--fp-vh, 100dvh) - 34px)!important;max-height:none!important;}}';
+    st.textContent='@media (max-width:1024px){.deck-input{height:calc(100dvh - 34px)!important;max-height:none!important;}}';
     (document.head||document.documentElement).appendChild(st);
   })();
 
