@@ -26,7 +26,7 @@
 
   // 文字サイズ設定（fp:settings.fontScale）を結果・入力デッキに適用（全ツール共通）
   function applyFontScale(){
-    var sc=1; try{ var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); if([1,1.15,1.3].indexOf(o.fontScale)>=0) sc=o.fontScale; }catch(e){}
+    var sc=1; try{ var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); if([1,1.25,1.5].indexOf(o.fontScale)>=0) sc=o.fontScale; }catch(e){}
     document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll').forEach(function(el){ el.style.zoom=sc; });
   }
   window.__fpApplyFontScale=applyFontScale;
@@ -253,6 +253,8 @@
     var rScroll=deckR.querySelector('.deck-scroll');
     var repag=function(){ repaginate(rScroll,'fpRDots',dock); applyFontScale(); };
     repag();
+    // 結果内の編集欄からフォーカスが外れたら、保留していた再描画を実行して同期
+    rScroll.addEventListener('focusout',function(){ setTimeout(function(){ if(rScroll.__deferPg && !(document.activeElement && rScroll.contains(document.activeElement))){ rScroll.__deferPg=false; repag(); } }, 80); });
     var rzT; window.addEventListener('resize',function(){ clearTimeout(rzT); rzT=setTimeout(repag,120); });
     try{
       var mo=new MutationObserver(function(){ clearTimeout(rScroll.__moTO); rScroll.__moTO=setTimeout(repag,60); });
@@ -277,6 +279,9 @@
   // ソース(dock)は破壊せず読むだけ＝再計算(outBody書換)のたびに再実行できる。
   function repaginate(scrollEl, dotsId, dock){
     if(!scrollEl || !dock) return;
+    // 結果内の編集欄（.fp-resultedit 等）を操作中は再クローンしない＝入力欄が消えるのを防ぐ。
+    // ドックは更新済みなので、フォーカスが外れた時に一度だけ再描画して同期する。
+    if(document.activeElement && scrollEl.contains(document.activeElement)){ scrollEl.__deferPg=true; return; }
     if(scrollEl.__pg) return; scrollEl.__pg=true;
     try{
       var deckH=scrollEl.clientHeight; if(!deckH||deckH<80){ deckH=99999; }
