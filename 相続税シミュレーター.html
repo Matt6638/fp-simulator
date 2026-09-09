@@ -196,6 +196,8 @@
     <div style="padding:8px 16px 14px;overflow-x:auto;" id="fullDefWrap"></div>
     <div class="sec-h">相続人ごとの納付税額（入力した取得割合に応じて計算）</div>
     <div style="padding:8px 16px 18px;overflow-x:auto;" id="heirTableWrap"></div>
+    <div class="sec-h">遺留分（相続人が最低限確保できる取り分）</div>
+    <div style="padding:8px 16px 18px;overflow-x:auto;" id="iryuunWrap"></div>
     <div style="padding:0 20px 20px;" id="notes"></div>
   </section>
 </div>
@@ -255,6 +257,57 @@ let userShares={};   // ユーザーが上書きした取得割合(%) を heirId
 let STRUCT_KEY=null;  // 相続人構成が変わったら分割UIを作り直す
 
 // 構成・相続税の総額・相続人リストを算定
+// 総体的遺留分率（民法1042）：直系尊属のみ=1/3、それ以外（配偶者・子等がいる）=1/2。兄弟姉妹は遺留分なし。
+function iryuunSoutai(st){
+  const hasReserved = st.spouse || st.branch==='child' || st.branch==='parent';
+  if(!hasReserved) return 0;
+  if(st.branch==='parent' && !st.spouse) return 1/3;
+  return 1/2;
+}
+// 小数→きれいな分数表記（分母48まで）。合わない場合は%。
+function toFrac(x){
+  if(x<=0) return '0';
+  for(let q=1;q<=48;q++){ const p=Math.round(x*q); if(p>0 && Math.abs(p/q-x)<1e-9) return p+'/'+q; }
+  return (Math.round(x*1000)/10)+'%';
+}
+// 遺留分（割合と金額）を描画
+function renderIryuun(st){
+  const wrap=document.getElementById('iryuunWrap'); if(!wrap) return;
+  const soutai=iryuunSoutai(st);
+  const assets=numV('assets'), debts=numV('debts');
+  const base=Math.max(0, assets-debts);           // 遺留分算定の基礎財産（概算）
+  if(soutai<=0){
+    wrap.innerHTML=`<div class="hint">この相続人構成では遺留分はありません（${st.branch==='sibling'?'兄弟姉妹には遺留分が認められていません':'遺留分権利者（配偶者・子・直系尊属）がいません'}）。</div>`;
+    return;
+  }
+  const bn = st.branch==='child'?'子':st.branch==='parent'?'直系尊属':st.branch==='sibling'?'兄弟姉妹':'';
+  const rows=[];
+  if(st.spouse){ const r=soutai*st.spouseShare; rows.push({label:'配偶者', frac:r, amt:base*r}); }
+  const branchHas=(st.branch==='child'||st.branch==='parent');
+  if(st.branchCount>0){
+    if(branchHas){
+      const per=soutai*(st.branchShareTotal/st.branchCount), grp=soutai*st.branchShareTotal;
+      rows.push({branch:true, count:st.branchCount, frac:per, amt:base*per, grpFrac:grp, grpAmt:base*grp});
+    } else {
+      rows.push({none:true, label:bn});
+    }
+  }
+  let totalFrac=0; rows.forEach(r=>{ if(r.none)return; totalFrac += r.branch ? r.grpFrac : r.frac; });
+  const totalAmt=base*totalFrac;
+  let h=`<table class="tbl"><thead><tr><th>相続人</th><th>遺留分の割合</th><th>遺留分額（概算）</th></tr></thead><tbody>`;
+  rows.forEach(r=>{
+    if(r.none){ h+=`<tr><td>${r.label}</td><td>なし</td><td>—</td></tr>`; return; }
+    if(r.branch){
+      h+=`<tr><td>${bn}<small>（1人あたり）</small></td><td>${toFrac(r.frac)}</td><td>${yen(Math.round(r.amt))}円</td></tr>`;
+      if(r.count>1) h+=`<tr><td>${bn} 計<small>（${r.count}人）</small></td><td>${toFrac(r.grpFrac)}</td><td>${yen(Math.round(r.grpAmt))}円</td></tr>`;
+    } else {
+      h+=`<tr><td>${r.label}</td><td>${toFrac(r.frac)}</td><td>${yen(Math.round(r.amt))}円</td></tr>`;
+    }
+  });
+  h+=`</tbody><tfoot><tr><td>遺留分の合計</td><td>${toFrac(totalFrac)}</td><td>${yen(Math.round(totalAmt))}円</td></tr></tfoot></table>`;
+  h+=`<div class="hint">総体的遺留分＝<b>${toFrac(soutai)}</b>（${st.branch==='parent'&&!st.spouse?'相続人が直系尊属のみのため1/3':'配偶者・子などがいるため1/2'}）。個別の遺留分＝総体的遺留分×各人の法定相続分。<br>基礎財産（概算）＝相続財産 ${yen(assets)}円 − 債務 ${yen(debts)}円 ＝ <b>${yen(base)}円</b>。<br>※本来の遺留分の基礎財産は「相続開始時の財産＋一定の生前贈与−債務」。生命保険金（受取人固有）は原則含めず、生前贈与・特別受益は未加算の概算です。兄弟姉妹に遺留分はありません。遺留分侵害額請求は相続開始・侵害を知ってから1年以内。</div>`;
+  wrap.innerHTML=h;
+}
 function buildStruct(){
   const assets=numV('assets'), hikazei=numV('hikazei'), debts=numV('debts');
   const gift3=numV('gift3'), gift47=numV('gift47'), seisan=numV('seisan');
@@ -466,6 +519,7 @@ function render(){
     n+=`<div class="info" style="border-left-color:#1f7a4d;background:#eef6f1;"><b>不足額を補う生命保険金額</b>＝現金（換金性資産）を全額納税に回し、足りない分（納税資金不足額）を保険で賄う額。<b>完全防衛額</b>＝現金を使わず、相続財産を1円も取り崩さず生命保険金だけで相続税（総額 ${yen(st.total)}円）を全額納税する額。いずれも保険金に相続税がかかる（非課税枠 500万×${st.heirCount}人＝${yen(5000000*st.heirCount)}円まで非課税）ため、不足額・税額そのものより大きくなります。配偶者の税額軽減は考慮しない保守的な総額ベースです。</div>`;
   }
   n+=`<div class="info">相続税の総額 ${yen(st.total)}円 は税額控除前で、遺産分割に依らず一定です。上の「取得割合」を動かすと、相続人ごとの納付額と配偶者の税額軽減が実際の分割に応じて変わります。配偶者は<b>法定相続分（この例では${yen(st.kazei*st.spouseShare)}円）または1億6,000万円の多い方</b>まで取得しても相続税ゼロ。ただし一次相続で配偶者に寄せすぎると、二次相続（配偶者の相続）で軽減が使えず子の負担が増えるため、一次・二次の通算での最適割合の検討が重要です。生命保険の非課税枠（500万×法定相続人＝${yen(5000000*st.heirCount)}円）の活用余地も併せてご提案ください。</div>`;
+  renderIryuun(st);
   document.getElementById('notes').innerHTML=n;
 }
 
