@@ -1,7 +1,7 @@
 /* ===== FPシミュレーター Service Worker（オフライン対応） =====
    全ツールと共有アセットを事前キャッシュし、オフラインでも起動できるようにする。
    更新時は CACHE のバージョンを上げると、次回オンライン時に自動で入れ替わる。 */
-const CACHE = 'fp-cache-v25';
+const CACHE = 'fp-cache-v26';
 
 const ASSETS = [
   './',
@@ -36,11 +36,13 @@ const ASSETS = [
   './年金繰上げ繰下げシミュレーター.html'
 ];
 
-// インストール：できる限り事前キャッシュ（1件失敗しても全体を止めない）
+// インストール：事前キャッシュ。必ずネットワークから最新取得（cache:'reload'）＝HTTPキャッシュの古い版を掴まない。
 self.addEventListener('install', function(e){
   e.waitUntil(
     caches.open(CACHE).then(function(c){
-      return Promise.all(ASSETS.map(function(a){ return c.add(a).catch(function(){}); }));
+      return Promise.all(ASSETS.map(function(a){
+        return fetch(a, {cache:'reload'}).then(function(r){ if(r && (r.ok || r.type==='opaque')) return c.put(a, r); }).catch(function(){});
+      }));
     }).then(function(){ return self.skipWaiting(); })
   );
 });
