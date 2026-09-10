@@ -131,7 +131,7 @@
     +'.deck-result .rpage.fp-stacked{display:block;overflow-y:auto;}'
     // 縦積み(既定)は横スワイプのスナップ入れ子スクロールをやめ、デッキ全体を素直に縦スクロール
     // （縦に長い結果でiPad等の縦スワイプが横スナップと衝突して弾かれる＝ブルブル震えて戻る対策）
-    +'.deck-result .deck-scroll.deck-vscroll{display:block;overflow-x:auto;overflow-y:auto;scroll-snap-type:none;-webkit-overflow-scrolling:touch;}'
+    +'.deck-result .deck-scroll.deck-vscroll{display:block;overflow-x:hidden;overflow-y:auto;scroll-snap-type:none;-webkit-overflow-scrolling:touch;}'
     +'.deck-result .deck-scroll.deck-vscroll>.rpage,.deck-result .deck-scroll.deck-vscroll>.rpage.fp-stacked{height:auto;min-height:0;overflow:visible;scroll-snap-align:none;}'
     +'.deck-result .rpage.fp-stacked .rcol{max-width:none;width:100%;}'
     +'.deck-result .rpage.fp-stacked table{table-layout:auto;font-size:12px;}'
@@ -183,7 +183,7 @@
     +'.deck-input .field input.num,.deck-input .field input[inputmode=numeric]:not(.yen),.deck-input .field input[inputmode=decimal]:not(.yen){max-width:120px!important;}'
     +'.deck-input .field input.yen{max-width:190px!important;}'
     +'.deck-input .hint{font-size:10.5px;line-height:1.45;margin-top:3px;}'
-    +'.deck-input{position:fixed;left:8px;right:8px;bottom:0;height:58vh;max-height:660px;transform:translateY(108%);transition:transform .28s ease;z-index:30;border-radius:12px 12px 0 0;box-shadow:0 -12px 34px -12px rgba(0,0,0,.45);}'
+    +'.deck-input{position:fixed;left:0;right:0;top:0;bottom:0;height:auto;max-height:none;transform:translateY(108%);transition:transform .28s ease;z-index:30;border-radius:0;box-shadow:0 -12px 34px -12px rgba(0,0,0,.45);}'
     +'.deck-input.open{transform:translateY(0);}'
     +'.fab-input{position:fixed;right:14px;top:50%;left:auto;bottom:auto;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;background:var(--brass,#9a7b4f);color:#fff;border:1px solid var(--brass-deep,#7d6240);cursor:pointer;box-shadow:0 8px 20px -8px rgba(0,0,0,.5);z-index:45;display:flex;align-items:center;justify-content:center;padding:0;}'
     +'.fab-input .fab-plus{font-size:25px;line-height:1;transition:transform .22s ease;}'
