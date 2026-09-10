@@ -352,7 +352,7 @@ function renderInherit(st){
   const base=iryuunBase(st);
   const now=new Date(); const nowYM=now.getFullYear()*12+(now.getMonth()+1);
   const isRes=(h)=> h.isSpouse || (st.branch==='child'||st.branch==='parent');
-  let h=`<div class="hint" style="margin-bottom:8px;">「遺言なし」＝法定相続分に特別受益を<b>持戻した</b>具体的相続分。「遺言あり」＝上の<b>取得割合</b>どおりに遺産（${yen(N)}円）を分けた額。<b>特別受益は各行で編集</b>でき、結果に即反映します。</div>`;
+  let h=`<div class="hint" style="margin-bottom:8px;"><b>特別受益＝生前に渡した贈与</b>。上の「相続財産」とは<b>別枠</b>で基礎財産に加算します（相続財産には<b>死亡時に残っている遺産だけ</b>を入力。全額を贈与済みなら相続財産は0）。侵害額は「遺留分 −（自分の特別受益＋実際の取得額）」がプラスの人にだけ出ます。<b>遺産が法定どおり十分に残っていれば侵害額は出ません</b>（例：残り3億を妻・子2人で法定分割すれば各自が遺留分に達する）。<u>遺言で取り分を偏らせる</u>か<u>残る遺産を減らす</u>と侵害額が発生します。「遺言なし」＝法定相続分に特別受益を<b>持戻した</b>具体的相続分、「遺言あり」＝上の<b>取得割合</b>で遺産（${yen(N)}円）を分けた額。<b>特別受益は各行で編集</b>できます。</div>`;
   h+=`<table class="tbl tbl-resp" style="min-width:600px;"><thead><tr><th>相続人</th><th>特別受益額<br><small>（贈与年月）</small></th><th>算入期限<br><small>（消滅）</small></th><th>遺言なし<br>取得額</th><th>遺言あり<br>取得額</th><th>遺留分</th><th>侵害額<br><small>（遺言あり）</small></th></tr></thead><tbody>`;
   legals.forEach(he=>{
     const t=tbOf(he.id);
