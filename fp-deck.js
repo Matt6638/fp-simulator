@@ -314,11 +314,13 @@
     // 結果を1画面ごとの横ページに分割（あふれたら次ページ＝右スワイプ）
     // 実データはドックに保持し、可視ページには複製を配置。再計算のたびに再分割する。
     var rScroll=deckR.querySelector('.deck-scroll');
-    var repag=function(){ repaginate(rScroll,'fpRDots',dock); applyFontScale(); };
+    // 再描画のたびにスクロール位置を退避・復元する（repaginateがinnerHTML=''で先頭に戻すのを打ち消す＝画面が上に跳ね上がるのを防ぐ）
+    var repag=function(){ var _st=rScroll.scrollTop,_sl=rScroll.scrollLeft; repaginate(rScroll,'fpRDots',dock); applyFontScale(); try{rScroll.scrollTop=_st;rScroll.scrollLeft=_sl;}catch(e){} requestAnimationFrame(function(){ try{rScroll.scrollTop=_st;rScroll.scrollLeft=_sl;}catch(e){} }); };
     repag();
     // 結果内の編集欄からフォーカスが外れたら、保留していた再描画を実行して同期
     rScroll.addEventListener('focusout',function(){ setTimeout(function(){ if(rScroll.__deferPg && !(document.activeElement && rScroll.contains(document.activeElement))){ rScroll.__deferPg=false; repag(); } }, 80); });
-    var rzT; window.addEventListener('resize',function(){ clearTimeout(rzT); rzT=setTimeout(repag,120); });
+    // resizeは「幅が変わった時だけ」再描画（iOSはスクロール中にツールバー開閉でresizeが出るため、高さ変化では再描画しない＝跳ね上がり防止）
+    var rzT, __rpLastW=window.innerWidth; window.addEventListener('resize',function(){ if(window.innerWidth===__rpLastW) return; __rpLastW=window.innerWidth; clearTimeout(rzT); rzT=setTimeout(repag,120); });
     try{
       var mo=new MutationObserver(function(){ clearTimeout(rScroll.__moTO); rScroll.__moTO=setTimeout(repag,60); });
       mo.observe(dock,{childList:true,subtree:true,characterData:true});
