@@ -354,28 +354,45 @@ function renderInherit(st){
   const now=new Date(); const nowYM=now.getFullYear()*12+(now.getMonth()+1);
   const isRes=(h)=> h.isSpouse || (st.branch==='child'||st.branch==='parent');
   let h=`<div class="hint" style="margin-bottom:8px;"><b>特別受益＝生前に渡した贈与</b>。上の「相続財産」とは<b>別枠</b>で基礎財産に加算します（相続財産には<b>死亡時に残っている遺産だけ</b>を入力。全額を贈与済みなら相続財産は0）。侵害額は「遺留分 −（自分の特別受益＋実際の取得額）」がプラスの人にだけ出ます。<b>遺産が法定どおり十分に残っていれば侵害額は出ません</b>（例：残り3億を妻・子2人で法定分割すれば各自が遺留分に達する）。<u>遺言で取り分を偏らせる</u>か<u>残る遺産を減らす</u>と侵害額が発生します。「遺言なし」＝法定相続分に特別受益を<b>持戻した</b>具体的相続分、「遺言あり」＝上の<b>取得割合</b>で遺産（${yen(N)}円）を分けた額。<b>特別受益は各行で編集</b>できます。<b>※この特別受益欄は遺留分の計算専用で、相続税額（課税価格）には影響しません</b>。相続税に生前贈与を反映するには、入力シートの「3年以内の贈与額／4〜7年以内の贈与額」に入れてください。</div>`;
-  h+=`<table class="tbl tbl-resp" style="min-width:600px;"><thead><tr><th>相続人</th><th>特別受益額<br><small>（贈与年月）</small></th><th>算入期限<br><small>（消滅）</small></th><th>遺言なし<br>取得額</th><th>遺言あり<br>取得額</th><th>遺留分</th><th>侵害額<br><small>（遺言あり）</small></th></tr></thead><tbody>`;
-  legals.forEach(he=>{
+  h+=`<table class="tbl tbl-resp" style="min-width:600px;"><thead><tr><th>相続人</th><th>特別受益額<br><small>（贈与年月）</small></th><th>算入期限<br><small>（消滅）</small></th><th>遺言なし<br>取得額</th><th>遺言あり<br>取得額</th><th>遺留分</th><th>侵害額<br><small>（遺言あり）</small></th><th>遺留分請求後<br>の取得</th></tr></thead><tbody>`;
+  // 第1パス：各人の遺言あり取得・遺留分・侵害額と、負担できる原資（遺留分を超えて渡し過ぎた分）を算出
+  const D=legals.map(he=>{
     const t=tbOf(he.id);
     const ippan=minashi*he.legalFrac;
     const guta=Math.max(0, ippan - t.amt);
     const willAmt=N*(sh.frac[he.id]||0);
     const res=isRes(he);
     const iryuun= res ? base*soutai*he.legalFrac : 0;
-    const shortfall= res ? Math.max(0, iryuun - t.amt - willAmt) : 0;
+    const shortfall= res ? Math.max(0, iryuun - t.amt - willAmt) : 0;   // 不足＝請求できる額
+    const floor= res ? Math.max(0, iryuun - t.amt) : 0;                 // 請求後も守られる遺産取得の下限
+    const excess= Math.max(0, willAmt - floor);                        // 渡し過ぎ＝他者の請求を負担する原資
+    return {he,t,guta,willAmt,res,iryuun,shortfall,floor,excess};
+  });
+  // 第2パス：侵害額の総額を、渡し過ぎた人が原資に比例して負担（合計＝遺産で保存）
+  const claimTotal=D.reduce((a,d)=>a+d.shortfall,0);
+  const exTotal=D.reduce((a,d)=>a+d.excess,0);
+  D.forEach(d=>{
+    d.paid = (exTotal>0) ? Math.min(d.excess, claimTotal*d.excess/exTotal) : 0;
+    d.finalAmt = Math.max(0, d.willAmt + d.shortfall - d.paid);         // 遺留分請求後に遺産から受け取る額
+  });
+  D.forEach(d=>{
+    const he=d.he, t=d.t;
     let exStr='—';
     if(t.amt>0 && t.y){ const exY=t.y+10, exM=t.m||1; const exYM=exY*12+exM; exStr=`${exY}年${exM}月`+(nowYM>=exYM?'<br><small>（消滅済）</small>':''); }
     const ymVal=(t.amt>0&&t.y)?`${t.y}/${t.m||1}`:'';
+    const chg=d.finalAmt-d.willAmt;
+    const chgStr=(Math.round(Math.abs(chg))>=10000)?`<br><small style="color:${chg>0?'#2e8b63':'#b5623a'};">${chg>0?'請求で+':'負担で−'}${yen(Math.round(Math.abs(chg)))}円</small>`:'';
     h+=`<tr><td data-label="相続人">${he.label}</td>`
      +`<td class="tb-cell" data-label="特別受益（贈与年月）" style="white-space:nowrap;"><input type="text" inputmode="numeric" class="tb-amt fp-resultedit" data-fpt="1" data-id="${he.id}" value="${tbDisp(t.amt)}" placeholder="0" style="width:72px;text-align:right;font-family:var(--mono);border:1px solid var(--rule);border-radius:5px;padding:3px 5px;"><input type="text" class="tb-ym fp-resultedit" data-fpt="1" data-id="${he.id}" value="${ymVal}" placeholder="2020/1" style="width:68px;text-align:center;font-size:11px;border:1px solid var(--rule);border-radius:5px;padding:2px 4px;margin-left:4px;"></td>`
      +`<td data-label="算入期限">${exStr}</td>`
-     +`<td data-label="遺言なし">${yen(Math.round(guta))}円</td>`
-     +`<td data-label="遺言あり">${yen(Math.round(willAmt))}円</td>`
-     +`<td data-label="遺留分">${res?(yen(Math.round(iryuun))+'円'):'なし'}</td>`
-     +`<td data-label="侵害額">${res?(shortfall>0?('<b style="color:#b5623a;">'+yen(Math.round(shortfall))+'円</b>'):'—'):'—'}</td></tr>`;
+     +`<td data-label="遺言なし">${yen(Math.round(d.guta))}円</td>`
+     +`<td data-label="遺言あり">${yen(Math.round(d.willAmt))}円</td>`
+     +`<td data-label="遺留分">${d.res?(yen(Math.round(d.iryuun))+'円'):'なし'}</td>`
+     +`<td data-label="侵害額">${d.res?(d.shortfall>0?('<b style="color:#b5623a;">'+yen(Math.round(d.shortfall))+'円</b>'):'—'):'—'}</td>`
+     +`<td data-label="請求後取得"><b>${yen(Math.round(d.finalAmt))}円</b>${chgStr}</td></tr>`;
   });
   h+=`</tbody></table>`;
-  h+=`<div class="hint">侵害額（遺言あり）＝遺留分 −（その人の特別受益＋遺言での取得額）。特別受益は<b>遺産分割では持戻し（期間制限なし）</b>、<b>遺留分では相続開始前10年以内</b>のみ算入（消滅後は基礎財産から外れ侵害額が下がります）。「遺言あり取得額」は上の<b>取得割合</b>（各行で編集可）に連動。実際は債務・遺贈・持戻し免除で変動します。</div>`;
+  h+=`<div class="hint"><b>遺留分請求後の取得</b>＝侵害された人は遺留分（自分の特別受益を除いた遺産部分）まで回復し、遺留分を超えて渡し過ぎた人がその分を按分負担した後の遺産取得額（合計＝遺産${yen(N)}円で保存）。侵害額＝遺留分 −（その人の特別受益＋遺言での取得）。特別受益は<b>遺産分割では持戻し（期間制限なし）</b>、<b>遺留分では相続開始前10年以内</b>のみ算入。実際の負担順位（受遺者→受贈者）・債務・持戻し免除・その他受遺者は簡略化した<b>概算</b>です。</div>`;
   wrap.innerHTML=h;
 }
 
