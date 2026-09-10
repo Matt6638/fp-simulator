@@ -39,10 +39,12 @@
     var saved=[]; document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll').forEach(function(s){ saved.push([s,s.scrollTop,s.scrollLeft]); });
     document.querySelectorAll('.deck-result .deck-scroll > *, .deck-input .deck-scroll > *').forEach(function(el){
       el.style.transformOrigin='top left';
-      if(sc===1){ el.style.transform=''; el.style.width=''; el.style.marginBottom=''; return; }
+      if(sc===1){ el.style.transform=''; el.style.width=''; el.style.marginBottom=''; el.style.willChange=''; el.style.webkitBackfaceVisibility=''; return; }
       el.style.transform='none'; el.style.width='calc(100% / '+sc+')'; el.style.marginBottom='0';
       var h=el.offsetHeight;
-      el.style.transform='scale('+sc+')';
+      // translateZ(0) でGPUレイヤー化＝拡大表示中のスクロール再描画を軽くする（iOSのカクつき対策）
+      el.style.transform='scale('+sc+') translateZ(0)';
+      el.style.webkitBackfaceVisibility='hidden';
       el.style.marginBottom=(h*(sc-1))+'px';
     });
     saved.forEach(function(a){ try{ a[0].scrollTop=a[1]; a[0].scrollLeft=a[2]; }catch(e){} });
@@ -131,7 +133,7 @@
     +'.deck-result .rpage.fp-stacked{display:block;overflow-y:auto;}'
     // 縦積み(既定)は横スワイプのスナップ入れ子スクロールをやめ、デッキ全体を素直に縦スクロール
     // （縦に長い結果でiPad等の縦スワイプが横スナップと衝突して弾かれる＝ブルブル震えて戻る対策）
-    +'.deck-result .deck-scroll.deck-vscroll{display:block;overflow-x:hidden;overflow-y:auto;scroll-snap-type:none;-webkit-overflow-scrolling:touch;}'
+    +'.deck-result .deck-scroll.deck-vscroll{display:block;overflow-x:hidden;overflow-y:auto;scroll-snap-type:none;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;}'
     +'.deck-result .deck-scroll.deck-vscroll>.rpage,.deck-result .deck-scroll.deck-vscroll>.rpage.fp-stacked{height:auto;min-height:0;overflow:visible;scroll-snap-align:none;}'
     +'.deck-result .rpage.fp-stacked .rcol{max-width:none;width:100%;}'
     +'.deck-result .rpage.fp-stacked table{table-layout:auto;font-size:12px;}'
@@ -148,7 +150,7 @@
     // 説明文は本文の上に横いっぱいで1回だけ（カラムに混ぜない）
     +'.deck-result .fp-intro{flex:0 0 auto;padding:7px 16px 7px;margin:0;font-size:11px;line-height:1.5;color:var(--ink-soft,#46506a);border-bottom:1px solid var(--rule-soft,#eee9dd);}'
     // 入力：縦スクロール。欄は細く・多列で1画面に多く並べる
-    +'.deck-input .deck-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}'
+    +'.deck-input .deck-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;}'
     +'.deck-input .deck-scroll>.ipage{min-width:0;padding:10px 14px;}'
     +'.deck-input .panel{margin:0 0 8px!important;box-shadow:none;padding:0;border:none;background:none;}'
     // 入力欄はグリッドで整列（ラベル高さがバラついても上揃え・列がそろう）
