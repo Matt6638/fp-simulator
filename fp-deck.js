@@ -316,13 +316,14 @@
     var rScroll=deckR.querySelector('.deck-scroll');
     // 再描画のたびにスクロール位置を退避・復元する（repaginateがinnerHTML=''で先頭に戻すのを打ち消す＝画面が上に跳ね上がるのを防ぐ）
     var repag=function(){ var _st=rScroll.scrollTop,_sl=rScroll.scrollLeft; repaginate(rScroll,'fpRDots',dock); applyFontScale(); try{rScroll.scrollTop=_st;rScroll.scrollLeft=_sl;}catch(e){} requestAnimationFrame(function(){ try{rScroll.scrollTop=_st;rScroll.scrollLeft=_sl;}catch(e){} }); };
+    window.__fpDeckRepag=repag;   // 入力ドロワーを閉じたときに保留分を再描画するため公開
     repag();
     // 結果内の編集欄からフォーカスが外れたら、保留していた再描画を実行して同期
     rScroll.addEventListener('focusout',function(){ setTimeout(function(){ if(rScroll.__deferPg && !(document.activeElement && rScroll.contains(document.activeElement))){ rScroll.__deferPg=false; repag(); } }, 80); });
     // resizeは「幅が変わった時だけ」再描画（iOSはスクロール中にツールバー開閉でresizeが出るため、高さ変化では再描画しない＝跳ね上がり防止）
     var rzT, __rpLastW=window.innerWidth; window.addEventListener('resize',function(){ if(window.innerWidth===__rpLastW) return; __rpLastW=window.innerWidth; clearTimeout(rzT); rzT=setTimeout(repag,120); });
     try{
-      var mo=new MutationObserver(function(){ clearTimeout(rScroll.__moTO); rScroll.__moTO=setTimeout(repag,60); });
+      var mo=new MutationObserver(function(){ clearTimeout(rScroll.__moTO); rScroll.__moTO=setTimeout(repag,150); });
       mo.observe(dock,{childList:true,subtree:true,characterData:true});
     }catch(e){}
   }
@@ -344,6 +345,10 @@
   // ソース(dock)は破壊せず読むだけ＝再計算(outBody書換)のたびに再実行できる。
   function repaginate(scrollEl, dotsId, dock){
     if(!scrollEl || !dock) return;
+    // 入力ドロワー（全画面）を開いている間は結果が見えないので再描画しない＝入力中の再描画負荷ゼロで軽快に。
+    // 閉じたとき（closeInput）に一度だけ再描画して同期する。
+    var _di=document.getElementById('deckInput');
+    if(_di && _di.classList.contains('open')){ scrollEl.__deferPg=true; return; }
     // 結果内の編集欄（.fp-resultedit 等）を操作中は再クローンしない＝入力欄が消えるのを防ぐ。
     // ドックは更新済みなので、フォーカスが外れた時に一度だけ再描画して同期する。
     if(document.activeElement && scrollEl.contains(document.activeElement)){ scrollEl.__deferPg=true; return; }
@@ -446,7 +451,7 @@
   }
 
   function openInput(){var d=document.getElementById('deckInput');if(d)d.classList.add('open');['btnInput','fabInput'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.add('on');});setTimeout(positionFab,60);setTimeout(positionFab,320);}
-  function closeInput(){var d=document.getElementById('deckInput');if(d)d.classList.remove('open');['btnInput','fabInput'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.remove('on');});if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();setTimeout(positionFab,60);}
+  function closeInput(){var d=document.getElementById('deckInput');if(d)d.classList.remove('open');['btnInput','fabInput'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.remove('on');});if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();setTimeout(positionFab,60);if(window.__fpDeckRepag)setTimeout(window.__fpDeckRepag,90);}
   function toggleInput(){var d=document.getElementById('deckInput');if(d&&d.classList.contains('open'))closeInput();else openInput();}
   window.fpToggleInput=toggleInput;
   document.addEventListener('keydown',function(e){if(e.key==='Escape')closeInput();});

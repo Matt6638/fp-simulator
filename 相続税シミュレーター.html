@@ -523,6 +523,7 @@ function render(){
 
   // 相続人ごと（実際の取得割合ベース）
   const rows=[]; let spouseCredit=0, surchargeTotal=0;
+  const Nestate=Math.max(0, numV('assets')-numV('debts'));   // 遺産（＝相続する財産の総額）
   for(const he of st.heirs){
     const f=sh.frac[he.id]||0;
     const base=st.total*f;                 // 算出税額 = 相続税の総額 × あん分割合
@@ -536,7 +537,7 @@ function render(){
     }
     const sur = he.surcharge ? base*0.2 : 0;
     surchargeTotal+=sur;
-    rows.push({id:he.id,name:he.label,pct:f*100,base,surcharge:sur,credit,net:Math.max(0,base+sur-credit)});
+    rows.push({id:he.id,name:he.label,pct:f*100,acq:Nestate*f,base,surcharge:sur,credit,net:Math.max(0,base+sur-credit)});
   }
   const otherCredits = numV('cMinor')+numV('cDisabled')+numV('cSuccessive')+numV('cGiftTax');
   const netTotal = Math.max(0, st.total + surchargeTotal - spouseCredit - otherCredits);
@@ -586,9 +587,14 @@ function render(){
 
   // 相続人ごとの表
   if(rows.length && st.total>0){
-    let t=`<table class="tbl tbl-resp"><thead><tr><th>相続人</th><th>取得割合</th><th>算出税額</th><th>2割加算</th><th>配偶者軽減</th><th>納付税額</th></tr></thead><tbody>`;
+    let t=`<table class="tbl tbl-resp"><thead><tr><th>相続人</th><th>取得割合／<br>財産額</th><th>算出税額</th><th>2割加算</th><th>配偶者軽減</th><th>納付税額</th></tr></thead><tbody>`;
     for(const row of rows){
-      t+=`<tr><td data-label="相続人">${row.name}</td><td data-label="取得割合"><span style="white-space:nowrap;"><input type="text" inputmode="decimal" class="share2 fp-resultedit" data-fpt="1" data-id="${row.id}" value="${row.pct.toFixed(1)}" style="width:52px;text-align:right;font-family:var(--mono);border:1px solid var(--rule);border-radius:5px;padding:3px 5px;">%</span></td><td data-label="算出税額">${yen(row.base)}</td><td data-label="2割加算">${row.surcharge?yen(row.surcharge):'—'}</td><td data-label="配偶者軽減">${row.credit?('-'+yen(row.credit)):'—'}</td><td data-label="納付税額"><b>${yen(row.net)}</b></td></tr>`;
+      t+=`<tr><td data-label="相続人">${row.name}</td>`
+       +`<td class="tb-cell" data-label="取得割合／財産額"><div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;">`
+       +`<span style="white-space:nowrap;"><input type="text" inputmode="decimal" class="share2 fp-resultedit" data-fpt="1" data-id="${row.id}" value="${row.pct.toFixed(1)}" style="width:52px;text-align:right;font-family:var(--mono);border:1px solid var(--rule);border-radius:5px;padding:3px 5px;">%</span>`
+       +`<span style="white-space:nowrap;"><input type="text" inputmode="numeric" class="share2amt fp-resultedit" data-fpt="1" data-id="${row.id}" value="${tbDisp(row.acq)}" placeholder="0" style="width:96px;text-align:right;font-family:var(--mono);border:1px solid var(--rule);border-radius:5px;padding:3px 5px;">${window.__fpU==='man'?'万円':'円'}</span>`
+       +`</div></td>`
+       +`<td data-label="算出税額">${yen(row.base)}</td><td data-label="2割加算">${row.surcharge?yen(row.surcharge):'—'}</td><td data-label="配偶者軽減">${row.credit?('-'+yen(row.credit)):'—'}</td><td data-label="納付税額"><b>${yen(row.net)}</b></td></tr>`;
     }
     const sumNet=rows.reduce((a,b)=>a+b.net,0);
     t+=`</tbody><tfoot><tr><td data-label="相続人">合計</td><td data-label="取得割合">${rows.reduce((a,b)=>a+b.pct,0).toFixed(0)}%</td><td data-label="算出税額">${yen(st.total)}</td><td data-label="2割加算">${surchargeTotal?yen(surchargeTotal):'—'}</td><td data-label="配偶者軽減">${spouseCredit?('-'+yen(spouseCredit)):'—'}</td><td data-label="納付税額">${yen(sumNet)}</td></tr></tfoot></table>`;
@@ -629,11 +635,7 @@ document.getElementById('splitSection').addEventListener('input',e=>{
   else userShares[el.dataset.id]=parseFloat(v)||0;
   render();
 });
-// 割合欄はフォーカスで全選択＝薄字の続きに追記されず、入力で置き換わる
-document.getElementById('splitSection').addEventListener('focusin',e=>{
-  const el=e.target.closest('input.share'); if(!el)return;
-  setTimeout(function(){ try{el.select();}catch(_){}}, 0);
-});
+// 割合欄のフォーカス時クリアは下部の _CLEAR_SEL（input.share を含む）で一括処理
 document.getElementById('resetSplit').addEventListener('click',()=>{ userShares={}; STRUCT_KEY=null; render(); });
 // 結果ページの表内でも取得割合を直接編集できる（.share2）。打ち終わってから再計算（フォーカス飛び防止）
 let _share2Timer=null;
@@ -648,10 +650,24 @@ document.addEventListener('input',function(e){
   const el=e.target&&e.target.closest?e.target.closest('input.tb-amt,input.tb-ym'):null; if(!el) return;
   const id=el.dataset.id; if(!userTB[id]) userTB[id]={amt:0,y:0,m:0};
   if(el.classList.contains('tb-amt')){ var num=parseFloat(zen2han(el.value).replace(/,/g,''))||0; if(window.__fpU==='man') num*=10000; userTB[id].amt=num; }
-  else { var mm=zen2han(el.value).match(/(\d{4})\D+(\d{1,2})/)||zen2han(el.value).match(/(\d{4})/); if(mm){ userTB[id].y=parseInt(mm[1]); userTB[id].m=mm[2]?Math.min(12,Math.max(1,parseInt(mm[2]))):1; } else { userTB[id].y=0; userTB[id].m=0; } }
+  else { var d=zen2han(el.value).replace(/[^\d]/g,'').slice(0,6); var fv=(d.length>4)?(d.slice(0,4)+'/'+d.slice(4)):d; if(el.value!==fv){ el.value=fv; } var mm=fv.match(/(\d{4})\D+(\d{1,2})/)||fv.match(/(\d{4})/); if(mm){ userTB[id].y=parseInt(mm[1]); userTB[id].m=mm[2]?Math.min(12,Math.max(1,parseInt(mm[2]))):1; } else { userTB[id].y=0; userTB[id].m=0; } }
   clearTimeout(_tbTimer); _tbTimer=setTimeout(function(){ render(); }, 550);
 });
-document.addEventListener('focusin',function(e){ const el=e.target&&e.target.closest?e.target.closest('input.share2'):null; if(el) setTimeout(function(){try{el.select();}catch(_){}} ,0); });
+// 結果表の編集欄：フォーカスで中身をクリア（0から打てる）。未入力で外れたら元に戻す
+const _CLEAR_SEL='input.share,input.share2,input.share2amt,input.tb-amt,input.tb-ym';
+document.addEventListener('focusin',function(e){ const el=e.target&&e.target.closest?e.target.closest(_CLEAR_SEL):null; if(!el)return; el.dataset.prevv=el.value; el.value=''; });
+document.addEventListener('focusout',function(e){ const el=e.target&&e.target.closest?e.target.closest(_CLEAR_SEL):null; if(!el)return; if(el.value.trim()===''&&el.dataset.prevv!=null){ el.value=el.dataset.prevv; delete el.dataset.prevv; } });
+// Enter1回で確定（フォーカスを外す＝再計算・同期）
+document.addEventListener('keydown',function(e){ if(e.key!=='Enter'||e.isComposing)return; const el=e.target; if(el&&el.tagName==='INPUT'&&el.type!=='checkbox'&&el.type!=='radio'){ e.preventDefault(); el.blur(); } });
+// 相続人ごとの納付税額：取得「財産額（円/万円）」を直接入力→取得割合に換算
+document.addEventListener('input',function(e){
+  const el=e.target&&e.target.closest?e.target.closest('input.share2amt'):null; if(!el) return;
+  const N=Math.max(0,numV('assets')-numV('debts'));
+  var num=parseFloat(zen2han(el.value).replace(/,/g,''))||0; if(window.__fpU==='man') num*=10000;
+  if(el.value.trim()==='') delete userShares[el.dataset.id];
+  else if(N>0) userShares[el.dataset.id]=(num/N)*100;
+  clearTimeout(_share2Timer); _share2Timer=setTimeout(function(){ render(); }, 550);
+});
 render();
 </script>
 
@@ -779,7 +795,7 @@ FP.init('souzokuzei', recalc);
 })();
 </script>
 <script>window.FP_DECK_STACK=true;/* 数字→相続人ごとの納付税額表を縦積み・全幅で下に配置 */</script>
-<script src="fp-deck.js?v=36"></script>
+<script src="fp-deck.js?v=37"></script>
 <script src="fp-amount.js?v=5"></script>
 <script src="fp-pwa.js?v=4"></script>
 <div id="fpCalc" class="fpcalc" aria-hidden="true">
