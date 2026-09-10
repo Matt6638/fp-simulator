@@ -686,7 +686,7 @@ function fpFmt(n){if(n===0)return '0';var r=Math.round(n*10000)/10000;return r.t
   function fpMarkLabels(){document.querySelectorAll('input.yen').forEach(function(i){var s=i.nextElementSibling;if(s&&/^\s*円\s*$/.test(s.textContent||'')&&!s.getAttribute('data-fpu'))s.setAttribute('data-fpu','1');});}
   function fpRefreshLabels(){document.querySelectorAll('[data-fpu]').forEach(function(e){e.textContent=(window.__fpU==='man'?'万円':'円');});}
   function injectCSS(){var s=document.createElement('style');s.textContent=
-    'input:not([data-fpt]):not([type=checkbox]):not([type=radio]):not([type=file]),select:not([data-fpt]){color:#b3ab98!important;}'
+    'input:not([data-fpt]):not(.fp-resultedit):not([type=checkbox]):not([type=radio]):not([type=file]),select:not([data-fpt]):not(.fp-resultedit){color:#b3ab98!important;}'
      +'.fpbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 20px;}'
     +'.fpbtn{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-soft,#46506a);background:#fcfbf8;border:1px solid var(--rule,#e3ddcf);border-radius:7px;padding:8px 14px;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;line-height:1.4;}'
     +'.fpbtn:hover{border-color:var(--brass,#9a7b4f);color:var(--ink,#1b2a4a);}'
@@ -744,7 +744,7 @@ FP.init('souzokuzei', recalc);
 })();
 </script>
 <script>window.FP_DECK_STACK=true;/* 数字→相続人ごとの納付税額表を縦積み・全幅で下に配置 */</script>
-<script src="fp-deck.js?v=33"></script>
+<script src="fp-deck.js?v=34"></script>
 <script src="fp-amount.js?v=5"></script>
 <script src="fp-pwa.js?v=4"></script>
 <div id="fpCalc" class="fpcalc" aria-hidden="true">

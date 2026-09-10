@@ -36,6 +36,7 @@
     // 旧ズームが残っていれば解除
     document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll,.deck-head,aside.side .side-tt,aside.side .fp-sidebtns,aside.side .fpbar,aside.side .build-stamp,aside.side .side-eyebrow').forEach(function(el){ if(el.style.zoom) el.style.zoom=''; });
     var w=document.querySelector('.wrap'); if(w && w.style.zoom) w.style.zoom='';
+    var saved=[]; document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll').forEach(function(s){ saved.push([s,s.scrollTop,s.scrollLeft]); });
     document.querySelectorAll('.deck-result .deck-scroll > *, .deck-input .deck-scroll > *').forEach(function(el){
       el.style.transformOrigin='top left';
       if(sc===1){ el.style.transform=''; el.style.width=''; el.style.marginBottom=''; return; }
@@ -44,11 +45,13 @@
       el.style.transform='scale('+sc+')';
       el.style.marginBottom=(h*(sc-1))+'px';
     });
+    saved.forEach(function(a){ try{ a[0].scrollTop=a[1]; a[0].scrollLeft=a[2]; }catch(e){} });
     try{ positionFab(); }catch(e){}
   }
   window.__fpApplyFontScale=applyFontScale;
   window.addEventListener('storage',function(e){ if(e.key==='fp:settings'){ applyFontScale(); syncHints(); } });
-  window.addEventListener('resize',function(){ clearTimeout(window.__fpFsRz); window.__fpFsRz=setTimeout(applyFontScale,150); });
+  var __fpLastW=window.innerWidth;
+  window.addEventListener('resize',function(){ if(window.innerWidth===__fpLastW) return; __fpLastW=window.innerWidth; clearTimeout(window.__fpFsRz); window.__fpFsRz=setTimeout(applyFontScale,200); });
 
   // 細かい説明文（.hint / .q / 導入文 / 注記）は既定で隠し、「❔説明」で表示（全ツール共通）
   function hintsOn(){ try{ return !!(JSON.parse(localStorage.getItem('fp:settings')||'{}').showHints); }catch(e){ return false; } }

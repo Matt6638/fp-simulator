@@ -32,6 +32,7 @@
     try{ document.documentElement.style.zoom=''; document.documentElement.style.removeProperty('--fp-vh'); }catch(e){}
     document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll,.deck-head,aside.side .side-tt,aside.side .fp-sidebtns,aside.side .fpbar,aside.side .build-stamp,aside.side .side-eyebrow').forEach(function(el){ if(el.style.zoom) el.style.zoom=''; });
     var w=document.querySelector('.wrap'); if(w && w.style.zoom) w.style.zoom='';
+    var saved=[]; document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll').forEach(function(s){ saved.push([s,s.scrollTop,s.scrollLeft]); });
     document.querySelectorAll('.deck-result .deck-scroll > *, .deck-input .deck-scroll > *').forEach(function(el){
       el.style.transformOrigin='top left';
       if(sc===1){ el.style.transform=''; el.style.width=''; el.style.marginBottom=''; return; }
@@ -40,10 +41,12 @@
       el.style.transform='scale('+sc+')';
       el.style.marginBottom=(h*(sc-1))+'px';
     });
+    saved.forEach(function(a){ try{ a[0].scrollTop=a[1]; a[0].scrollLeft=a[2]; }catch(e){} });
     var fab=document.getElementById('fabInput'); if(fab){ fab.style.zoom=''; fab.style.left='auto'; fab.style.top='auto'; fab.style.transform='none'; fab.style.right='14px'; fab.style.bottom='calc(env(safe-area-inset-bottom,0px) + 18px)'; }
   }
   window.addEventListener('storage',function(e){ if(e.key==='fp:settings') applyFontScale(); });
-  window.addEventListener('resize',function(){ clearTimeout(window.__fpFsRz); window.__fpFsRz=setTimeout(applyFontScale,150); });
+  var __fpLastW=window.innerWidth;
+  window.addEventListener('resize',function(){ if(window.innerWidth===__fpLastW) return; __fpLastW=window.innerWidth; clearTimeout(window.__fpFsRz); window.__fpFsRz=setTimeout(applyFontScale,200); });
   if(document.readyState!=='loading') setTimeout(applyFontScale,80); else window.addEventListener('DOMContentLoaded',function(){setTimeout(applyFontScale,80);});
   // 結果が再描画されたら transform を再適用（独自ツールは repaginate が無いため）
   try{ var _mo=new MutationObserver(function(){ clearTimeout(window.__fpFsT); window.__fpFsT=setTimeout(applyFontScale,140); });
