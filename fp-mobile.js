@@ -28,16 +28,27 @@
   /* ---- 文字サイズ設定（fp:settings.fontScale）＝ページ全体を一律ズーム（全独自ツール共通） ---- */
   function applyFontScale(){
     var sc=1; try{ var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); if([1,1.25,1.5,1.75].indexOf(o.fontScale)>=0) sc=o.fontScale; }catch(e){}
-    var z=(sc===1?'':sc);
+    // iOS Safariの zoom は文字が拡大しない不具合があるため transform:scale を使用（左サイドは対象外）
     try{ document.documentElement.style.zoom=''; document.documentElement.style.removeProperty('--fp-vh'); }catch(e){}
-    try{ document.documentElement.style.setProperty('--fp-scale', sc); }catch(e){}
+    document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll,.deck-head,aside.side .side-tt,aside.side .fp-sidebtns,aside.side .fpbar,aside.side .build-stamp,aside.side .side-eyebrow').forEach(function(el){ if(el.style.zoom) el.style.zoom=''; });
     var w=document.querySelector('.wrap'); if(w && w.style.zoom) w.style.zoom='';
-    document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll,.deck-head,aside.side .side-tt,aside.side .side-eyebrow,aside.side .fp-sidebtns,aside.side .fpbar,aside.side .build-stamp').forEach(function(el){ el.style.zoom=z; });
-    var fab=document.getElementById('fabInput'); if(fab){ fab.style.zoom=z; fab.style.left='auto'; fab.style.top='auto'; fab.style.transform='none'; fab.style.right='14px'; fab.style.bottom='calc(env(safe-area-inset-bottom,0px) + 18px)'; }
+    document.querySelectorAll('.deck-result .deck-scroll > *, .deck-input .deck-scroll > *').forEach(function(el){
+      el.style.transformOrigin='top left';
+      if(sc===1){ el.style.transform=''; el.style.width=''; el.style.marginBottom=''; return; }
+      el.style.transform='none'; el.style.width='calc(100% / '+sc+')'; el.style.marginBottom='0';
+      var h=el.offsetHeight;
+      el.style.transform='scale('+sc+')';
+      el.style.marginBottom=(h*(sc-1))+'px';
+    });
+    var fab=document.getElementById('fabInput'); if(fab){ fab.style.zoom=''; fab.style.left='auto'; fab.style.top='auto'; fab.style.transform='none'; fab.style.right='14px'; fab.style.bottom='calc(env(safe-area-inset-bottom,0px) + 18px)'; }
   }
   window.addEventListener('storage',function(e){ if(e.key==='fp:settings') applyFontScale(); });
   window.addEventListener('resize',function(){ clearTimeout(window.__fpFsRz); window.__fpFsRz=setTimeout(applyFontScale,150); });
   if(document.readyState!=='loading') setTimeout(applyFontScale,80); else window.addEventListener('DOMContentLoaded',function(){setTimeout(applyFontScale,80);});
+  // 結果が再描画されたら transform を再適用（独自ツールは repaginate が無いため）
+  try{ var _mo=new MutationObserver(function(){ clearTimeout(window.__fpFsT); window.__fpFsT=setTimeout(applyFontScale,140); });
+    var _st=function(){ var r=document.querySelector('.deck-result .deck-scroll'); if(r) _mo.observe(r,{childList:true,subtree:true}); };
+    if(document.readyState!=='loading') setTimeout(_st,200); else window.addEventListener('DOMContentLoaded',function(){setTimeout(_st,200);}); }catch(e){}
 
   /* ---- 入力ドロワーを上いっぱいまで拡張（全独自ツール共通） ---- */
   (function drawerTall(){

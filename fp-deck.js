@@ -30,13 +30,20 @@
     var sc=1; try{ var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); if([1,1.25,1.5,1.75].indexOf(o.fontScale)>=0) sc=o.fontScale; }catch(e){}
     // <html>ズームは一部のiOS Safariで不安定＋固定FABの位置計算を壊すため使わない。
     // 表示コンテンツ（結果・入力・見出し・サイド）を個別にズーム＝FAB/ドロワーは無傷。
-    var z=(sc===1?'':sc);
-    // 横に広い表が切れないよう、スクロール領域（結果・入力）＋見出し＋サイドを個別ズーム。
+    // iOS Safariの zoom は「フォーム部品だけ拡大し文字は拡大しない」不具合があるため使わない。
+    // transform:scale で結果・入力の中身を拡大（文字も確実に拡大）。幅は 100%/sc、下端は margin で補正しスクロール可。
     try{ document.documentElement.style.zoom=''; document.documentElement.style.removeProperty('--fp-vh'); }catch(e){}
-    try{ document.documentElement.style.setProperty('--fp-scale', sc); }catch(e){}
+    // 旧ズームが残っていれば解除
+    document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll,.deck-head,aside.side .side-tt,aside.side .fp-sidebtns,aside.side .fpbar,aside.side .build-stamp,aside.side .side-eyebrow').forEach(function(el){ if(el.style.zoom) el.style.zoom=''; });
     var w=document.querySelector('.wrap'); if(w && w.style.zoom) w.style.zoom='';
-    document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll,.deck-head,aside.side .side-tt,aside.side .side-eyebrow,aside.side .fp-sidebtns,aside.side .fpbar,aside.side .build-stamp').forEach(function(el){ el.style.zoom=z; });
-    var fab=document.getElementById('fabInput'); if(fab) fab.style.zoom=z;
+    document.querySelectorAll('.deck-result .deck-scroll > *, .deck-input .deck-scroll > *').forEach(function(el){
+      el.style.transformOrigin='top left';
+      if(sc===1){ el.style.transform=''; el.style.width=''; el.style.marginBottom=''; return; }
+      el.style.transform='none'; el.style.width='calc(100% / '+sc+')'; el.style.marginBottom='0';
+      var h=el.offsetHeight;
+      el.style.transform='scale('+sc+')';
+      el.style.marginBottom=(h*(sc-1))+'px';
+    });
     try{ positionFab(); }catch(e){}
   }
   window.__fpApplyFontScale=applyFontScale;
