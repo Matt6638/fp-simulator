@@ -223,7 +223,7 @@
     +'.fp-pull{display:flex!important;}'
     +'}'
     // 入力ドロワーを上いっぱいまで拡張（スマホ・タブレット）。入力欄を広く使える
-    +'@media (max-width:1024px){.deck-input{height:calc(100dvh - 34px)!important;max-height:none!important;}}'
+    +'@media (max-width:1024px){.deck-input{left:0!important;right:0!important;top:0!important;bottom:0!important;height:100dvh!important;max-height:none!important;border-radius:0!important;}}'
     +'@media print{.side,.deck-input,.fab-input,.fp-pull{display:none!important;}.wrap{display:block!important;height:auto!important;overflow:visible!important;}.deck-result{border:none;box-shadow:none;}.deck-scroll{overflow:visible!important;}}';
     var st=document.createElement('style'); st.id='fpDeckCSS'; st.textContent=css; document.head.appendChild(st);
   }
