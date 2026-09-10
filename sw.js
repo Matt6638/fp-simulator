@@ -1,7 +1,7 @@
 /* ===== FPシミュレーター Service Worker（オフライン対応） =====
    全ツールと共有アセットを事前キャッシュし、オフラインでも起動できるようにする。
    更新時は CACHE のバージョンを上げると、次回オンライン時に自動で入れ替わる。 */
-const CACHE = 'fp-cache-v26';
+const CACHE = 'fp-cache-v27';
 
 const ASSETS = [
   './',
@@ -47,12 +47,14 @@ self.addEventListener('install', function(e){
   );
 });
 
-// 有効化：古いキャッシュを削除
+// 有効化：古いキャッシュを削除し、開いているページを一度だけ自動リロード（新版を即反映）
 self.addEventListener('activate', function(e){
   e.waitUntil(
     caches.keys().then(function(keys){
       return Promise.all(keys.filter(function(k){ return k!==CACHE; }).map(function(k){ return caches.delete(k); }));
     }).then(function(){ return self.clients.claim(); })
+      .then(function(){ return self.clients.matchAll({type:'window'}); })
+      .then(function(cls){ cls.forEach(function(c){ try{ c.navigate(c.url); }catch(e){} }); })
   );
 });
 

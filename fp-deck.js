@@ -30,11 +30,13 @@
     var sc=1; try{ var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); if([1,1.25,1.5,1.75].indexOf(o.fontScale)>=0) sc=o.fontScale; }catch(e){}
     // <html>ズームは一部のiOS Safariで不安定＋固定FABの位置計算を壊すため使わない。
     // 表示コンテンツ（結果・入力・見出し・サイド）を個別にズーム＝FAB/ドロワーは無傷。
+    var z=(sc===1?'':sc);
+    // 横に広い表が切れないよう、スクロール領域（結果・入力）＋見出し＋サイドを個別ズーム。
     try{ document.documentElement.style.zoom=''; document.documentElement.style.removeProperty('--fp-vh'); }catch(e){}
     try{ document.documentElement.style.setProperty('--fp-scale', sc); }catch(e){}
-    var z=(sc===1?'':sc);
-    // 表示コンテンツ＋サイドレールの内側ブロックを個別ズーム（レール幅は--fp-scaleでCSS側が拡張）
+    var w=document.querySelector('.wrap'); if(w && w.style.zoom) w.style.zoom='';
     document.querySelectorAll('.deck-result .deck-scroll,.deck-input .deck-scroll,.deck-head,aside.side .side-tt,aside.side .side-eyebrow,aside.side .fp-sidebtns,aside.side .fpbar,aside.side .build-stamp').forEach(function(el){ el.style.zoom=z; });
+    var fab=document.getElementById('fabInput'); if(fab) fab.style.zoom=z;
     try{ positionFab(); }catch(e){}
   }
   window.__fpApplyFontScale=applyFontScale;
@@ -119,7 +121,7 @@
     +'.deck-result .rpage.fp-stacked{display:block;overflow-y:auto;}'
     // 縦積み(既定)は横スワイプのスナップ入れ子スクロールをやめ、デッキ全体を素直に縦スクロール
     // （縦に長い結果でiPad等の縦スワイプが横スナップと衝突して弾かれる＝ブルブル震えて戻る対策）
-    +'.deck-result .deck-scroll.deck-vscroll{display:block;overflow-x:hidden;overflow-y:auto;scroll-snap-type:none;-webkit-overflow-scrolling:touch;}'
+    +'.deck-result .deck-scroll.deck-vscroll{display:block;overflow-x:auto;overflow-y:auto;scroll-snap-type:none;-webkit-overflow-scrolling:touch;}'
     +'.deck-result .deck-scroll.deck-vscroll>.rpage,.deck-result .deck-scroll.deck-vscroll>.rpage.fp-stacked{height:auto;min-height:0;overflow:visible;scroll-snap-align:none;}'
     +'.deck-result .rpage.fp-stacked .rcol{max-width:none;width:100%;}'
     +'.deck-result .rpage.fp-stacked table{table-layout:auto;font-size:12px;}'
@@ -482,35 +484,11 @@
   }
   // ＋/×ボタンを空きスペースの最上部（右）へ自動配置。
   // 入力ドロワーが開いていれば「ドロワー内の空き」、閉じていれば「結果の最右カラムの空き」を基準にする。
+  // FABは常に右下固定（ズームしても位置計算が壊れない＝消えない）
   function positionFab(){
     var fab=document.getElementById('fabInput'); if(!fab) return;
-    var fh=fab.offsetHeight||46;
-    var drawer=document.getElementById('deckInput');
-    var open=drawer && drawer.classList.contains('open');
-    fab.style.left='auto'; fab.style.transform='none'; fab.style.right='14px';
-    if(open){ // ×ボタン＝ドロワーの「完了」ボタンのすぐ下（右）へ。offsetHeightで確実に配置
-      var dh=drawer.offsetHeight||Math.round(window.innerHeight*0.58);
-      var head=drawer.querySelector('.deck-head');
-      var hh=head?head.offsetHeight:50;
-      fab.style.top='auto';
-      fab.style.bottom=Math.max(10, dh - hh - 12 - fh)+'px'; // ドロワー下端(=画面下)からの高さ＝ヘッダ直下
-      return;
-    }
-    // 閉：結果の最右カラムの空きスペース最上部（空なら中央）
-    var scrollEl=document.querySelector('.deck-result .deck-scroll');
-    if(!scrollEl) return;
-    var deckRect=scrollEl.getBoundingClientRect(); if(!deckRect.height) return;
-    var page=scrollEl.querySelector('.rpage'), top;
-    if(page){
-      var cols=page.querySelectorAll(':scope>.rcol');
-      var last=cols[cols.length-1];
-      if(last && last.children.length && last.scrollHeight>24){
-        var lr=last.getBoundingClientRect();
-        top=lr.top + Math.min(last.scrollHeight, deckRect.height) + 12;
-      } else { top=deckRect.top + deckRect.height/2 - fh/2; }
-    } else { top=deckRect.top + deckRect.height/2 - fh/2; }
-    top=Math.max(deckRect.top+8, Math.min(top, deckRect.bottom - fh - 8));
-    fab.style.bottom='auto'; fab.style.top=Math.round(top)+'px';
+    fab.style.left='auto'; fab.style.top='auto'; fab.style.transform='none';
+    fab.style.right='14px'; fab.style.bottom='calc(env(safe-area-inset-bottom,0px) + 18px)';
   }
 
   // ツールの初期化が終わってから変換（結果が描画済みの状態でDOMを移動）
