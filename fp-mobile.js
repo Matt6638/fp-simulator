@@ -54,7 +54,7 @@
   (function drawerTall(){
     if(document.getElementById('fpDrawerCSS')) return;
     var st=document.createElement('style'); st.id='fpDrawerCSS';
-    st.textContent='@media (max-width:1024px){.deck-input{left:0!important;right:0!important;top:0!important;bottom:0!important;height:100dvh!important;max-height:none!important;border-radius:0!important;}}';
+    st.textContent='@media (max-width:1024px){.deck-input{left:0!important;right:0!important;top:0!important;bottom:0!important;height:auto!important;max-height:none!important;border-radius:0!important;}}';
     (document.head||document.documentElement).appendChild(st);
   })();
 
