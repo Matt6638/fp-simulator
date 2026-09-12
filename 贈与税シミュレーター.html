@@ -185,6 +185,34 @@
   </section>
 </div>
 
+<!-- 手残り額からの逆算 -->
+<section class="panel" style="margin-top:22px;">
+  <div class="panel-head"><span class="no">逆算</span><h2>手残り額から必要な贈与額を逆算</h2></div>
+  <div class="panel-body">
+    <p class="divider-note">受贈者に<b>残したい金額（手残り）</b>を決めると、贈与税を払っても手元にその額が残るために<b>必要な贈与額（総額）</b>を逆算します（暦年課税・受贈者1人／1年分）。</p>
+
+    <div class="field">
+      <label class="lab">受贈者に残したい金額（手残り）</label>
+      <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="rev_net" value="" placeholder="0"><span class="yen-unit">円</span></div>
+      <div class="hint">贈与税を差し引いた後に、受贈者の手元に残る額。</div>
+    </div>
+
+    <div class="field">
+      <label class="lab">贈与の種別</label>
+      <div class="seg" id="rev_typeSeg">
+        <button data-v="special" aria-pressed="true">特例贈与</button>
+        <button data-v="general" aria-pressed="false">一般贈与</button>
+      </div>
+      <div class="hint">特例＝父母・祖父母（直系尊属）→ 1/1時点で18歳以上の子・孫。それ以外は一般。年110万円の基礎控除込みで逆算します。</div>
+    </div>
+  </div>
+  <div class="result">
+    <div class="rk">必要な贈与額（総額）</div>
+    <div class="rv" id="rev_gross">0<small> 円</small></div>
+    <div class="brk" id="rev_brk"></div>
+  </div>
+</section>
+
 <!-- 贈与 vs 相続 比較（生前贈与の効果） -->
 <section class="panel" style="margin-top:22px;">
   <div class="panel-head"><span class="no">比較</span><h2>生前贈与 vs 相続　どちらが有利？</h2></div>
@@ -413,7 +441,40 @@ function calcSeisan(){
   document.getElementById('seisanNote').innerHTML=`特別控除は累計<b>2,500万円</b>まで。今回で累計 <b>${yen(cum)}円</b> 使用（残り ${yen(Math.max(0,25000000-cum))}円）。${isR6?'令和6年〜は上記の特別控除とは別に<b>毎年110万円の基礎控除</b>があり、この分は相続財産に加算されません。':'令和5年以前の贈与は年110万円の基礎控除はありません。'}`;
 }
 
-function recalc(){calcRekinen();calcSeisan();calcCompare();}
+/* ===== 手残り額からの逆算（暦年課税・受贈者1人／1年分） ===== */
+// 手残り net から、贈与税を引いても net が残る必要贈与額 gross を二分探索で求める
+function grossFromNet(net, type){
+  net=Math.max(0,net);
+  const taxOf=(g)=>(type==='general'?giftGeneral:giftSpecial)(Math.max(0,g-1100000));
+  if(net<=0) return {gross:0,tax:0,net:0};
+  if(net<=1100000) return {gross:net,tax:0,net:net};   // 110万円以下は無税（全額そのまま残る）
+  let lo=net, hi=net*3+2000000, guard=0;
+  while((hi-taxOf(hi))<net && guard<100){ hi*=2; guard++; }
+  for(let i=0;i<90;i++){ const m=(lo+hi)/2; if((m-taxOf(m))>=net) hi=m; else lo=m; }
+  let g=Math.round(hi/1000)*1000;                      // 1,000円単位に丸め（きりよく）
+  if(g-taxOf(g) < net-0.5) g+=1000;                    // 手残りが目標を下回らないよう調整
+  const tax=floor100(taxOf(g));
+  return {gross:g, tax:tax, net:g-tax};
+}
+function calcReverse(){
+  const net=numById('rev_net');
+  const type=segVal('rev_typeSeg')||'special';
+  const r=grossFromNet(net, type);
+  document.getElementById('rev_gross').innerHTML=`${yen(r.gross)}<small> 円</small>`;
+  let brk='';
+  if(net<=0){ brk=`<div class="row"><span>受贈者に残したい金額（手残り）を入力してください。</span><span></span></div>`; }
+  else{
+    brk+=`<div class="row"><span>必要な贈与額（総額）</span><span>${yen(r.gross)} 円</span></div>`;
+    brk+=`<div class="row"><span>−贈与税</span><span>${yen(r.tax)} 円</span></div>`;
+    brk+=`<div class="row"><span style="font-weight:600;">手残り（受贈者に残る額）</span><span style="font-weight:600;">${yen(r.net)} 円</span></div>`;
+    const rate=r.gross>0?(r.tax/r.gross*100):0;
+    brk+=`<div class="row"><span>実効税率（税額÷贈与額）</span><span>${rate.toFixed(1)}％</span></div>`;
+    if(net>1100000) brk+=`<div class="row"><span style="color:var(--muted,#8a8470);font-size:12px;">※年110万円までなら無税。複数年・複数人に分けると税負担を抑えられます。</span><span></span></div>`;
+    else brk+=`<div class="row"><span style="color:var(--credit,#1f7a4d);font-size:12px;">※110万円以内なので贈与税は0円。そのまま渡せば全額が手元に残ります。</span><span></span></div>`;
+  }
+  document.getElementById('rev_brk').innerHTML=brk;
+}
+function recalc(){calcRekinen();calcSeisan();calcCompare();calcReverse();}
 
 /* ===== 配線（スイート共通の金額整形：全角対応・フォーカスでクリア・IME確定対応） ===== */
 function formatYen(el){
@@ -447,7 +508,7 @@ document.querySelectorAll('.toggle input').forEach(el=>el.addEventListener('chan
 document.getElementById('addRecip').addEventListener('click',addRecip);
 document.getElementById('recipients').addEventListener('click',function(e){var d=e.target.closest('.recip-del');if(d)delRecip(parseInt(d.dataset.i,10));});
 function bindSeg(id){var g=document.getElementById(id);if(!g)return;g.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;[...g.children].forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));recalc();});}
-bindSeg('eraSeg');bindSeg('c_typeSeg');bindSeg('c_heirSeg');
+bindSeg('eraSeg');bindSeg('c_typeSeg');bindSeg('c_heirSeg');bindSeg('rev_typeSeg');
 syncAddBtn();
 recalc();
 </script>
@@ -563,7 +624,7 @@ function fpFmt(n){if(n===0)return '0';var r=Math.round(n*10000)/10000;return r.t
 })();
 FP.init('gift', recalc);
 </script>
-<script src="fp-deck.js?v=37"></script>
+<script src="fp-deck.js?v=38"></script>
 <script src="fp-amount.js?v=5"></script>
 <script src="fp-pwa.js?v=4"></script>
 </body>
