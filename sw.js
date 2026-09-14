@@ -1,7 +1,7 @@
 /* ===== FPシミュレーター Service Worker（オフライン対応） =====
    全ツールと共有アセットを事前キャッシュし、オフラインでも起動できるようにする。
    更新時は CACHE のバージョンを上げると、次回オンライン時に自動で入れ替わる。 */
-const CACHE = 'fp-cache-v40';
+const CACHE = 'fp-cache-v41';
 
 const ASSETS = [
   './',
@@ -21,6 +21,7 @@ const ASSETS = [
   './apple-touch-icon.png',
   './教育資金シミュレーター.html',
   './老後資金シミュレーター.html',
+  './貯蓄シミュレーター.html',
   './変額年金シミュレーター.html',
   './不動産損益シミュレーター.html',
   './妻の収入シミュレーター.html',

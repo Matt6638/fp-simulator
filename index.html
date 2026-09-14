@@ -38,7 +38,7 @@
   .fpm #sPre{width:100%;font-family:inherit;font-size:14px;color:var(--ink);background:#fcfbf8;border:1px solid var(--rule);border-radius:7px;padding:10px 12px;}
   .fpm .ac{display:flex;justify-content:flex-end;margin-top:20px;}
   .fpm .dn{font-family:inherit;font-size:13px;font-weight:600;background:var(--brass);color:#fff;border:1px solid var(--brass-deep);border-radius:8px;padding:9px 18px;cursor:pointer;}
-  h1{font-family:var(--mincho);font-weight:600;font-size:28px;letter-spacing:.03em;margin:0;}
+  h1{font-family:var(--mincho);font-weight:600;font-size:32px;letter-spacing:.04em;margin:0;color:var(--ink);}
   .sub{margin:10px 0 0;color:var(--ink-soft);font-size:13.5px;}
   .cards{display:flex;flex-direction:column;gap:8px;}
   a.card{display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);padding:13px 18px;transition:transform .1s,border-color .12s,box-shadow .12s;}
@@ -85,46 +85,52 @@
   .card .stat.on{color:#25406b;background:#eef2fa;border:1px solid #c3d2ea;}
 
   /* ===== トップ：カテゴリ色分けグリッド（番号なし・中央揃え・ドラッグ並べ替え） ===== */
-  .cat-life{--cc:#2e8b63;--tint:#e7f3ec;--line:#bfdccd;}
-  .cat-pension{--cc:#2f7cb8;--tint:#e5f0f9;--line:#bcd8ee;}
-  .cat-souzoku{--cc:#a8547e;--tint:#f7e8f0;--line:#e8c7da;}
-  .cat-hoken{--cc:#c07d1a;--tint:#faf0d9;--line:#edd6a6;}
-  .cat-corp{--cc:#6a5bb0;--tint:#efebf9;--line:#d7d0ef;}
-  .cat-fudosan{--cc:#bd5a34;--tint:#f8e9e1;--line:#edc8b6;}
-  .toptools{margin:2px 0 12px;display:flex;flex-direction:column;gap:8px;}
-  .catlegend{display:flex;flex-wrap:wrap;gap:6px 13px;}
-  .clg{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink-soft);}
-  .clg i{width:11px;height:11px;border-radius:3px;background:var(--cc,#ccc);display:inline-block;flex:0 0 auto;}
-  .legend2{font-size:11.5px;color:#8a8470;display:flex;align-items:center;gap:6px;line-height:1.5;flex-wrap:wrap;}
-  .legend2 .lg-dot{width:9px;height:9px;border-radius:50%;background:#3f8a68;box-shadow:0 0 0 2px #e7f0ea;display:inline-block;flex:0 0 auto;}
-  .legend2 .lg-sep{opacity:.45;}
-  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:9px;}
-  a.card{flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:0;padding:15px 10px;min-height:72px;position:relative;background:var(--tint,#fff);border:1px solid var(--line,var(--rule));border-top:4px solid var(--cc,var(--rule));box-shadow:0 1px 2px rgba(27,42,74,.05);}
-  a.card:hover{transform:translateY(-2px);border-color:var(--cc,var(--brass));box-shadow:0 7px 16px rgba(27,42,74,.13);}
+  .cat-life{--cc:#2e8b63;--cc-ink:#1c6a48;--tint:#eef6f1;--line:#cfe5d8;}
+  .cat-pension{--cc:#2f7cb8;--cc-ink:#1e5d8f;--tint:#eaf3fb;--line:#c8def0;}
+  .cat-souzoku{--cc:#b0567f;--cc-ink:#8a3d62;--tint:#f9eef4;--line:#eaccdc;}
+  .cat-hoken{--cc:#c58218;--cc-ink:#8f5c10;--tint:#fbf3e0;--line:#eddcb2;}
+  .cat-corp{--cc:#6a5bb0;--cc-ink:#4c3f90;--tint:#f1eefa;--line:#d8d1f0;}
+  .cat-fudosan{--cc:#c05e37;--cc-ink:#984222;--tint:#faece4;--line:#eecdbd;}
+  .toptools{margin:4px 0 16px;display:flex;flex-direction:column;gap:11px;}
+  .catlegend{display:flex;flex-wrap:wrap;gap:8px 15px;}
+  .clg{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink-soft);}
+  .clg i{width:12px;height:12px;border-radius:4px;background:var(--cc,#ccc);display:inline-block;flex:0 0 auto;}
+  .legend2{font-size:12px;color:#736c5a;display:flex;align-items:center;gap:6px;line-height:1.5;flex-wrap:wrap;}
+  .legend2 .lg-dot{width:10px;height:10px;border-radius:50%;background:#2e8b63;box-shadow:0 0 0 2px #fff,0 0 0 3px #cfe6d9;display:inline-block;flex:0 0 auto;}
+  .legend2 .lg-sep{opacity:.4;}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:12px;}
+  a.card{flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:7px;padding:18px 14px 16px;min-height:92px;position:relative;background:var(--surface);border:1px solid var(--line,var(--rule));border-radius:14px;box-shadow:0 1px 2px rgba(27,42,74,.04),0 6px 16px rgba(27,42,74,.05);overflow:hidden;transition:transform .14s ease,box-shadow .16s ease,border-color .14s ease;}
+  a.card::before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:var(--cc,var(--rule));}
+  a.card:hover{transform:translateY(-3px);border-color:var(--cc,var(--brass));box-shadow:0 12px 26px rgba(27,42,74,.14);}
+  a.card:active{transform:translateY(-1px);}
   a.card .no,a.card .drag,a.card .movebtns{display:none!important;}
-  a.card h2{white-space:normal;overflow:visible;text-overflow:clip;font-size:14px;line-height:1.34;text-align:center;width:100%;letter-spacing:.01em;word-break:keep-all;line-break:strict;}
-  a.card .stat{position:absolute;top:8px;right:8px;margin:0;padding:0;border:none!important;background:none!important;}
-  a.card .stat.on{width:9px;height:9px;border-radius:50%;background:#3f8a68!important;box-shadow:0 0 0 2px #fff;}
+  a.card h2{white-space:normal;overflow:visible;text-overflow:clip;font-family:var(--mincho);font-size:15.5px;line-height:1.36;font-weight:600;color:var(--ink);text-align:center;width:100%;letter-spacing:.01em;word-break:keep-all;line-break:strict;}
+  a.card .stat{position:absolute;top:11px;right:11px;margin:0;padding:0;border:none!important;background:none!important;}
+  a.card .stat.on{width:9px;height:9px;border-radius:50%;background:#2e8b63!important;box-shadow:0 0 0 3px #fff,0 0 0 4px #cfe6d9;}
   a.card.dragging{position:relative;z-index:8;transform:scale(1.06);opacity:.97;box-shadow:0 16px 40px rgba(27,42,74,.34)!important;border-color:var(--cc);cursor:grabbing;transition:transform .12s ease,box-shadow .12s ease;}
   a.card.card-ghost{opacity:.32;box-shadow:none!important;}
   a.card.card-clone{opacity:.98;box-shadow:0 20px 44px rgba(27,42,74,.34)!important;transition:none!important;transform-origin:top left;}
-  .cclabel{display:block;font-size:9.5px;font-weight:700;letter-spacing:.06em;color:var(--cc);margin-bottom:4px;line-height:1.1;}
+  .cclabel{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:var(--cc-ink,var(--cc));line-height:1.1;}
+  .cclabel::before{content:"";width:7px;height:7px;border-radius:2px;background:var(--cc);flex:0 0 auto;}
   a.card h2 .tp{white-space:nowrap;}
   .cards.reordering a.card{transition:transform .16s ease;}
   .cards.reordering a.card.dragging{transition:none;}
   .cards.reordering a.card:hover{transform:none;}
   body.dragging-cards{cursor:grabbing;-webkit-user-select:none;user-select:none;}
   @media(max-width:700px){
-    .wrap{padding:20px 14px 60px;}
+    .wrap{padding:22px 14px 60px;}
     .eyebrow{font-size:10px;letter-spacing:.28em;}
-    h1{font-size:24px;}
+    h1{font-size:26px;}
     header{padding-bottom:16px;margin-bottom:18px;}
-    .cards{grid-template-columns:1fr 1fr;gap:8px;}
+    .cards{grid-template-columns:1fr 1fr;gap:10px;}
     input,select,textarea{font-size:16px;}
     .hubbar{gap:6px;}
-    .hubbtn{padding:8px 11px;font-size:12px;}
-    .catlegend{gap:5px 10px;}
-    .clg{font-size:11px;}
+    .hubbtn{padding:9px 12px;font-size:12.5px;}
+    .catlegend{gap:6px 12px;}
+    .clg{font-size:11.5px;}
+    a.card{min-height:84px;padding:15px 11px 14px;gap:6px;}
+    a.card h2{font-size:14.5px;}
+    .cclabel{font-size:10px;}
   }
 </style>
 <!-- FP Auth (Phase1: login gate + usage log) -->
@@ -200,6 +206,9 @@
   </a>
   <a class="card cat-hoken" href="保険逆算シミュレーター.html">
     <h2><span class="tp">保険逆算</span><wbr><span class="tp">（必要保障額）</span></h2>
+  </a>
+  <a class="card cat-life" href="貯蓄シミュレーター.html">
+    <h2><span class="tp">貯蓄</span> <span class="tp">積立額の逆算</span></h2>
   </a>
   <a class="card cat-life" href="老後資金シミュレーター.html">
     <h2><span class="tp">老後資金</span> <span class="tp">積立</span></h2>
@@ -324,7 +333,7 @@ window.FPS=(function(){
 </script>
 <script>
 window.HUB=(function(){
-  var MAP={"教育資金シミュレーター.html":"kyoiku","遺族年金シミュレーター.html":"izoku","相続税シミュレーター.html":"souzokuzei","相続シミュレーター.html":"seiho","贈与税シミュレーター.html":"gift","リタイア後所得シミュレーター.html":"retire","妻の収入シミュレーター.html":"tsuma","法人活用シミュレーター.html":"houjin","役員報酬シミュレーター.html":"yakuin","退職金シミュレーター.html":"taishoku","保険逆算シミュレーター.html":"hokengs","老後資金シミュレーター.html":"rogo","変額年金シミュレーター.html":"hengaku","不動産損益シミュレーター.html":"fudosan"};
+  var MAP={"教育資金シミュレーター.html":"kyoiku","遺族年金シミュレーター.html":"izoku","相続税シミュレーター.html":"souzokuzei","相続シミュレーター.html":"seiho","贈与税シミュレーター.html":"gift","リタイア後所得シミュレーター.html":"retire","妻の収入シミュレーター.html":"tsuma","法人活用シミュレーター.html":"houjin","役員報酬シミュレーター.html":"yakuin","退職金シミュレーター.html":"taishoku","保険逆算シミュレーター.html":"hokengs","老後資金シミュレーター.html":"rogo","貯蓄シミュレーター.html":"chochiku","変額年金シミュレーター.html":"hengaku","不動産損益シミュレーター.html":"fudosan"};
   function hasData(key){try{var s=localStorage.getItem("fp:"+key);if(!s)return false;var o=JSON.parse(s);for(var k in o){var v=o[k];if(typeof v==="string"){var n=parseFloat(v.replace(/,/g,""));if(!isNaN(n)&&n>0)return true;}}return false;}catch(e){return false;}}
   function refresh(){document.querySelectorAll("a.card").forEach(function(c){var href=c.getAttribute("href");var key=MAP[href];var st=c.querySelector(".stat");if(!st){st=document.createElement("span");st.className="stat";c.appendChild(st);}if(key&&hasData(key)){st.textContent="";st.className="stat on";st.title="入力済み";}else{st.textContent="";st.className="stat";st.title="";}});}
   function collect(){var o={};Object.keys(MAP).forEach(function(h){var v=localStorage.getItem("fp:"+MAP[h]);if(v)o[MAP[h]]=v;});return o;}
