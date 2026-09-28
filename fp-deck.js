@@ -358,9 +358,9 @@
   function repaginate(scrollEl, dotsId, dock){
     if(!scrollEl || !dock) return;
     // 入力ドロワー（全画面）を開いている間は結果が見えないので再描画しない＝入力中の再描画負荷ゼロで軽快に。
-    // 閉じたとき（closeInput）に一度だけ再描画して同期する。
+    // 閉じたとき（closeInput）に一度だけ再描画して同期する。ただし分割表示（広幅）は結果が常時見えるのでライブ再描画する。
     var _di=document.getElementById('deckInput');
-    if(_di && _di.classList.contains('open')){ scrollEl.__deferPg=true; return; }
+    if(_di && _di.classList.contains('open') && !(window.matchMedia && window.matchMedia('(min-width:980px)').matches)){ scrollEl.__deferPg=true; return; }
     // 結果内の編集欄（.fp-resultedit 等）を操作中は再クローンしない＝入力欄が消えるのを防ぐ。
     // ドックは更新済みなので、フォーカスが外れた時に一度だけ再描画して同期する。
     if(document.activeElement && scrollEl.contains(document.activeElement)){ scrollEl.__deferPg=true; return; }
