@@ -269,17 +269,22 @@
   function initFlat(wrap){
     if(document.getElementById('fpFlatCSS')) return;
     var css='.wrap{max-width:none!important;}'
-      // iPad〜PC：全パネルを自動タイル配置＋入力欄を多列に密にして、入力も結果も1画面でまとめて確認。
+      // iPad〜PC：横幅をキチキチに使い、入力も結果も1画面になるべく多く。入力欄はflexで左詰め・コンパクトに。
       +'@media (min-width:980px){'
-      +'.wrap{padding:16px 26px 56px!important;}'
-      +'.grid,.grid2{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(380px,1fr))!important;gap:14px!important;align-items:start!important;}'
+      +'.wrap{padding:12px 18px 36px!important;}'
+      +'.grid,.grid2{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(440px,1fr))!important;gap:10px!important;align-items:start!important;}'
       +'.grid>.panel,.grid2>.panel,.grid>section,.grid2>section{margin:0!important;max-height:none!important;position:static!important;height:auto!important;}'
-      // 入力欄（.panel-body 内の .field 群）を多列で密に。表・結果行は対象外。
-      +'.panel-body{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(185px,1fr))!important;gap:11px 15px!important;align-items:start!important;}'
+      // 入力欄＝固定幅グリッドで左詰め（短ラベルも長ラベルも等幅で密に。伸ばさない）。
+      +'.panel-body{padding:12px 14px!important;display:grid!important;grid-template-columns:repeat(auto-fill,minmax(175px,1fr))!important;justify-content:start!important;gap:9px 14px!important;align-items:start!important;}'
       +'.panel-body>.field{min-width:0!important;margin:0!important;}'
-      // 見出し・説明・ボタン・トグル・幅広欄・表を含む要素は横いっぱい（グリッドに潰さない）
-      +'.panel-body>.sub,.panel-body>.subhead,.panel-body>.grp,.panel-body>.hint,.panel-body>.divider-note,.panel-body>button,.panel-body>.btn,.panel-body>.field.wide,.panel-body>.result,.panel-body>table,.panel-body>.recips,.panel-body>.toggle,.panel-body>.field:has(.toggle),.panel-body>.field:has(textarea),.panel-body>.field:has(.seg){grid-column:1/-1!important;}'
-      +'.panel-body input[type=text],.panel-body input.yen,.panel-body input.num,.panel-body input[inputmode],.panel-body select{width:100%!important;max-width:none!important;box-sizing:border-box!important;}'
+      +'.panel-body>.field .lab,.panel-body>.field label{min-height:0!important;margin-bottom:2px!important;line-height:1.3!important;}'
+      +'.panel-body>.field .inrow{gap:4px!important;}'
+      // 金額欄＝中、歳/年/人・%＝小。
+      +'.panel-body input.yen{width:100%!important;max-width:118px!important;box-sizing:border-box!important;}'
+      +'.panel-body input.num,.panel-body input[inputmode=numeric]:not(.yen),.panel-body input[inputmode=decimal]:not(.yen){width:100%!important;max-width:66px!important;box-sizing:border-box!important;}'
+      +'.panel-body input[type=text]:not(.yen):not(.num),.panel-body select{width:100%!important;max-width:100%!important;box-sizing:border-box!important;}'
+      // 見出し・説明・ボタン・トグル・幅広欄・表・受贈者行は横いっぱいで改行
+      +'.panel-body>.sub,.panel-body>.subhead,.panel-body>.grp,.panel-body>.hint,.panel-body>.divider-note,.panel-body>button,.panel-body>.btn,.panel-body>.field.wide,.panel-body>.result,.panel-body>table,.panel-body>.recips,.panel-body>.toggle,.panel-body>.field:has(.toggle),.panel-body>.field:has(textarea),.panel-body>.field:has(.seg),.panel-body>.field:has(.chk){grid-column:1/-1!important;}'
       +'}'
       // iOS入力ズーム防止
       +'.wrap input,.wrap select,.wrap textarea{font-size:16px;}';

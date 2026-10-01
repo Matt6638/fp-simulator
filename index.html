@@ -232,7 +232,7 @@ window.FPS=(function(){
   var SKEY='fp:settings';
   function get(){try{return JSON.parse(localStorage.getItem(SKEY))||{};}catch(e){return {};}}
   function set(o){try{localStorage.setItem(SKEY,JSON.stringify(o));}catch(e){}}
-  function S(){var s=get();return {unit:s.unit==='man'?'man':'yen',autosave:s.autosave!==false,presenter:s.presenter||'',fontScale:([1,1.25,1.5,1.75].indexOf(s.fontScale)>=0?s.fontScale:1)};}
+  function S(){var s=get();return {unit:s.unit==='yen'?'yen':'man',autosave:s.autosave!==false,presenter:s.presenter||'',fontScale:([1,1.25,1.5,1.75].indexOf(s.fontScale)>=0?s.fontScale:1)};}
   function seg(id,v){var g=document.getElementById(id);if(!g)return;Array.prototype.forEach.call(g.children,function(b){b.setAttribute('aria-pressed',b.dataset.v===v?'true':'false');});}
   function sync(){var s=S();seg('sUnit',s.unit);seg('sAuto',s.autosave?'on':'off');seg('sFont',String(s.fontScale));var p=document.getElementById('sPre');if(p&&document.activeElement!==p)p.value=s.presenter;}
   function build(){if(document.getElementById('fpm'))return;
