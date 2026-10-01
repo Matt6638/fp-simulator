@@ -265,8 +265,31 @@
     }
   }
 
+  // フラット表示＝デッキ化せず、素の結合レイアウト（入力＋結果を1ページ）のまま。iPadで全幅・全数字を同時確認。
+  function initFlat(wrap){
+    if(document.getElementById('fpFlatCSS')) return;
+    var css='.wrap{max-width:none!important;}'
+      // iPad〜PC：全パネルを自動タイル配置＋入力欄を多列に密にして、入力も結果も1画面でまとめて確認。
+      +'@media (min-width:980px){'
+      +'.wrap{padding:16px 26px 56px!important;}'
+      +'.grid,.grid2{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(380px,1fr))!important;gap:14px!important;align-items:start!important;}'
+      +'.grid>.panel,.grid2>.panel,.grid>section,.grid2>section{margin:0!important;max-height:none!important;position:static!important;height:auto!important;}'
+      // 入力欄（.panel-body 内の .field 群）を多列で密に。表・結果行は対象外。
+      +'.panel-body{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(185px,1fr))!important;gap:11px 15px!important;align-items:start!important;}'
+      +'.panel-body>.field{min-width:0!important;margin:0!important;}'
+      // 見出し・説明・ボタン・トグル・幅広欄・表を含む要素は横いっぱい（グリッドに潰さない）
+      +'.panel-body>.sub,.panel-body>.subhead,.panel-body>.grp,.panel-body>.hint,.panel-body>.divider-note,.panel-body>button,.panel-body>.btn,.panel-body>.field.wide,.panel-body>.result,.panel-body>table,.panel-body>.recips,.panel-body>.toggle,.panel-body>.field:has(.toggle),.panel-body>.field:has(textarea),.panel-body>.field:has(.seg){grid-column:1/-1!important;}'
+      +'.panel-body input[type=text],.panel-body input.yen,.panel-body input.num,.panel-body input[inputmode],.panel-body select{width:100%!important;max-width:none!important;box-sizing:border-box!important;}'
+      +'}'
+      // iOS入力ズーム防止
+      +'.wrap input,.wrap select,.wrap textarea{font-size:16px;}';
+    var st=document.createElement('style'); st.id='fpFlatCSS'; st.textContent=css; document.head.appendChild(st);
+    function fs(){ var sc=1; try{var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); if([1,1.25,1.5,1.75].indexOf(o.fontScale)>=0) sc=o.fontScale;}catch(e){} try{ wrap.style.zoom=(sc===1?'':sc); }catch(e){} }
+    fs(); window.addEventListener('storage',function(e){ if(e.key==='fp:settings') fs(); });
+  }
   function build(){
     var wrap=document.querySelector('.wrap'); if(!wrap) return;
+    if(window.FP_FLAT!==false){ initFlat(wrap); return; }   // 既定＝フラット（素の結合レイアウト：入力＋結果を1画面に密に）。FP_FLAT=false で従来デッキ。
     if(document.querySelector('aside.side')) return; // 既に新フェイス
     inject();
     var h1=document.querySelector('.wrap h1')||document.querySelector('h1');
