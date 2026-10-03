@@ -269,26 +269,50 @@
   function initFlat(wrap){
     if(document.getElementById('fpFlatCSS')) return;
     var css='.wrap{max-width:none!important;}'
-      // iPad〜PC：横幅をキチキチに使い、入力も結果も1画面になるべく多く。入力欄はflexで左詰め・コンパクトに。
+      // 説明文（ラベル内注記 .q・ヒント・導入文・出典）は既定で隠し、「説明」ボタン（body.fp-hints）で表示＝1画面に多く。
+      +'.wrap .q,.wrap .hint,.wrap .divider-note,.wrap .info,.wrap .fp-intro,.wrap .fp-sub,.wrap .note,.wrap>footer,.wrap>header .sub{display:none!important;}'
+      +'body.fp-hints .wrap .q{display:inline!important;}'
+      +'body.fp-hints .wrap .hint,body.fp-hints .wrap .divider-note,body.fp-hints .wrap .info,body.fp-hints .wrap .fp-intro,body.fp-hints .wrap .fp-sub,body.fp-hints .wrap .note,body.fp-hints .wrap>footer,body.fp-hints .wrap>header .sub{display:revert!important;}'
+      // iPad〜PC：横幅をキチキチ・文字はiPhone並みにコンパクトにして1画面に多く。入力欄だけ16px（iOSズーム回避）。
       +'@media (min-width:980px){'
-      +'.wrap{padding:12px 18px 36px!important;}'
-      +'.grid,.grid2{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(440px,1fr))!important;gap:10px!important;align-items:start!important;}'
+      +'.wrap{padding:10px 16px 26px!important;font-size:12.5px!important;}'
+      +'.wrap>header{padding-bottom:6px!important;margin-bottom:7px!important;}'
+      +'.wrap h1{font-size:22px!important;margin:0!important;}'
+      +'.wrap .eyebrow{font-size:9px!important;margin-bottom:2px!important;letter-spacing:.3em!important;}'
+      +'.grid,.grid2{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(430px,1fr))!important;gap:9px!important;align-items:start!important;}'
       +'.grid>.panel,.grid2>.panel,.grid>section,.grid2>section{margin:0!important;max-height:none!important;position:static!important;height:auto!important;}'
-      // 入力欄＝固定幅グリッドで左詰め（短ラベルも長ラベルも等幅で密に。伸ばさない）。
-      +'.panel-body{padding:12px 14px!important;display:grid!important;grid-template-columns:repeat(auto-fill,minmax(175px,1fr))!important;justify-content:start!important;gap:9px 14px!important;align-items:start!important;}'
+      +'.panel-head{padding:6px 12px!important;}'
+      +'.panel-head h2{font-size:13px!important;}'
+      // 入力欄＝固定幅グリッドで左詰め・密。ラベル小・入力ボックスはコンパクト（文字は16pxでズーム回避）。
+      +'.panel-body{padding:9px 12px!important;display:grid!important;grid-template-columns:repeat(auto-fill,minmax(158px,1fr))!important;justify-content:start!important;gap:7px 12px!important;align-items:start!important;}'
       +'.panel-body>.field{min-width:0!important;margin:0!important;}'
-      +'.panel-body>.field .lab,.panel-body>.field label{min-height:0!important;margin-bottom:2px!important;line-height:1.3!important;}'
-      +'.panel-body>.field .inrow{gap:4px!important;}'
-      // 金額欄＝中、歳/年/人・%＝小。
-      +'.panel-body input.yen{width:100%!important;max-width:118px!important;box-sizing:border-box!important;}'
-      +'.panel-body input.num,.panel-body input[inputmode=numeric]:not(.yen),.panel-body input[inputmode=decimal]:not(.yen){width:100%!important;max-width:66px!important;box-sizing:border-box!important;}'
+      +'.panel-body>.field .lab,.panel-body>.field label{min-height:0!important;margin-bottom:1px!important;line-height:1.25!important;font-size:12px!important;}'
+      +'.panel-body>.field .inrow{gap:3px!important;}'
+      +'.panel-body .inrow .u,.panel-body .inrow .yen-unit{font-size:11px!important;}'
+      +'.panel-body input.yen{width:100%!important;max-width:108px!important;box-sizing:border-box!important;}'
+      +'.panel-body input.num,.panel-body input[inputmode=numeric]:not(.yen),.panel-body input[inputmode=decimal]:not(.yen){width:100%!important;max-width:60px!important;box-sizing:border-box!important;}'
       +'.panel-body input[type=text]:not(.yen):not(.num),.panel-body select{width:100%!important;max-width:100%!important;box-sizing:border-box!important;}'
-      // 見出し・説明・ボタン・トグル・幅広欄・表・受贈者行は横いっぱいで改行
+      +'.panel-body input,.panel-body select{padding:5px 7px!important;}'
       +'.panel-body>.sub,.panel-body>.subhead,.panel-body>.grp,.panel-body>.hint,.panel-body>.divider-note,.panel-body>button,.panel-body>.btn,.panel-body>.field.wide,.panel-body>.result,.panel-body>table,.panel-body>.recips,.panel-body>.toggle,.panel-body>.field:has(.toggle),.panel-body>.field:has(textarea),.panel-body>.field:has(.seg),.panel-body>.field:has(.chk){grid-column:1/-1!important;}'
+      // 結果：行・表・金額をコンパクトに
+      +'.out-rows .orow,.orow{padding:3px 0!important;font-size:12.5px!important;}'
+      +'.rv{font-size:22px!important;line-height:1.15!important;}'
+      +'.sec-h{font-size:10.5px!important;padding:7px 0 2px!important;}'
+      +'table.tbl,table.tbl th,table.tbl td,table.fulldef-tbl td{font-size:11.5px!important;}'
+      +'table.tbl th,table.tbl td{padding:4px 6px!important;}'
       +'}'
-      // iOS入力ズーム防止
-      +'.wrap input,.wrap select,.wrap textarea{font-size:16px;}';
+      // iOS入力ズーム防止（入力欄だけ16px）
+      +'.wrap input,.wrap select,.wrap textarea{font-size:16px!important;}';
     var st=document.createElement('style'); st.id='fpFlatCSS'; st.textContent=css; document.head.appendChild(st);
+    // 「❔説明」トグルをツールバーに追加（既定は隠す。押すと説明文が開く）
+    try{
+      var bar=document.querySelector('.fpbar');
+      if(bar && !document.getElementById('fpHintBtn')){
+        var hb=document.createElement('button'); hb.type='button'; hb.className='fpbtn'; hb.id='fpHintBtn'; hb.textContent='❔ 説明';
+        hb.addEventListener('click',function(){ var on=document.body.classList.toggle('fp-hints'); hb.textContent=on?'✕ 説明を隠す':'❔ 説明'; });
+        bar.appendChild(hb);
+      }
+    }catch(e){}
     function fs(){ var sc=1; try{var o=JSON.parse(localStorage.getItem('fp:settings')||'{}'); if([1,1.25,1.5,1.75].indexOf(o.fontScale)>=0) sc=o.fontScale;}catch(e){} try{ wrap.style.zoom=(sc===1?'':sc); }catch(e){} }
     fs(); window.addEventListener('storage',function(e){ if(e.key==='fp:settings') fs(); });
   }
