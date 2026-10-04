@@ -269,12 +269,23 @@
   function initFlat(wrap){
     if(document.getElementById('fpFlatCSS')) return;
     var css='.wrap{max-width:none!important;}'
-      // 説明文（ラベル内注記 .q・ヒント・導入文・出典）は既定で隠し、「説明」ボタン（body.fp-hints）で表示＝1画面に多く。
+      // ▼全幅で（iPad縦含む）：説明文は既定で隠す。「説明」ボタン（body.fp-hints）で表示。
       +'.wrap .q,.wrap .hint,.wrap .divider-note,.wrap .info,.wrap .fp-intro,.wrap .fp-sub,.wrap .note,.wrap>footer,.wrap>header .sub{display:none!important;}'
       +'body.fp-hints .wrap .q{display:inline!important;}'
       +'body.fp-hints .wrap .hint,body.fp-hints .wrap .divider-note,body.fp-hints .wrap .info,body.fp-hints .wrap .fp-intro,body.fp-hints .wrap .fp-sub,body.fp-hints .wrap .note,body.fp-hints .wrap>footer,body.fp-hints .wrap>header .sub{display:revert!important;}'
-      // iPad〜PC：横幅をキチキチ・文字はiPhone並みにコンパクトにして1画面に多く。入力欄だけ16px（iOSズーム回避）。
-      +'@media (min-width:980px){'
+      // ▼全幅で：入力欄をコンパクトに固定（iPad縦でも横いっぱいに伸びない）＋多列グリッド。入力文字だけ16px（iOSズーム回避）。
+      +'.wrap input,.wrap select,.wrap textarea{font-size:16px!important;}'
+      +'.wrap input.yen{max-width:120px!important;box-sizing:border-box!important;}'
+      +'.wrap input.num,.wrap input[inputmode=numeric]:not(.yen),.wrap input[inputmode=decimal]:not(.yen){max-width:72px!important;box-sizing:border-box!important;}'
+      +'.panel-body{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important;justify-content:start!important;gap:7px 12px!important;align-items:start!important;}'
+      +'.panel-body>.field{min-width:0!important;margin:0!important;}'
+      +'.panel-body>.field .lab,.panel-body>.field label{min-height:0!important;margin-bottom:1px!important;line-height:1.25!important;}'
+      +'.panel-body>.field .inrow{gap:3px!important;}'
+      +'.panel-body input.yen,.panel-body input.num,.panel-body input[inputmode]:not(.yen){width:100%!important;}'
+      +'.panel-body input[type=text]:not(.yen):not(.num),.panel-body select{width:100%!important;max-width:100%!important;box-sizing:border-box!important;}'
+      +'.panel-body>.sub,.panel-body>.subhead,.panel-body>.grp,.panel-body>.hint,.panel-body>.divider-note,.panel-body>button,.panel-body>.btn,.panel-body>.field.wide,.panel-body>.result,.panel-body>table,.panel-body>.recips,.panel-body>.toggle,.panel-body>.field:has(.toggle),.panel-body>.field:has(textarea),.panel-body>.field:has(.seg),.panel-body>.field:has(.chk){grid-column:1/-1!important;}'
+      // ▼タブレット〜PC（iPad縦744px〜）：パネルを横並び（狭いと縦積み）＋文字をiPhone並みにコンパクトに。
+      +'@media (min-width:700px){'
       +'.wrap{padding:10px 16px 26px!important;font-size:12.5px!important;}'
       +'.wrap>header{padding-bottom:6px!important;margin-bottom:7px!important;}'
       +'.wrap h1{font-size:22px!important;margin:0!important;}'
@@ -283,26 +294,18 @@
       +'.grid>.panel,.grid2>.panel,.grid>section,.grid2>section{margin:0!important;max-height:none!important;position:static!important;height:auto!important;}'
       +'.panel-head{padding:6px 12px!important;}'
       +'.panel-head h2{font-size:13px!important;}'
-      // 入力欄＝固定幅グリッドで左詰め・密。ラベル小・入力ボックスはコンパクト（文字は16pxでズーム回避）。
-      +'.panel-body{padding:9px 12px!important;display:grid!important;grid-template-columns:repeat(auto-fill,minmax(158px,1fr))!important;justify-content:start!important;gap:7px 12px!important;align-items:start!important;}'
-      +'.panel-body>.field{min-width:0!important;margin:0!important;}'
-      +'.panel-body>.field .lab,.panel-body>.field label{min-height:0!important;margin-bottom:1px!important;line-height:1.25!important;font-size:12px!important;}'
-      +'.panel-body>.field .inrow{gap:3px!important;}'
+      +'.panel-body{padding:9px 12px!important;grid-template-columns:repeat(auto-fill,minmax(156px,1fr))!important;}'
+      +'.panel-body>.field .lab,.panel-body>.field label{font-size:12px!important;}'
       +'.panel-body .inrow .u,.panel-body .inrow .yen-unit{font-size:11px!important;}'
-      +'.panel-body input.yen{width:100%!important;max-width:108px!important;box-sizing:border-box!important;}'
-      +'.panel-body input.num,.panel-body input[inputmode=numeric]:not(.yen),.panel-body input[inputmode=decimal]:not(.yen){width:100%!important;max-width:60px!important;box-sizing:border-box!important;}'
-      +'.panel-body input[type=text]:not(.yen):not(.num),.panel-body select{width:100%!important;max-width:100%!important;box-sizing:border-box!important;}'
+      +'.panel-body input.yen{max-width:108px!important;}'
+      +'.panel-body input.num,.panel-body input[inputmode]:not(.yen){max-width:60px!important;}'
       +'.panel-body input,.panel-body select{padding:5px 7px!important;}'
-      +'.panel-body>.sub,.panel-body>.subhead,.panel-body>.grp,.panel-body>.hint,.panel-body>.divider-note,.panel-body>button,.panel-body>.btn,.panel-body>.field.wide,.panel-body>.result,.panel-body>table,.panel-body>.recips,.panel-body>.toggle,.panel-body>.field:has(.toggle),.panel-body>.field:has(textarea),.panel-body>.field:has(.seg),.panel-body>.field:has(.chk){grid-column:1/-1!important;}'
-      // 結果：行・表・金額をコンパクトに
       +'.out-rows .orow,.orow{padding:3px 0!important;font-size:12.5px!important;}'
       +'.rv{font-size:22px!important;line-height:1.15!important;}'
       +'.sec-h{font-size:10.5px!important;padding:7px 0 2px!important;}'
       +'table.tbl,table.tbl th,table.tbl td,table.fulldef-tbl td{font-size:11.5px!important;}'
       +'table.tbl th,table.tbl td{padding:4px 6px!important;}'
-      +'}'
-      // iOS入力ズーム防止（入力欄だけ16px）
-      +'.wrap input,.wrap select,.wrap textarea{font-size:16px!important;}';
+      +'}';
     var st=document.createElement('style'); st.id='fpFlatCSS'; st.textContent=css; document.head.appendChild(st);
     // 「❔説明」トグルをツールバーに追加（既定は隠す。押すと説明文が開く）
     try{
