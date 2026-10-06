@@ -10,13 +10,26 @@
   if(window.FP_FLAT!==false){
     try{ injectFlatCSS(); }catch(e){}
     if(!document.getElementById('fpFlatCSS')){ document.addEventListener('DOMContentLoaded',function(){ try{injectFlatCSS();}catch(e){} }); }
-    // 保険：グリッドを一瞬 display:none→戻して強制再レイアウト（＝画面回転と同じ効果）。
-    // 早期注入でCSSは描画前に当たるが、万一反映が遅れても回転せず自動でコンパクト化するように。
-    // none→戻しは同一フレーム内で同期的に行うため画面のちらつきは出ない。
-    var __flatReflow=function(){ try{ var gs=document.querySelectorAll('.wrap .grid,.wrap .grid2'); for(var i=0;i<gs.length;i++){ var el=gs[i], d=el.style.display; el.style.display='none'; void el.offsetHeight; el.style.display=d; } }catch(e){} };
-    window.addEventListener('load',function(){ requestAnimationFrame(__flatReflow); setTimeout(__flatReflow,150); });
-    window.addEventListener('orientationchange',function(){ setTimeout(__flatReflow,60); setTimeout(__flatReflow,280); });
-    window.addEventListener('pageshow',__flatReflow);
+    // ★コンパクト（タブレット〜PC）レイアウトは @media(min-width:700px) に頼らず、JSで実幅を測って
+    //   body.fp-wide クラスを付与する方式にする。iPad を横向きで（特にホーム画面アプリとして）開くと、
+    //   起動直後はビューポート幅が確定せず、横1194pxになっても @media の評価が更新されないまま固定され、
+    //   「一度縦にして横に戻す（＝回転）」まで反映されないことがあるため。実幅を複数回測り直してクラスを
+    //   当てれば、回転しなくても開いた瞬間〜直後にコンパクト化する。
+    var __applyWide=function(){ try{ if(window.FP_FLAT===false) return; var b=document.body; if(!b) return;
+        var w=Math.max(window.innerWidth||0, (document.documentElement&&document.documentElement.clientWidth)||0);
+        if(window.visualViewport&&window.visualViewport.width){ w=Math.max(w, Math.round(window.visualViewport.width)); }
+        b.classList.toggle('fp-wide', w>=700);
+      }catch(e){} };
+    window.__fpApplyWide=__applyWide;
+    __applyWide();
+    document.addEventListener('DOMContentLoaded',__applyWide);
+    [0,60,150,300,600,1000,1800].forEach(function(ms){ setTimeout(__applyWide,ms); }); // 起動直後は幅が安定しないので測り直す
+    window.addEventListener('load',function(){ __applyWide(); requestAnimationFrame(__applyWide); setTimeout(__applyWide,120); });
+    window.addEventListener('resize',__applyWide);
+    window.addEventListener('orientationchange',function(){ __applyWide(); setTimeout(__applyWide,60); setTimeout(__applyWide,300); });
+    window.addEventListener('pageshow',__applyWide);
+    document.addEventListener('visibilitychange',function(){ if(!document.hidden) __applyWide(); });
+    if(window.visualViewport){ try{ window.visualViewport.addEventListener('resize',__applyWide); }catch(e){} }
   }
 
   // 入力欄以外での「左スワイプ」でトップ(index.html)へ戻る（全ツール共通）
@@ -301,28 +314,29 @@
       +'.panel-body input.yen,.panel-body input.num,.panel-body input[inputmode]:not(.yen){width:100%!important;}'
       +'.panel-body input[type=text]:not(.yen):not(.num),.panel-body select{width:100%!important;max-width:100%!important;box-sizing:border-box!important;}'
       +'.panel-body>.sub,.panel-body>.subhead,.panel-body>.grp,.panel-body>.hint,.panel-body>.divider-note,.panel-body>button,.panel-body>.btn,.panel-body>.field.wide,.panel-body>.result,.panel-body>table,.panel-body>.recips,.panel-body>.toggle,.panel-body>.field:has(.toggle),.panel-body>.field:has(textarea),.panel-body>.field:has(.seg),.panel-body>.field:has(.chk){grid-column:1/-1!important;}'
-      // ▼タブレット〜PC（iPad縦744px〜）：パネルを横並び（狭いと縦積み）＋文字をiPhone並みにコンパクトに。
-      +'@media (min-width:700px){'
-      +'.wrap{padding:10px 16px 26px!important;font-size:12.5px!important;}'
-      +'.wrap>header{padding-bottom:6px!important;margin-bottom:7px!important;}'
-      +'.wrap h1{font-size:22px!important;margin:0!important;}'
-      +'.wrap .eyebrow{font-size:9px!important;margin-bottom:2px!important;letter-spacing:.3em!important;}'
-      +'.grid,.grid2{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(430px,1fr))!important;gap:9px!important;align-items:start!important;}'
-      +'.grid>.panel,.grid2>.panel,.grid>section,.grid2>section{margin:0!important;max-height:none!important;position:static!important;height:auto!important;}'
-      +'.panel-head{padding:6px 12px!important;}'
-      +'.panel-head h2{font-size:13px!important;}'
-      +'.panel-body{padding:9px 12px!important;grid-template-columns:repeat(auto-fill,minmax(156px,1fr))!important;}'
-      +'.panel-body .lab{font-size:12px!important;min-height:2.5em!important;display:block!important;}'  /* ラベルを2行ぶんの高さで揃え＝入力欄の上端がそろう（入れ子欄も対象） */
-      +'.panel-body .inrow .u,.panel-body .inrow .yen-unit{font-size:11px!important;}'
-      +'.panel-body input.yen{max-width:108px!important;}'
-      +'.panel-body input.num,.panel-body input[inputmode]:not(.yen){max-width:60px!important;}'
-      +'.panel-body input,.panel-body select{padding:5px 7px!important;}'
-      +'.out-rows .orow,.orow{padding:3px 0!important;font-size:12.5px!important;}'
-      +'.rv{font-size:22px!important;line-height:1.15!important;}'
-      +'.sec-h{font-size:10.5px!important;padding:7px 0 2px!important;}'
-      +'table.tbl,table.tbl th,table.tbl td,table.fulldef-tbl td{font-size:11.5px!important;}'
-      +'table.tbl th,table.tbl td{padding:4px 6px!important;}'
-      +'}';
+      // ▼タブレット〜PC（実幅700px〜：JSが body.fp-wide を付与）：パネルを横並び＋文字をiPhone並みにコンパクトに。
+      //   @media(min-width:700px) ではなく body.fp-wide で切替える。iPadを横で（特にホーム画面アプリで）開くと
+      //   起動直後の @media 評価が実ビューポート幅に更新されず「回転するまでコンパクトにならない」ため、
+      //   JSで実幅を測ってクラス付与する方式にして回転不要にする。
+      +'body.fp-wide .wrap{padding:10px 16px 26px!important;font-size:12.5px!important;}'
+      +'body.fp-wide .wrap>header{padding-bottom:6px!important;margin-bottom:7px!important;}'
+      +'body.fp-wide .wrap h1{font-size:22px!important;margin:0!important;}'
+      +'body.fp-wide .wrap .eyebrow{font-size:9px!important;margin-bottom:2px!important;letter-spacing:.3em!important;}'
+      +'body.fp-wide .grid,body.fp-wide .grid2{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(430px,1fr))!important;gap:9px!important;align-items:start!important;}'
+      +'body.fp-wide .grid>.panel,body.fp-wide .grid2>.panel,body.fp-wide .grid>section,body.fp-wide .grid2>section{margin:0!important;max-height:none!important;position:static!important;height:auto!important;}'
+      +'body.fp-wide .panel-head{padding:6px 12px!important;}'
+      +'body.fp-wide .panel-head h2{font-size:13px!important;}'
+      +'body.fp-wide .panel-body{padding:9px 12px!important;grid-template-columns:repeat(auto-fill,minmax(156px,1fr))!important;}'
+      +'body.fp-wide .panel-body .lab{font-size:12px!important;min-height:2.5em!important;display:block!important;}'  /* ラベルを2行ぶんの高さで揃え＝入力欄の上端がそろう */
+      +'body.fp-wide .panel-body .inrow .u,body.fp-wide .panel-body .inrow .yen-unit{font-size:11px!important;}'
+      +'body.fp-wide .panel-body input.yen{max-width:108px!important;}'
+      +'body.fp-wide .panel-body input.num,body.fp-wide .panel-body input[inputmode]:not(.yen){max-width:60px!important;}'
+      +'body.fp-wide .panel-body input,body.fp-wide .panel-body select{padding:5px 7px!important;}'
+      +'body.fp-wide .out-rows .orow,body.fp-wide .orow{padding:3px 0!important;font-size:12.5px!important;}'
+      +'body.fp-wide .rv{font-size:22px!important;line-height:1.15!important;}'
+      +'body.fp-wide .sec-h{font-size:10.5px!important;padding:7px 0 2px!important;}'
+      +'body.fp-wide table.tbl,body.fp-wide table.tbl th,body.fp-wide table.tbl td,body.fp-wide table.fulldef-tbl td{font-size:11.5px!important;}'
+      +'body.fp-wide table.tbl th,body.fp-wide table.tbl td{padding:4px 6px!important;}';
     var st=document.createElement('style'); st.id='fpFlatCSS'; st.textContent=css; (document.head||document.documentElement).appendChild(st);
   }
   // フラット表示＝デッキ化せず、素の結合レイアウト（入力＋結果を1ページ）のまま。iPadで全幅・全数字を同時確認。
