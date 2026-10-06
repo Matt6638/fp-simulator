@@ -5,6 +5,17 @@
 (function(){
   if(window.__fpDeck) return; window.__fpDeck=true;
 
+  // ★フラットCSSは「最初の描画の前」に注入する（load待ちで後から入れると、iPad横の初回表示でコンパクトにならず、
+  //   一度画面を回転させないと効かない不具合になる）。このスクリプトは </body> 直前で同期実行されるため、ここで当ててしまう。
+  if(window.FP_FLAT!==false){
+    try{ injectFlatCSS(); }catch(e){}
+    if(!document.getElementById('fpFlatCSS')){ document.addEventListener('DOMContentLoaded',function(){ try{injectFlatCSS();}catch(e){} }); }
+    // 回転・復帰時は念のためリフローを促す（CSSは静的なので本来不要だが保険）
+    var __flatReflow=function(){ var w=document.querySelector('.wrap'); if(w){ void w.offsetHeight; } };
+    window.addEventListener('orientationchange',function(){ setTimeout(__flatReflow,60); setTimeout(__flatReflow,260); });
+    window.addEventListener('pageshow',__flatReflow);
+  }
+
   // 入力欄以外での「左スワイプ」でトップ(index.html)へ戻る（全ツール共通）
   (function backSwipe(){
     if(window.__fpBackSwipe) return; window.__fpBackSwipe=true;
@@ -265,8 +276,9 @@
     }
   }
 
-  // フラット表示＝デッキ化せず、素の結合レイアウト（入力＋結果を1ページ）のまま。iPadで全幅・全数字を同時確認。
-  function initFlat(wrap){
+  // フラット表示のCSSを注入。iPadで「初回の横画面でコンパクトにならず、一度回転させないと効かない」不具合の対策＝
+  // 最初の描画の前に（load待ちせず）当てる。後から挿入するとiOS Safariがgridを再レイアウトせず、回転のリフローまで反映されない。
+  function injectFlatCSS(){
     if(document.getElementById('fpFlatCSS')) return;
     var css='.wrap{max-width:none!important;}'
       // ▼全幅で（iPad縦含む）：説明文は既定で隠す。「説明」ボタン（body.fp-hints）で表示。
@@ -308,7 +320,11 @@
       +'table.tbl,table.tbl th,table.tbl td,table.fulldef-tbl td{font-size:11.5px!important;}'
       +'table.tbl th,table.tbl td{padding:4px 6px!important;}'
       +'}';
-    var st=document.createElement('style'); st.id='fpFlatCSS'; st.textContent=css; document.head.appendChild(st);
+    var st=document.createElement('style'); st.id='fpFlatCSS'; st.textContent=css; (document.head||document.documentElement).appendChild(st);
+  }
+  // フラット表示＝デッキ化せず、素の結合レイアウト（入力＋結果を1ページ）のまま。iPadで全幅・全数字を同時確認。
+  function initFlat(wrap){
+    injectFlatCSS();
     // 「❔説明」トグルをツールバーに追加（既定は隠す。押すと説明文が開く）
     try{
       var bar=document.querySelector('.fpbar');
