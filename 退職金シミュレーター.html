@@ -113,6 +113,7 @@
   <button data-t="tax" aria-pressed="true">① 退職金の税額・手取り</button>
   <button data-t="need" aria-pressed="false">② 手取りから必要退職金（逆算）</button>
   <button data-t="save" aria-pressed="false">③ 給与引下げによる退職金積立</button>
+  <button data-t="rev" aria-pressed="false">④ 希望退職金→役員報酬の逆算</button>
 </div>
 
 <!-- ① 税額 -->
@@ -187,9 +188,37 @@
 </div>
 </div>
 
+<!-- ④ 希望退職金→役員報酬の逆算 -->
+<div class="tab-pane" id="pane-rev">
+<div class="grid">
+  <section class="panel">
+    <div class="panel-head"><span class="no">01</span><h2>希望退職金と条件を入力</h2></div>
+    <div class="panel-body">
+      <div class="field"><label class="lab">希望する退職金額</label><div class="inrow"><input type="text" inputmode="numeric" class="yen" id="r_goal" value="" placeholder="0"><span class="u">円</span></div></div>
+      <div class="field"><label class="lab">役員在任年数</label><div class="inrow"><input type="text" inputmode="numeric" class="num" id="r_years" value="" placeholder="30"><span class="u">年</span></div></div>
+      <div class="row2">
+        <div class="field"><label class="lab">役職（功績倍率の目安）</label><div class="inrow"><select id="r_role" style="width:100%;font-size:14.5px;color:var(--ink);background:#fcfbf8;border:1px solid var(--rule);border-radius:7px;padding:10px 12px;"><option value="">選択…</option><option value="3.0">社長（3.0）</option><option value="2.4">専務（2.4）</option><option value="2.2">常務（2.2）</option><option value="1.8">取締役（1.8）</option><option value="1.6">監査役（1.6）</option><option value="manual">手動入力</option></select></div></div>
+        <div class="field"><label class="lab">功績倍率</label><div class="inrow"><input type="text" inputmode="decimal" id="r_k" value="" placeholder="3.0" style="text-align:right;font-family:var(--mono);"><span class="u">倍</span></div></div>
+      </div>
+      <div class="field"><label class="lab">現在の役員報酬 月額</label><div class="inrow"><input type="text" inputmode="numeric" class="yen" id="r_now" value="" placeholder="0"><span class="u">円/月</span></div></div>
+      <div class="field"><label class="lab" style="white-space:nowrap;">引き上げにかける年数</label><div class="inrow"><input type="text" inputmode="numeric" class="num" id="r_ramp" value="" placeholder="5"><span class="u">年</span></div><div class="hint">退職の何年前から段階的に上げるか。直前の急増は否認されやすいため、原則3年以上（できれば5年程度）。</div></div>
+      <div class="hint">功績倍率法：<b>退職金＝最終報酬月額×在任年数×功績倍率</b>。希望退職金から必要な<b>最終報酬月額</b>を逆算し、現在の月額からの段階引き上げプランを作ります。功績倍率は昭和55年の裁判例に由来する実務上の目安（社長3.0・専務2.4・常務2.2・取締役1.8・監査役1.6）で、法律上の上限ではありません。<b>概算・要税理士確認</b>。</div>
+    </div>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><span class="no">02</span><h2>必要な最終報酬月額・引き上げプラン</h2></div>
+    <div class="out-rows" id="r_out"></div>
+    <div class="sec-h">段階引き上げプラン</div>
+    <div style="padding:0 20px 8px;overflow-x:auto;" id="r_plan"></div>
+    <div style="padding:2px 20px 16px;" id="r_risk"></div>
+  </section>
+</div>
+</div>
+
 <footer>
   <b>前提・出典</b>：本ツールは2025年制度に基づく<b>概算</b>です。退職所得控除＝勤続20年以下は40万円×年数（最低80万円）、20年超は800万円＋70万円×(年数−20)。課税退職所得＝(退職金−退職所得控除)×1/2（勤続5年以下の役員は1/2なし）。所得税は超過累進＋復興特別所得税2.1%、住民税10%。<br>
-  ③の給与課税・社会保険料は東京都・協会けんぽ2025年の標準的な料率と標準報酬上限で概算しています。均等割・調整控除・賞与は考慮していません。参考：FP塾「役員退職金の税額／手取り額／給与引下げによる退職金積立」。個別の試算は税理士等にご確認ください。
+  ③の給与課税・社会保険料は東京都・協会けんぽ2025年の標準的な料率と標準報酬上限で概算しています。均等割・調整控除・賞与は考慮していません。参考：FP塾「役員退職金の税額／手取り額／給与引下げによる退職金積立」。<br>
+  <b>④逆算</b>：功績倍率法（退職金＝最終報酬月額×在任年数×功績倍率）は実務上の目安で、功績倍率（社長3.0等）は昭和55年の裁判例に由来する慣行であり法律上の上限ではありません。過大役員退職給与は在任年数・退職の事情・同業類似法人の支給状況等から「不相当に高額」かを判断され（法人税法34②、法令70一ロ）、<b>退職直前の不自然な報酬増額</b>は否認の典型例です。最終報酬月額が否認されると「1年当たり平均額法」で低く評価される場合があります。個別の試算・実行は必ず税理士等にご確認ください。
 </footer>
 </div>
 
@@ -332,13 +361,70 @@ function row(k,v){return '<div class="orow"><span class="k">'+k+'</span><span cl
 function hero(k,v){return '<div class="orow hero"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';}
 function lin(k,v){return '<div class="lin"><span>'+k+'</span><span>'+fmtN(v)+' '+U()+'</span></div>';}
 
+/* ④ 希望退職金→役員報酬の逆算（功績倍率法：退職金＝最終報酬月額×在任年数×功績倍率） */
+function revK(){var v=parseFloat(zen2han(_pv(g('r_k'))).replace(/,/g,''));return (isFinite(v)&&v>0)?v:0;}
+function planCell(v,extra){return '<td style="padding:4px 6px;border-bottom:1px solid var(--rule-soft,#efe9dd);'+(extra||'')+'">'+v+'</td>';}
+function planRow(label,m,yr,rate){
+  var rc=(rate===null)?'—':((rate>=0?'+':'')+(Math.round(rate*10)/10)+'%');
+  return '<tr>'+planCell(label,'white-space:nowrap;')+
+    planCell(fmtN(m),'text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono);')+
+    planCell(fmtN(yr),'text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono);')+
+    planCell(rc,'text-align:right;color:var(--ink-soft,#5a6b8c);')+'</tr>';
+}
+function renderRev(){
+  var out=g('r_out'); if(!out) return;
+  var goal=num('r_goal'), years=intV('r_years'), K=revK(), now=num('r_now'), ramp=intV('r_ramp');
+  if(goal<=0||years<=0||K<=0){
+    out.innerHTML=row('必要な最終報酬月額','希望退職金額・在任年数・功績倍率を入力してください');
+    g('r_plan').innerHTML=''; g('r_risk').innerHTML=''; return;
+  }
+  var M=goal/(years*K);                 // 必要な最終報酬月額（円）
+  var o='';
+  o+=row('希望退職金額',fmtN(goal)+' '+U());
+  o+=row('在任年数 × 功績倍率',years+' 年 × '+(Math.round(K*100)/100)+' 倍');
+  o+=hero('必要な最終報酬月額',fmtN(M)+'<small> '+U()+'/月</small>');
+  o+=row('　（年額換算）',fmtN(M*12)+' '+U()+'/年');
+  if(now>0){
+    var diff=M-now, mult=M/now;
+    o+=row('現在の役員報酬 月額',fmtN(now)+' '+U()+'/月');
+    o+=row(diff>=0?'必要な引き上げ額':'引き下げ余地',fmtN(Math.abs(diff))+' '+U()+'/月（約'+(Math.round(mult*100)/100)+'倍）');
+  }
+  out.innerHTML=o;
+  // 段階引き上げプラン
+  var plan=g('r_plan');
+  if(now>0&&ramp>0&&M>now){
+    var th=function(t){return '<th style="text-align:'+(t==='時期'?'left':'right')+';padding:5px 6px;border-bottom:1.5px solid var(--rule,#d9d2c4);color:var(--brass-deep,#7d6240);font-weight:600;white-space:nowrap;">'+t+'</th>';};
+    var t='<table class="tbl" style="width:100%;border-collapse:collapse;font-size:12.5px;"><thead><tr>'+th('時期')+th('役員報酬 月額')+th('年額')+th('対前年')+'</tr></thead><tbody>';
+    var prev=now; t+=planRow('現在',now,now*12,null);
+    for(var i=1;i<=ramp;i++){var mi=now+(M-now)*i/ramp;var rate=(mi/prev-1)*100;t+=planRow(i+'年目'+(i===ramp?'（退職）':''),mi,mi*12,rate);prev=mi;}
+    t+='</tbody></table>';
+    plan.innerHTML=t;
+  } else if(now>0&&M<=now){
+    plan.innerHTML='<div class="hint" style="padding:8px 0;">現在の月額ですでに希望退職金に届きます（引き上げ不要）。</div>';
+  } else {
+    plan.innerHTML='<div class="hint" style="padding:8px 0;">現在の役員報酬月額と引き上げ年数を入力すると、段階引き上げプランを表示します。</div>';
+  }
+  // 否認リスク評価
+  var lvl,col;
+  if(now<=0||M<=now){ lvl='―（増額なし）'; col='#7d6240'; }
+  else if(ramp>=5){ lvl='比較的低い'; col='#1f7a4d'; }
+  else if(ramp>=3){ lvl='中程度'; col='#c07d1a'; }
+  else { lvl='高い（直前の急増とみなされやすい）'; col='#b5623a'; }
+  var perYear=(now>0&&ramp>0&&M>now)?(Math.pow(M/now,1/ramp)-1)*100:null;
+  var h='<div style="border-left:3px solid '+col+';background:#faf7f1;padding:10px 12px;border-radius:0 8px 8px 0;font-size:12px;line-height:1.7;color:var(--ink-soft,#4a5a7a);">';
+  h+='<b style="color:'+col+';">否認リスクの目安：'+lvl+'</b>';
+  if(perYear!==null) h+='（この計画＝毎年 約'+Math.round(perYear)+'% ずつ増額）';
+  h+='<br>最終報酬月額が<b>不相当に高額</b>だと過大役員退職給与として損金否認されえます（法人税法34②）。退職<b>直前の急な増額</b>は否認の典型。原則<b>3年以上・できれば5年程度</b>かけて段階的に引き上げ、各期の増額を<b>株主総会（社員総会）決議</b>と<b>職責・業績の拡大</b>で裏付けてください。<b>実行前に必ず顧問税理士へご確認ください（概算）。</b></div>';
+  g('r_risk').innerHTML=h;
+}
+
 var TAB='tax';
 /* 単位はFPコアに統一（既定=万円）。window.__fpU を基準に表示。切替は共通の「円/万円」トグル（FP.toggleUnit）。 */
 window.__fpU=(function(){try{return (JSON.parse(localStorage.getItem('fp:settings')||'{}').unit==='yen')?'yen':'man';}catch(e){return 'man';}})();
 function fmtN(v){v=Math.round(v);return window.__fpU==='man'?(Math.round(v/1000)/10).toLocaleString('ja-JP',{maximumFractionDigits:1}):v.toLocaleString('ja-JP');}
 function U(){return window.__fpU==='man'?'万円':'円';}
 function applyUnitLabels(){var u=U();document.querySelectorAll('input.yen').forEach(function(e){var sp=e.parentElement&&e.parentElement.querySelector('.u,.yen-unit');if(sp){var suf=/\/月/.test(sp.textContent)?'/月':'';sp.textContent=u+suf;}});}
-function recalc(){ applyUnitLabels(); try{renderTax();}catch(e){} try{renderNeed();}catch(e){} try{renderSave();}catch(e){} } /* フェイス変換でタブが1画面化されるため3計算を常時描画 */
+function recalc(){ applyUnitLabels(); try{renderTax();}catch(e){} try{renderNeed();}catch(e){} try{renderSave();}catch(e){} try{renderRev();}catch(e){} } /* フェイス変換でタブが1画面化されるため全計算を常時描画 */
 
 /* 配線：金額欄整形（全角対応・フォーカスでクリア） */
 function formatYen(el){var half=zen2han(el.value);var db=half.slice(0,el.selectionStart).replace(/[^\d.]/g,'').length;var raw=half.replace(/[^\d.]/g,'');el.value=raw?Number(raw).toLocaleString('ja-JP'):'';var pos=0,c=0;if(db>0){for(var i=0;i<el.value.length;i++){var ch=el.value.charCodeAt(i);if(ch>=48&&ch<=57)c++;if(c>=db){pos=i+1;break;}}if(c<db)pos=el.value.length;}try{el.setSelectionRange(pos,pos);}catch(e){}}
@@ -346,6 +432,17 @@ function attachAmount(el){var comp=false;el.addEventListener('compositionstart',
 function attachNum(el){el.addEventListener('focus',function(){this.dataset.prev=this.value;this.value='';});el.addEventListener('blur',function(){if(this.value.trim()==='')this.value=this.dataset.prev||'';recalc();});el.addEventListener('input',function(){el.value=zen2han(el.value).replace(/[^\d]/g,'');recalc();});}
 document.querySelectorAll('input.yen').forEach(attachAmount);
 document.querySelectorAll('input.num').forEach(attachNum);
+/* ④功績倍率：小数を扱うため .num を使わず個別配線（全角→半角・小数点許可）。役職プリセットで倍率を自動入力。 */
+(function(){
+  var rk=g('r_k');
+  if(rk){
+    rk.addEventListener('focus',function(){this.dataset.prev=this.value;this.value='';});
+    rk.addEventListener('blur',function(){if(this.value.trim()===''&&this.dataset.prev)this.value=this.dataset.prev;recalc();});
+    rk.addEventListener('input',function(){this.value=zen2han(this.value).replace(/[^\d.]/g,'');recalc();});
+  }
+  var rr=g('r_role');
+  if(rr){rr.addEventListener('change',function(){if(this.value&&this.value!=='manual'){if(rk)rk.value=this.value;}else if(this.value==='manual'&&rk){rk.focus();}recalc();});}
+})();
 // 在任年数を手入力したら「手動」フラグ（自動計算で上書きしない）。空にすれば自動へ復帰
 ['t_years','n_years'].forEach(function(id){var ty=document.getElementById(id);if(ty)ty.addEventListener('input',function(){this.setAttribute('data-manual',this.value.trim()===''?'0':'1');},true);});
 document.querySelectorAll('input[type=checkbox]').forEach(function(c){c.addEventListener('change',recalc);});
