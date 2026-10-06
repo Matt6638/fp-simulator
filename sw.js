@@ -1,7 +1,7 @@
 /* ===== FPシミュレーター Service Worker（オフライン対応） =====
    全ツールと共有アセットを事前キャッシュし、オフラインでも起動できるようにする。
    更新時は CACHE のバージョンを上げると、次回オンライン時に自動で入れ替わる。 */
-const CACHE = 'fp-cache-v54';
+const CACHE = 'fp-cache-v55';
 
 const ASSETS = [
   './',
@@ -81,7 +81,20 @@ self.addEventListener('fetch', function(e){
     return;
   }
 
-  // それ以外（JS/画像等）はキャッシュ優先
+  // JS / CSS（共有コード）はネットワーク優先＝オンラインなら必ず最新を配信。
+  // これで HTML の ?v= 更新が即反映され、SWキャッシュで古いスクリプト（例：旧fp-deck.js）を
+  // 掴み続ける不具合（「リロードしても直らない」）を防ぐ。オフライン時のみキャッシュから返す。
+  if(/\.(?:js|css)$/i.test(url.pathname)){
+    e.respondWith(
+      fetch(req).then(function(res){
+        if(res && res.status===200 && res.type==='basic'){ var copy=res.clone(); caches.open(CACHE).then(function(c){ c.put(req, copy); }); }
+        return res;
+      }).catch(function(){ return caches.match(req, {ignoreSearch:true}); })
+    );
+    return;
+  }
+
+  // それ以外（画像・フォント・manifest等）はキャッシュ優先
   e.respondWith(
     caches.match(req, {ignoreSearch:true}).then(function(cached){
       if(cached) return cached;

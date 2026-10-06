@@ -19,8 +19,22 @@
   // オンラインで一度開けば、以降はオフライン（iPad現地作業）でも起動できる。
   // 更新を配る側は sw.js の CACHE バージョンを上げること（次回オンライン時に自動入替）。
   if('serviceWorker' in navigator){
+    // 新しいSWが制御を取ったら一度だけ自動リロード＝最新コードへ即入替（iPadで「更新が反映されない」対策）。
+    var __fpReloaded=false;
+    try{
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if(__fpReloaded) return; __fpReloaded=true;
+        try{ location.reload(); }catch(_){}
+      });
+    }catch(_){}
     window.addEventListener('load', function(){
-      try{ navigator.serviceWorker.register('sw.js').catch(function(){}); }catch(_){}
+      try{
+        navigator.serviceWorker.register('sw.js').then(function(reg){
+          try{ reg.update(); }catch(_){}
+          // 開きっぱなしでも拾えるよう定期的に更新チェック
+          try{ setInterval(function(){ try{ reg.update(); }catch(_){} }, 30*60*1000); }catch(_){}
+        }).catch(function(){});
+      }catch(_){}
     });
   }
 

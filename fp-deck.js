@@ -10,9 +10,12 @@
   if(window.FP_FLAT!==false){
     try{ injectFlatCSS(); }catch(e){}
     if(!document.getElementById('fpFlatCSS')){ document.addEventListener('DOMContentLoaded',function(){ try{injectFlatCSS();}catch(e){} }); }
-    // 回転・復帰時は念のためリフローを促す（CSSは静的なので本来不要だが保険）
-    var __flatReflow=function(){ var w=document.querySelector('.wrap'); if(w){ void w.offsetHeight; } };
-    window.addEventListener('orientationchange',function(){ setTimeout(__flatReflow,60); setTimeout(__flatReflow,260); });
+    // 保険：グリッドを一瞬 display:none→戻して強制再レイアウト（＝画面回転と同じ効果）。
+    // 早期注入でCSSは描画前に当たるが、万一反映が遅れても回転せず自動でコンパクト化するように。
+    // none→戻しは同一フレーム内で同期的に行うため画面のちらつきは出ない。
+    var __flatReflow=function(){ try{ var gs=document.querySelectorAll('.wrap .grid,.wrap .grid2'); for(var i=0;i<gs.length;i++){ var el=gs[i], d=el.style.display; el.style.display='none'; void el.offsetHeight; el.style.display=d; } }catch(e){} };
+    window.addEventListener('load',function(){ requestAnimationFrame(__flatReflow); setTimeout(__flatReflow,150); });
+    window.addEventListener('orientationchange',function(){ setTimeout(__flatReflow,60); setTimeout(__flatReflow,280); });
     window.addEventListener('pageshow',__flatReflow);
   }
 
