@@ -279,7 +279,9 @@
       +'.wrap input.num,.wrap input[inputmode=numeric]:not(.yen),.wrap input[inputmode=decimal]:not(.yen){max-width:72px!important;box-sizing:border-box!important;}'
       +'.panel-body{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important;justify-content:start!important;gap:7px 12px!important;align-items:start!important;}'
       +'.panel-body>.field{min-width:0!important;margin:0!important;}'
-      +'.panel-body>.field .lab,.panel-body>.field label{min-height:0!important;margin-bottom:1px!important;line-height:1.25!important;}'
+      // 入れ子の2列/3列ラッパーは解体して中の欄を親グリッドへ直接流し込む（揃える）
+      +'.panel-body>.row2,.panel-body>.row3,.panel-body>.grid2{display:contents!important;}'
+      +'.panel-body .lab{min-height:0!important;margin-bottom:1px!important;line-height:1.25!important;}'
       +'.panel-body>.field .inrow{gap:3px!important;}'
       +'.panel-body input.yen,.panel-body input.num,.panel-body input[inputmode]:not(.yen){width:100%!important;}'
       +'.panel-body input[type=text]:not(.yen):not(.num),.panel-body select{width:100%!important;max-width:100%!important;box-sizing:border-box!important;}'
@@ -295,7 +297,7 @@
       +'.panel-head{padding:6px 12px!important;}'
       +'.panel-head h2{font-size:13px!important;}'
       +'.panel-body{padding:9px 12px!important;grid-template-columns:repeat(auto-fill,minmax(156px,1fr))!important;}'
-      +'.panel-body>.field .lab,.panel-body>.field label{font-size:12px!important;}'
+      +'.panel-body .lab{font-size:12px!important;min-height:2.5em!important;display:block!important;}'  /* ラベルを2行ぶんの高さで揃え＝入力欄の上端がそろう（入れ子欄も対象） */
       +'.panel-body .inrow .u,.panel-body .inrow .yen-unit{font-size:11px!important;}'
       +'.panel-body input.yen{max-width:108px!important;}'
       +'.panel-body input.num,.panel-body input[inputmode]:not(.yen){max-width:60px!important;}'
