@@ -32,6 +32,34 @@
     if(window.visualViewport){ try{ window.visualViewport.addEventListener('resize',__applyWide); }catch(e){} }
   }
 
+  // ===== 画面幅デバッグ（URLに ?debug=1 で有効）：実機で「幅・fp-wide・適用中フォント」を可視化し、
+  //   キャッシュ（旧コード）なのか実機だけ幅が違うのかを切り分ける。本番の通常表示には一切出ない。 =====
+  (function(){
+    try{ if(location.search.indexOf('debug')<0 && !window.FP_DEBUG) return; }catch(e){ return; }
+    var BUILD='v49 fp-wide方式 (2026-10-07)';
+    function mk(){
+      if(!document.body || document.getElementById('fpDbg')) return;
+      var d=document.createElement('div'); d.id='fpDbg';
+      d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#0d1730;color:#fff;font:12px/1.5 ui-monospace,monospace;padding:7px 10px;white-space:pre-wrap;opacity:.96;box-shadow:0 2px 8px rgba(0,0,0,.4);';
+      document.body.appendChild(d);
+      var t=0;
+      function upd(){
+        t++;
+        var w=document.querySelector('.wrap'); var vv=window.visualViewport;
+        var sa=(navigator.standalone===true)||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches);
+        d.textContent='BUILD '+BUILD+'   （タップで閉じる）t='+t+'\n'
+          +'inner='+window.innerWidth+'×'+window.innerHeight+'  client='+document.documentElement.clientWidth+'  visualViewport='+(vv?Math.round(vv.width):'-')+'  screen='+screen.width+'×'+screen.height+'\n'
+          +'fp-wide='+document.body.classList.contains('fp-wide')+'   .wrap実フォント='+(w?getComputedStyle(w).fontSize:'-')+'   standalone='+(!!sa)+'   向き='+(screen.orientation?screen.orientation.type:String(window.orientation));
+      }
+      upd(); setInterval(upd,400);
+      window.addEventListener('resize',upd); window.addEventListener('orientationchange',upd);
+      if(window.visualViewport){ try{ window.visualViewport.addEventListener('resize',upd); }catch(e){} }
+      d.addEventListener('click',function(){ d.style.display='none'; });
+    }
+    if(document.body) mk(); else document.addEventListener('DOMContentLoaded',mk);
+    window.addEventListener('load',mk);
+  })();
+
   // 入力欄以外での「左スワイプ」でトップ(index.html)へ戻る（全ツール共通）
   (function backSwipe(){
     if(window.__fpBackSwipe) return; window.__fpBackSwipe=true;
