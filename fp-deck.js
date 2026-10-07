@@ -19,11 +19,16 @@
     //   「開いた瞬間はコンパクトなのに、直後に innerWidth が一瞬小さい値を返して“狭い”と誤判定され、
     //   クラスが外れて元の大きいレイアウトに戻る」不具合を防ぐ。iPadは screen.width が常に744px以上＝常にコンパクト。
     //   補助として実ウィンドウ幅(innerWidth/clientWidth/visualViewport)も見る（PCの広いウィンドウ等）。どちらかが700以上なら広い。
+    // ★「コンパクト（fp-wide）を既定でON」にし、“明確に小さい端末（スマホ）”のときだけ外す。
+    //   iPadは screen.width が常に744px以上なので外れる条件に当たらず＝常にコンパクトで固定。
+    //   起動直後に innerWidth が一瞬小さくなっても、外す条件は「screen.width も innerWidth も600未満」の
+    //   両方成立が必要なので、揺れた瞬間値ではコンパクトが外れない（＝一瞬出てすぐ戻る不具合を防ぐ）。
     var __applyWide=function(){ try{ if(window.FP_FLAT===false) return; var b=document.body; if(!b) return;
         var sw=(window.screen&&screen.width)?screen.width:0;
         var iw=Math.max(window.innerWidth||0, (document.documentElement&&document.documentElement.clientWidth)||0);
         if(window.visualViewport&&window.visualViewport.width){ iw=Math.max(iw, Math.round(window.visualViewport.width)); }
-        b.classList.toggle('fp-wide', sw>=700 || iw>=700);
+        var isPhone=(sw>0 && sw<600) && (iw>0 && iw<600);   // スマホだけ true（iPadは常に false）
+        b.classList.toggle('fp-wide', !isPhone);
       }catch(e){} };
     window.__fpApplyWide=__applyWide;
     __applyWide();
@@ -41,7 +46,7 @@
   //   キャッシュ（旧コード）なのか実機だけ幅が違うのかを切り分ける。本番の通常表示には一切出ない。 =====
   (function(){
     try{ if(location.search.indexOf('debug')<0 && !window.FP_DEBUG) return; }catch(e){ return; }
-    var BUILD='v50 screen.width判定 (2026-10-07)';
+    var BUILD='v51 既定ON/スマホのみ解除 (2026-10-07)';
     function mk(){
       if(!document.body || document.getElementById('fpDbg')) return;
       var d=document.createElement('div'); d.id='fpDbg';
