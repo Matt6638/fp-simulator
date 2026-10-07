@@ -15,18 +15,23 @@
     //   起動直後はビューポート幅が確定せず、横1194pxになっても @media の評価が更新されないまま固定され、
     //   「一度縦にして横に戻す（＝回転）」まで反映されないことがあるため。実幅を複数回測り直してクラスを
     //   当てれば、回転しなくても開いた瞬間〜直後にコンパクト化する。
+    // ★主判定は端末の画面幅 screen.width。これは起動直後・URLバー/キーボード・スクロールで揺れないため、
+    //   「開いた瞬間はコンパクトなのに、直後に innerWidth が一瞬小さい値を返して“狭い”と誤判定され、
+    //   クラスが外れて元の大きいレイアウトに戻る」不具合を防ぐ。iPadは screen.width が常に744px以上＝常にコンパクト。
+    //   補助として実ウィンドウ幅(innerWidth/clientWidth/visualViewport)も見る（PCの広いウィンドウ等）。どちらかが700以上なら広い。
     var __applyWide=function(){ try{ if(window.FP_FLAT===false) return; var b=document.body; if(!b) return;
-        var w=Math.max(window.innerWidth||0, (document.documentElement&&document.documentElement.clientWidth)||0);
-        if(window.visualViewport&&window.visualViewport.width){ w=Math.max(w, Math.round(window.visualViewport.width)); }
-        b.classList.toggle('fp-wide', w>=700);
+        var sw=(window.screen&&screen.width)?screen.width:0;
+        var iw=Math.max(window.innerWidth||0, (document.documentElement&&document.documentElement.clientWidth)||0);
+        if(window.visualViewport&&window.visualViewport.width){ iw=Math.max(iw, Math.round(window.visualViewport.width)); }
+        b.classList.toggle('fp-wide', sw>=700 || iw>=700);
       }catch(e){} };
     window.__fpApplyWide=__applyWide;
     __applyWide();
     document.addEventListener('DOMContentLoaded',__applyWide);
-    [0,60,150,300,600,1000,1800].forEach(function(ms){ setTimeout(__applyWide,ms); }); // 起動直後は幅が安定しないので測り直す
-    window.addEventListener('load',function(){ __applyWide(); requestAnimationFrame(__applyWide); setTimeout(__applyWide,120); });
+    [0,200,600].forEach(function(ms){ setTimeout(__applyWide,ms); });
+    window.addEventListener('load',function(){ __applyWide(); requestAnimationFrame(__applyWide); });
     window.addEventListener('resize',__applyWide);
-    window.addEventListener('orientationchange',function(){ __applyWide(); setTimeout(__applyWide,60); setTimeout(__applyWide,300); });
+    window.addEventListener('orientationchange',function(){ __applyWide(); setTimeout(__applyWide,200); });
     window.addEventListener('pageshow',__applyWide);
     document.addEventListener('visibilitychange',function(){ if(!document.hidden) __applyWide(); });
     if(window.visualViewport){ try{ window.visualViewport.addEventListener('resize',__applyWide); }catch(e){} }
@@ -36,7 +41,7 @@
   //   キャッシュ（旧コード）なのか実機だけ幅が違うのかを切り分ける。本番の通常表示には一切出ない。 =====
   (function(){
     try{ if(location.search.indexOf('debug')<0 && !window.FP_DEBUG) return; }catch(e){ return; }
-    var BUILD='v49 fp-wide方式 (2026-10-07)';
+    var BUILD='v50 screen.width判定 (2026-10-07)';
     function mk(){
       if(!document.body || document.getElementById('fpDbg')) return;
       var d=document.createElement('div'); d.id='fpDbg';
