@@ -7,32 +7,6 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>退職金シミュレーター</title>
-<script>
-/* ===== 強制更新ピル（HTMLに直接記述＝ネットワーク優先で必ず最新が届くので、JSやSWが古くても動く）=====
-   キャッシュで古いプログラムが配信され続ける問題を1タップで解消：全キャッシュ削除＋SW解除＋再読込。
-   画面右下に小さく表示。デバッグ用（後で外す）。 */
-(function(){
-  var BUILD='HTML v51 / 2026-10-07';
-  function pill(){
-    if(!document.body||document.getElementById('fpUpd'))return;
-    var w=document.createElement('div');w.id='fpUpd';
-    w.style.cssText='position:fixed;right:9px;bottom:9px;z-index:2147483647;display:flex;gap:6px;align-items:center;background:#0d1730;color:#fff;font:11px/1.2 system-ui,-apple-system,sans-serif;padding:6px 8px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.35);';
-    var s=document.createElement('span');s.textContent=BUILD;s.style.opacity='.75';
-    var b=document.createElement('button');b.textContent='🔄 最新に更新';
-    b.style.cssText='font:12px system-ui;color:#0d1730;background:#fff;border:0;border-radius:999px;padding:6px 11px;font-weight:700;cursor:pointer;';
-    b.onclick=function(){
-      b.textContent='更新中…';
-      var done=function(){try{location.reload(true);}catch(e){location.reload();}};
-      var p=[];
-      try{if(window.caches&&caches.keys)p.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k);}));}));}catch(e){}
-      try{if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)p.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));}));}catch(e){}
-      Promise.all(p).then(done).catch(done);setTimeout(done,1800);
-    };
-    w.appendChild(s);w.appendChild(b);document.body.appendChild(w);
-  }
-  if(document.body)pill();else document.addEventListener('DOMContentLoaded',pill);
-})();
-</script>
 <style>
   :root{
     --ink:#1b2a4a; --ink-soft:#46506a; --paper:#f7f5ef; --surface:#ffffff;
@@ -249,7 +223,7 @@
   .addrow{padding:4px 20px 16px;}
   .addbtn{font:600 12px system-ui,-apple-system,sans-serif;color:var(--brass-deep);background:#fff;border:1px solid var(--brass);border-radius:999px;padding:7px 15px;cursor:pointer;}
   .addbtn:hover{background:#faf3e9;} .addbtn:active{transform:translateY(1px);}
-  .memo-wrap{margin-top:12px;}
+  .memo-wrap{margin-top:12px;padding-bottom:30vh;}  /* 下に十分な余白＝最後の行まで上へスクロールできる（下端で戻る/隠れるのを防止） */
   .memo-head{display:flex;align-items:center;gap:8px;}
   #memoReset{margin-left:auto;font:600 11.5px system-ui;color:#9b3b3b;background:#fff;border:1px solid #e0b4b4;border-radius:999px;padding:6px 13px;cursor:pointer;}
   #memoReset:hover{background:#fbf0f0;}
@@ -380,6 +354,7 @@ function renderNeed(){
   o+=row('住民税',fmtN(r.jumin)+' '+U());
   o+=row('税額合計',fmtN(r.total)+' '+U());
   o+=row('実際の手取り額',fmtN(r.net)+' '+U());
+  o+=row('手取り割合（対退職金）',(gross>0?pct(r.net/gross*100):'0.0')+' ％');
   g('n_out').innerHTML=o;
 }
 function renderSave(){
@@ -509,9 +484,9 @@ function memoStore(){try{localStorage.setItem('taishoku:memo',JSON.stringify(MEM
 function yearsOf(p){var ty=g(p+'_years');var v=ty?String(ty.value||'').trim():'';return v!==''?Math.max(0,intV(p+'_years')):Math.max(0,intV(p+'_ret')-intV(p+'_join'));}
 function snapFor(tab){var U_=U();
   if(tab==='tax'){var gross=num('t_gross');if(gross<=0)return null;var years=yearsOf('t'),yk=g('t_yakuin').checked,r=taishokuTax(gross,years,yk);
-    return {label:'① 税額',cond:fmtN(gross)+U_+'・勤続'+years+'年'+(yk?'・役員':''),result:'手取り '+fmtN(r.net)+U_+' ／ 税 '+fmtN(r.total)+U_};}
+    return {label:'① 税額',cond:fmtN(gross)+U_+'・勤続'+years+'年'+(yk?'・役員':''),result:'手取り '+fmtN(r.net)+U_+'（'+(gross>0?pct(r.net/gross*100):'0.0')+'%）／税 '+fmtN(r.total)+U_};}
   if(tab==='need'){var netT=num('n_net');if(netT<=0)return null;var y=yearsOf('n'),yk2=g('n_yakuin').checked,gr=requiredGross(netT,y,yk2);
-    return {label:'② 逆算',cond:'希望手取り '+fmtN(netT)+U_+'・勤続'+y+'年',result:'必要退職金 '+fmtN(gr)+U_};}
+    return {label:'② 逆算',cond:'希望手取り '+fmtN(netT)+U_+'・勤続'+y+'年',result:'必要退職金 '+fmtN(gr)+U_+'（手取り率 '+(gr>0?pct(netT/gr*100):'0.0')+'%）'};}
   if(tab==='save'){var age=intV('s_age'),ret=intV('s_ret'),join=intV('s_join'),mb=num('s_before'),ma=num('s_after'),stock=num('s_stock');
     if(mb<=0&&ma<=0&&stock<=0)return null;
     var before=salaryTotals(mb,age,ret),after=salaryTotals(ma,age,ret),taishoku=stock*12*Math.max(0,ret-age),tr=taishokuTax(taishoku,Math.max(0,ret-join),true),benefit=(after.net+tr.net)-before.net;
