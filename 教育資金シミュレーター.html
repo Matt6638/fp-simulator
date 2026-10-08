@@ -380,9 +380,9 @@
         <details class="advbox" style="margin-top:10px;">
           <summary>＋ 詳細（下宿の費用・きょうだい同居／奨学金の利率／利回り・開始遅延）</summary>
           <div class="fieldwrap" style="margin-top:6px;">
-            <div class="field ff lodging-f"><label class="lab">家賃(月)<small style="font-weight:400;color:var(--ink-soft);">※下宿・既定8万</small></label><input type="text" inputmode="numeric" class="yen" id="rentM" value="" placeholder="80,000"></div>
-            <div class="field ff lodging-f"><label class="lab">生活費(月)<small style="font-weight:400;color:var(--ink-soft);">※下宿・既定10万</small></label><input type="text" inputmode="numeric" class="yen" id="livingM" value="" placeholder="100,000"></div>
-            <div class="field ff lodging-f"><label class="lab">敷金・礼金等<small style="font-weight:400;color:var(--ink-soft);">※下宿・既定40万(初年度)</small></label><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="400,000"></div>
+            <div class="field ff lodging-f"><label class="lab">家賃(月)<small style="font-weight:400;color:var(--ink-soft);">※下宿・既定8万</small></label><span style="display:inline-flex;align-items:center;gap:5px;"><input type="text" inputmode="numeric" class="yen" id="rentM" value="" placeholder="8" style="width:84px;"><span class="yen-unit" data-fpu="1">万円</span></span></div>
+            <div class="field ff lodging-f"><label class="lab">生活費(月)<small style="font-weight:400;color:var(--ink-soft);">※下宿・既定10万</small></label><span style="display:inline-flex;align-items:center;gap:5px;"><input type="text" inputmode="numeric" class="yen" id="livingM" value="" placeholder="10" style="width:84px;"><span class="yen-unit" data-fpu="1">万円</span></span></div>
+            <div class="field ff lodging-f"><label class="lab">敷金・礼金等<small style="font-weight:400;color:var(--ink-soft);">※下宿・既定40万(初年度)</small></label><span style="display:inline-flex;align-items:center;gap:5px;"><input type="text" inputmode="numeric" class="yen" id="initCost" value="" placeholder="40" style="width:84px;"><span class="yen-unit" data-fpu="1">万円</span></span></div>
             <div class="field ff"><label class="lab">奨学金利率(年%)<small style="font-weight:400;color:var(--ink-soft);">※返還年数・月額はJASSO制度で自動計算。第二種相当=1.9%／第一種は0</small></label><input type="text" inputmode="decimal" id="loanRate" value="" placeholder="1.9" step="0.1"></div>
             <div class="field ff"><label class="lab">利回り(年%)<small style="font-weight:400;color:var(--ink-soft);">※未入力=0%</small></label><input type="text" inputmode="decimal" id="rate" value="" placeholder="0" step="0.1"></div>
           </div>
@@ -815,8 +815,10 @@ function syncLodging(){
     if(w) w.style.display=(isAway&&awaySeenL)?'inline-flex':'none';
     if(isAway) awaySeenL=true;
   });
+  // 既定値は現在の表示単位に合わせる（万円=8/10/40、円=80000/100000/400000）。空のときだけ流し込む。
+  const _lodgeDef=(window.__fpU!=='yen')?{rentM:'8',livingM:'10',initCost:'40'}:{rentM:'80,000',livingM:'100,000',initCost:'400,000'};
   ['rentM','livingM','initCost'].forEach(id=>{ const e=document.getElementById(id); if(!e)return;
-    if(anyAway){ if(String(e.value).trim()==='') e.value=e.placeholder; e.setAttribute('data-fpt','1'); }
+    if(anyAway){ if(String(e.value).trim()==='') e.value=_lodgeDef[id]; e.setAttribute('data-fpt','1'); }
     else { e.removeAttribute('data-fpt'); }
   });
 }
