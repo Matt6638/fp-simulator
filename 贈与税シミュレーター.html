@@ -264,17 +264,22 @@
     </div>
 
     <div class="field">
-      <label class="lab">相続税の限界税率（この資産にかかる税率）</label>
-      <div class="seg" id="c_heirSeg">
-        <button data-v="10" aria-pressed="false">10%</button>
-        <button data-v="15" aria-pressed="true">15%</button>
-        <button data-v="20" aria-pressed="false">20%</button>
-        <button data-v="30" aria-pressed="false">30%</button>
-        <button data-v="40" aria-pressed="false">40%</button>
-        <button data-v="50" aria-pressed="false">50%</button>
-        <button data-v="55" aria-pressed="false">55%</button>
+      <label class="lab">相続財産の総額（課税価格の合計）</label>
+      <div class="inrow"><input type="text" inputmode="numeric" class="yen" id="c_estate" value="" placeholder="0"><span class="yen-unit">円</span></div>
+      <div class="hint">相続税がかかる財産の合計。ここと下の法定相続人から、この資産に乗る<b>限界税率</b>（相続税率）を自動で計算します。</div>
+    </div>
+    <div class="field grid2">
+      <div>
+        <label class="lab">配偶者</label>
+        <div class="seg" id="c_spouseSeg">
+          <button data-v="yes" aria-pressed="true">あり</button>
+          <button data-v="no" aria-pressed="false">なし</button>
+        </div>
       </div>
-      <div class="hint">相続財産全体の課税価格に対応する税率区分（一番上に乗る税率）。「相続税シミュレーター」で確認できます。</div>
+      <div>
+        <label class="lab">子など他の法定相続人</label>
+        <div class="inrow"><input type="text" inputmode="numeric" class="num" id="c_kids" value="" placeholder="2"><span class="yen-unit">人</span></div>
+      </div>
     </div>
   </div>
   <div class="result">
@@ -375,6 +380,30 @@ function calcRekinen(){
   document.getElementById('rekiBrk').innerHTML=brk;
 }
 /* ===== 生前贈与 vs 相続 比較（item6） ===== */
+/* 相続税の速算表：各法定相続人の「法定相続分の取得金額」に対する税率 */
+function souzokuRate(x){
+  if(x<=10000000)return 0.10; if(x<=30000000)return 0.15; if(x<=50000000)return 0.20;
+  if(x<=100000000)return 0.30; if(x<=200000000)return 0.40; if(x<=300000000)return 0.45;
+  if(x<=600000000)return 0.50; return 0.55;
+}
+/* 相続財産総額＋法定相続人から「限界税率」（この資産の最上位部分に乗る相続税率）を算出。
+   課税遺産を法定相続分で按分し、各人の取得分の税率区分を法定相続分で加重平均する（＝相続財産を1円増やしたときの実効限界税率）。*/
+function heirMarginalRate(){
+  var total=numById('c_estate');
+  var hasSpouse=segVal('c_spouseSeg')==='yes';
+  var kids=Math.max(0,Math.round(numById('c_kids')));
+  var heirs=(hasSpouse?1:0)+kids;
+  if(total<=0||heirs<=0) return {rate:0,heirs:heirs,taxable:0,kiso:0,info:'incomplete'};
+  var kiso=30000000+6000000*heirs;
+  var taxable=Math.max(0,total-kiso);
+  if(taxable<=0) return {rate:0,heirs:heirs,taxable:0,kiso:kiso,info:'nontax'};
+  var fracs=[];
+  if(hasSpouse&&kids>0){ fracs.push(0.5); for(var i=0;i<kids;i++)fracs.push(0.5/kids); }
+  else if(hasSpouse){ fracs.push(1); }
+  else { for(var j=0;j<kids;j++)fracs.push(1/kids); }
+  var mr=0; fracs.forEach(function(f){ mr+=f*souzokuRate(f*taxable); });
+  return {rate:mr,heirs:heirs,taxable:taxable,kiso:kiso,info:'ok'};
+}
 function calcCompare(){
   const asset=numById('c_asset');
   const annual=numById('c_annual');
@@ -383,7 +412,8 @@ function calcCompare(){
   const type=segVal('c_typeSeg');
   const growth=(numById('c_growth')||0)/100;
   const futureIn=numById('c_future');
-  const heirRate=(parseInt(segVal('c_heirSeg'),10)||0)/100;
+  const hm=heirMarginalRate();
+  const heirRate=hm.rate;
   // 相続時評価額（実額入力があれば優先）
   const future = futureIn>0 ? futureIn : asset*Math.pow(1+growth,years);
   // 生前贈与で移せる総額（資産を超えては移せない）
@@ -410,7 +440,17 @@ function calcCompare(){
     brk+=`<div class="row"><span>相続時の評価額（値上がり後）</span><span>${yen(future)} 円</span></div>`;
     if(excludedGrowth>0)brk+=`<div class="row"><span>　うち相続財産から外れる値上がり分</span><span>${yen(excludedGrowth)} 円</span></div>`;
     brk+=`<div class="row"><span>相続財産から外れる将来評価額</span><span>${yen(excludedFuture)} 円</span></div>`;
-    brk+=`<div class="row"><span>浮く相続税（×${(heirRate*100).toFixed(0)}%）</span><span>${yen(souzokuSaved)} 円</span></div>`;
+    if(hm.info==='ok'){
+      brk+=`<div class="row"><span>相続財産の総額</span><span>${yen(numById('c_estate'))} 円</span></div>`;
+      brk+=`<div class="row"><span>　基礎控除（3000万＋600万×${hm.heirs}人）</span><span>-${yen(hm.kiso)} 円</span></div>`;
+      brk+=`<div class="row"><span>　課税遺産総額</span><span>${yen(hm.taxable)} 円</span></div>`;
+      brk+=`<div class="row"><span><b>相続の限界税率</b>（総額から自動算出）</span><span><b>${(heirRate*100).toFixed(1)} %</b></span></div>`;
+    }else if(hm.info==='nontax'){
+      brk+=`<div class="row"><span>相続財産が基礎控除以下＝相続税は0</span><span>限界税率 0%</span></div>`;
+    }else{
+      brk+=`<div class="row"><span style="color:var(--loss,#b3402f);">相続財産の総額・法定相続人を入力</span><span>限界税率 —</span></div>`;
+    }
+    brk+=`<div class="row"><span>浮く相続税（×${(heirRate*100).toFixed(1)}%）</span><span>${yen(souzokuSaved)} 円</span></div>`;
     brk+=`<div class="row"><span>贈与税の総額（コスト）</span><span>-${yen(giftTaxTotal)} 円</span></div>`;
     brk+=`<div class="row tot"><span>差引 節税額</span><span>${(netSaving>=0?'':'▲')+yen(Math.abs(netSaving))} 円</span></div>`;
     if(annual>0 && annual<=1100000 && type==='special')brk+=`<div class="row"><span style="color:var(--credit,#1f7a4d);">※110万円以内の贈与は贈与税0円。浮く相続税がまるごと節税に。</span><span></span></div>`;
@@ -508,7 +548,7 @@ document.querySelectorAll('.toggle input').forEach(el=>el.addEventListener('chan
 document.getElementById('addRecip').addEventListener('click',addRecip);
 document.getElementById('recipients').addEventListener('click',function(e){var d=e.target.closest('.recip-del');if(d)delRecip(parseInt(d.dataset.i,10));});
 function bindSeg(id){var g=document.getElementById(id);if(!g)return;g.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;[...g.children].forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));recalc();});}
-bindSeg('eraSeg');bindSeg('c_typeSeg');bindSeg('c_heirSeg');bindSeg('rev_typeSeg');
+bindSeg('eraSeg');bindSeg('c_typeSeg');bindSeg('c_spouseSeg');bindSeg('rev_typeSeg');
 syncAddBtn();
 recalc();
 </script>
@@ -627,7 +667,7 @@ function fpFmt(n){if(n===0)return '0';var r=Math.round(n*10000)/10000;return r.t
 FP.init('gift', recalc);
 </script>
 <script>window.FP_FLAT=1;</script>
-<script src="fp-deck.js?v=51"></script>
+<script src="fp-deck.js?v=52"></script>
 <script src="fp-amount.js?v=5"></script>
 <script src="fp-pwa.js?v=5"></script>
 </body>

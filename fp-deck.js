@@ -40,6 +40,23 @@
     window.addEventListener('pageshow',__applyWide);
     document.addEventListener('visibilitychange',function(){ if(!document.hidden) __applyWide(); });
     if(window.visualViewport){ try{ window.visualViewport.addEventListener('resize',__applyWide); }catch(e){} }
+
+    // 入力↔結果の左右入替対象（入力01/結果02の2パネルgrid）に .fp-flip を付与。
+    // .no が「01」「02」の2枚だけのgridに限定＝贈与(暦年|精算)や貯蓄(4枚)は対象外。
+    var __markFlip=function(){ try{
+      var grids=document.querySelectorAll('.wrap .grid');
+      for(var i=0;i<grids.length;i++){ var g=grids[i]; if(g.__fpFlip) continue; g.__fpFlip=1;
+        var panels=[]; for(var j=0;j<g.children.length;j++){ var c=g.children[j]; if(c.classList&&c.classList.contains('panel')) panels.push(c); }
+        if(panels.length!==2) continue;
+        var n0=panels[0].querySelector('.no'), n1=panels[1].querySelector('.no');
+        var t0=n0?n0.textContent.trim():'', t1=n1?n1.textContent.trim():'';
+        if(/^0*1$/.test(t0) && /^0*2$/.test(t1)) g.classList.add('fp-flip');
+      }
+    }catch(e){} };
+    window.__fpMarkFlip=__markFlip;
+    __markFlip();
+    document.addEventListener('DOMContentLoaded',__markFlip);
+    window.addEventListener('load',__markFlip);
   }
 
   // ===== 画面幅デバッグ（URLに ?debug=1 で有効）：実機で「幅・fp-wide・適用中フォント」を可視化し、
@@ -362,6 +379,10 @@
       +'body.fp-wide .wrap .eyebrow{font-size:9px!important;margin-bottom:2px!important;letter-spacing:.3em!important;}'
       +'body.fp-wide .grid,body.fp-wide .grid2{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(430px,1fr))!important;gap:9px!important;align-items:start!important;}'
       +'body.fp-wide .grid>.panel,body.fp-wide .grid2>.panel,body.fp-wide .grid>section,body.fp-wide .grid2>section{margin:0!important;max-height:none!important;position:static!important;height:auto!important;}'
+      // 入力↔結果の左右入替：入力01/結果02の2パネルgrid(JSが .fp-flip を付与)だけ、入力を右・結果を左に。
+      // 贈与(暦年|精算)・貯蓄(4枚)など「同一配置でない」gridは .fp-flip が付かず対象外。
+      +'body.fp-wide .grid.fp-flip>.panel:first-child{order:2!important;}'
+      +'body.fp-wide .grid.fp-flip>.panel:first-child~.panel{order:1!important;}'
       +'body.fp-wide .panel-head{padding:6px 12px!important;}'
       +'body.fp-wide .panel-head h2{font-size:13px!important;}'
       +'body.fp-wide .panel-body{padding:9px 12px!important;grid-template-columns:repeat(auto-fill,minmax(156px,1fr))!important;}'
