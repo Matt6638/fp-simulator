@@ -127,6 +127,16 @@
   .rcol table.tbl td{padding:4px 6px;font-size:11px;}
   .rcol>div[style*="padding:8px"]{padding-top:2px!important;}
   @media(max-width:760px){.wrap{flex-direction:column;gap:14px;padding-top:14px;}.side{position:static;flex-basis:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px;width:100%;}.side-eyebrow{display:none;}.side-tt{writing-mode:horizontal-tb;text-orientation:mixed;margin:0 6px 0 0;font-size:20px;letter-spacing:.02em;}.side .fpbar{flex-direction:row;flex-wrap:wrap;width:auto;}.side .fpbtn{width:auto;}}
+  /* ★ツールバー(トップ等のコマンド)を全幅で上部・横並びに統一（他ツールと同じ並び）。左サイドレールを廃止。 */
+  .wrap{flex-direction:column!important;gap:9px;}
+  .side{flex:0 0 auto!important;position:static;flex-direction:row!important;flex-wrap:wrap;align-items:center;gap:8px;width:100%;padding-top:0;border-bottom:1px solid var(--rule);padding-bottom:9px;}
+  .side-eyebrow{display:none!important;}
+  .side-tt{writing-mode:horizontal-tb!important;text-orientation:mixed!important;font-size:20px;letter-spacing:.04em;margin:0 10px 0 2px;}
+  .side .fpbar{flex-direction:row!important;flex-wrap:wrap;width:auto!important;gap:7px;margin:0;}
+  .side .fpbtn{width:auto!important;text-align:center;padding:7px 13px;}
+  .side .client-field{width:auto!important;flex-direction:row;align-items:center;gap:6px;padding:4px 9px;}
+  .side .client-field label{text-align:left;}
+  .side .build-stamp{margin:0 0 0 auto!important;padding:0;text-align:right;}
   .back{font-size:12px;color:var(--brass-deep);text-decoration:none;}.back:hover{text-decoration:underline;}
   header{border-bottom:1px solid var(--rule);padding:14px 0 22px;margin-bottom:26px;}
   .eyebrow{font-family:var(--mincho);font-size:12px;letter-spacing:.42em;color:var(--brass-deep);margin:0 0 8px;}
