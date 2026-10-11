@@ -96,6 +96,16 @@
   @media print{ body{background:#fff;} .wrap{display:none!important;} }
   /* iPhone: 入力ズーム防止（16px未満だとフォーカスで自動ズーム） */
   @media(max-width:700px){input[type=text],input[type=number],input[inputmode],input.yen,input.num,select,textarea{font-size:16px!important;}}
+  /* ★ツールバー(トップ等のコマンド)を全幅で上部・横並びに統一（他ツールと同じ）。縦サイドレールを廃止。 */
+  .wrap{flex-direction:column!important;gap:9px;}
+  .side{flex:0 0 auto!important;position:static;flex-direction:row!important;flex-wrap:wrap;align-items:center;gap:8px;width:100%;padding-top:0;border-bottom:1px solid var(--rule);padding-bottom:9px;}
+  .side-eyebrow{display:none!important;}
+  .side-tt{writing-mode:horizontal-tb!important;text-orientation:mixed!important;font-size:20px;letter-spacing:.04em;margin:0 10px 0 2px;}
+  .side .fpbar{flex-direction:row!important;flex-wrap:wrap;width:auto!important;gap:7px;margin:0;}
+  .side .fpbtn{width:auto!important;text-align:center;padding:7px 13px;}
+  .side .client-field{width:auto!important;flex-direction:row;align-items:center;gap:6px;padding:4px 9px;}
+  .side .client-field label{text-align:left;}
+  .side .build-stamp{margin:0 0 0 auto!important;padding:0;text-align:right;}
 </style>
 <script src="config.js"></script>
 <script>if((window.FP_SB_URL||"").indexOf("http")===0)document.documentElement.style.visibility="hidden";</script>
